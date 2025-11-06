@@ -110,7 +110,11 @@ docs = [
     "myst-parser>=2.0.0",
 ]
 
-all = ["kooai[dev,llm,docs]"]
+parsers = [
+    "h5py>=3.9.0",
+]
+
+all = ["kooai[dev,llm,docs,parsers]"]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/kooai"
@@ -220,5 +224,6 @@ module = [
     "pyvista.*",
     "trimesh.*",
     "shapely.*",
+    "h5py.*",
 ]
 ignore_missing_imports = true

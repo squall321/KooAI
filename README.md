@@ -15,7 +15,7 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
 
 ### 핵심 기능
 
-- **📊 다양한 시뮬레이션 형식 지원**: CSV, VTK Legacy ASCII 등
+- **📊 다양한 시뮬레이션 형식 지원**: CSV, VTK Legacy ASCII, VTU (VTK XML), HDF5 등
 - **🔬 고급 결과 분석**: 통계 분석, 극값 탐지, 이상치 감지, 수렴성 분석
 - **📐 3D 기하학 처리**: 메시 분석, 변환, 스무딩, 서브디비전
 - **🚀 REST API**: FastAPI 기반 RESTful API with 자동 문서화
@@ -27,6 +27,8 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
 ### 시뮬레이션 결과 파싱
 - CSV 형식 (스칼라/벡터 필드 자동 인식)
 - VTK Legacy ASCII (POLYDATA, UNSTRUCTURED_GRID)
+- VTU (VTK XML Unstructured Grid)
+- HDF5 (대용량 데이터 형식, 선택적 의존성)
 - 확장 가능한 파서 시스템
 
 ### 데이터 분석
@@ -84,9 +86,26 @@ git clone https://github.com/yourusername/kooai.git
 cd kooai
 ```
 
-2. **의존성 설치**
+2. **기본 설치**
 ```bash
-pip install numpy pandas scipy fastapi uvicorn click rich httpx pytest pytest-cov
+pip install -e .
+```
+
+3. **선택적 의존성 설치**
+
+개발 도구 포함:
+```bash
+pip install -e ".[dev]"
+```
+
+HDF5 파서 지원:
+```bash
+pip install -e ".[parsers]"
+```
+
+모든 의존성 포함:
+```bash
+pip install -e ".[all]"
 ```
 
 ### REST API 실행

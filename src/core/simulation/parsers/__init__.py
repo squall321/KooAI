@@ -3,10 +3,22 @@
 from .base import BaseParser, ParserRegistry
 from .csv_parser import CSVParser
 from .vtk_parser import VTKParser
+from .vtu_parser import VTUParser
+
+# Optional parsers (require additional dependencies)
+try:
+    from .hdf5_parser import HDF5Parser
+    HDF5_AVAILABLE = True
+except ImportError:
+    HDF5Parser = None
+    HDF5_AVAILABLE = False
 
 __all__ = [
     "BaseParser",
     "ParserRegistry",
     "CSVParser",
     "VTKParser",
+    "VTUParser",
+    "HDF5Parser",
+    "HDF5_AVAILABLE",
 ]
