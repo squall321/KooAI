@@ -957,3 +957,352 @@ Phase 3 완료 내용:
 ---
 
 *개발 일지 업데이트: 2025-11-06*
+
+---
+
+## Phase 4: Repository Pattern & Data Access Layer
+
+### ✅ 완료된 작업
+
+#### 1. Repository 인터페이스 정의 (`src/core/repositories/interfaces.py`)
+
+프로토콜(Protocol) 기반으로 Repository 인터페이스를 정의했습니다:
+
+```python
+class ISimulationRepository(Protocol):
+    async def save(self, simulation: SimulationResult) -> UUID
+    async def find_by_id(self, simulation_id: UUID) -> Optional[SimulationResult]
+    async def find_by_criteria(self, criteria: Dict[str, Any], limit: int, offset: int) -> List[SimulationResult]
+    async def update(self, simulation: SimulationResult) -> None
+    async def delete(self, simulation_id: UUID) -> None
+    async def exists(self, simulation_id: UUID) -> bool
+    async def count(self, criteria: Optional[Dict[str, Any]]) -> int
+```
+
+**특징:**
+- Protocol 기반 인터페이스로 덕 타이핑(Duck Typing) 지원
+- 4개의 리포지토리 인터페이스: Simulation, Dataset, Analysis, AIModel
+- CRUD 작업 + 도메인 특화 쿼리 메서드
+
+#### 2. SQLAlchemy 모델 구현 (`src/infrastructure/database/models.py`)
+
+SQLAlchemy 2.0 최신 문법으로 ORM 모델을 구현했습니다:
+
+```python
+class SimulationModel(Base):
+    __tablename__ = "simulations"
+    
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    type: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(Enum(SimulationStatus, native_enum=False), ...)
+    
+    # JSON 필드 (PostgreSQL JSONB, SQLite JSON)
+    parameters: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    meta_data: Mapped[dict] = mapped_column("metadata", JSON, nullable=False, default=dict)
+    tags: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+```
+
+**주요 결정사항:**
+- `Mapped[T]` 타입 힌트 사용 (SQLAlchemy 2.0 스타일)
+- `metadata` 필드명 충돌 회피: `meta_data` 필드 + `mapped_column("metadata", ...)` 매핑
+- 크로스-DB 호환성: `JSON` 타입 사용 (PostgreSQL, SQLite 모두 지원)
+- UUID 기반 Primary Key
+- Enum은 `native_enum=False`로 문자열 기반 저장
+
+#### 3. 데이터베이스 연결 관리 (`src/infrastructure/database/connection.py`)
+
+비동기 데이터베이스 연결을 관리하는 클래스를 구현했습니다:
+
+```python
+class DatabaseConnection:
+    def __init__(self, database_url: str, echo: bool = False, pool_size: int = 20, ...):
+        self.engine: AsyncEngine = create_async_engine(
+            database_url, echo=echo, pool_size=pool_size, ...
+        )
+        self.async_session_factory = async_sessionmaker(...)
+    
+    @asynccontextmanager
+    async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
+        async with self.async_session_factory() as session:
+            try:
+                yield session
+            except Exception:
+                await session.rollback()
+                raise
+
+class InMemoryDatabaseConnection(DatabaseConnection):
+    """테스트용 SQLite in-memory 데이터베이스"""
+    def __init__(self):
+        self.engine = create_async_engine(
+            "sqlite+aiosqlite:///:memory:",
+            poolclass=StaticPool,  # 단일 연결 유지
+            ...
+        )
+```
+
+**주요 특징:**
+- 비동기 컨텍스트 매니저로 세션 자동 관리
+- 자동 롤백 처리
+- 테스트용 in-memory DB는 `StaticPool` 사용 (연결 공유)
+
+#### 4. Repository 구현 (`src/infrastructure/repositories/sql_repository.py`)
+
+4개의 Repository 구체 클래스를 구현했습니다:
+
+```python
+class SimulationRepository:
+    async def save(self, simulation: SimulationResult) -> UUID:
+        db_simulation = SimulationModel(
+            id=simulation.id,
+            name=simulation.name,
+            meta_data=simulation.metadata,  # 도메인 → DB 변환
+            ...
+        )
+        self.session.add(db_simulation)
+        await self.session.flush()
+        return db_simulation.id
+    
+    def _to_domain(self, db_model: SimulationModel) -> SimulationResult:
+        return SimulationResult(
+            id=db_model.id,
+            metadata=db_model.meta_data or {},  # DB → 도메인 변환
+            ...
+        )
+    
+    async def find_by_criteria(self, criteria: Dict[str, Any], ...):
+        stmt = select(SimulationModel)
+        filters = []
+        
+        if "name" in criteria:
+            filters.append(SimulationModel.name.ilike(f"%{criteria['name']}%"))
+        
+        if "tags" in criteria:
+            for tag in criteria["tags"]:
+                # JSON 배열 검색 (PostgreSQL & SQLite 호환)
+                filters.append(SimulationModel.tags.cast(String).contains(f'"{tag}"'))
+        
+        stmt = stmt.where(and_(*filters)).limit(limit).offset(offset)
+        ...
+```
+
+**구현 특징:**
+- 비동기 I/O 전면 사용
+- 도메인 엔티티 ↔ DB 모델 변환 메서드 (`_to_domain`, `_from_domain`)
+- 동적 필터 구성 (criteria 기반 쿼리 빌딩)
+- 페이지네이션 지원
+- JSON 필드 검색 (크로스-DB 호환)
+
+#### 5. Unit of Work 패턴 (`src/infrastructure/uow.py`)
+
+트랜잭션 경계를 명확히 하는 UnitOfWork 구현:
+
+```python
+class UnitOfWork:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self.simulations = SimulationRepository(session)
+        self.datasets = DatasetRepository(session)
+        self.analyses = AnalysisRepository(session)
+        self.ai_models = AIModelRepository(session)
+    
+    async def commit(self) -> None:
+        try:
+            await self.session.commit()
+        except Exception:
+            await self.session.rollback()
+            raise
+    
+    async def rollback(self) -> None:
+        await self.session.rollback()
+```
+
+**활용 방법:**
+```python
+async with db.get_session() as session:
+    uow = UnitOfWork(session)
+    
+    # 여러 Repository 작업을 하나의 트랜잭션으로
+    await uow.simulations.save(simulation)
+    await uow.datasets.save(dataset)
+    
+    # 원자적 커밋
+    await uow.commit()
+```
+
+#### 6. Alembic 마이그레이션 설정
+
+데이터베이스 스키마 버전 관리를 위한 Alembic 설정:
+
+**`alembic/env.py` 수정:**
+- 비동기 마이그레이션 지원
+- 모델 자동 import로 메타데이터 로드
+
+**`alembic.ini` 설정:**
+- SQLite 테스트용: `sqlite+aiosqlite:///./test.db`
+
+**초기 마이그레이션 생성:**
+```bash
+alembic revision --autogenerate -m "Initial schema"
+```
+
+**생성된 테이블:**
+- `simulations`: 시뮬레이션 메타데이터
+- `datasets`: 시뮬레이션 데이터셋
+- `analyses`: 분석 결과
+- `ai_models`: AI 모델 레지스트리
+
+#### 7. 통합 테스트 (`tests/integration/infrastructure/test_repositories.py`)
+
+22개의 통합 테스트 작성 및 **100% 통과**:
+
+**테스트 구조:**
+```python
+@pytest.fixture(scope="function")
+async def db_connection():
+    conn = InMemoryDatabaseConnection()
+    await conn.create_tables()
+    yield conn
+    await conn.close()
+
+@pytest.fixture
+async def session(db_connection):
+    async with db_connection.get_session() as sess:
+        yield sess
+        await sess.rollback()  # 테스트 간 격리
+```
+
+**테스트 케이스:**
+- `TestSimulationRepository` (9 tests): save, find_by_id, update, delete, exists, count, find_by_name/status/type/criteria
+- `TestDatasetRepository` (4 tests): save, update_metadata, find_by_simulation_id, find_by_data_type
+- `TestAnalysisRepository` (4 tests): save, update_status, find_by_status, find_pending
+- `TestAIModelRepository` (5 tests): save, find_by_name, find_by_name_and_version, find_by_type, find_latest
+
+**테스트 결과:**
+```
+22 passed in 2.31s
+```
+
+---
+
+## 🐛 해결한 이슈
+
+### 1. SQLAlchemy `metadata` 예약어 충돌
+
+**문제:** SQLAlchemy의 DeclarativeBase는 `metadata` 속성을 테이블 메타데이터로 사용하므로 필드명으로 사용 불가
+
+**해결:**
+```python
+meta_data: Mapped[dict] = mapped_column("metadata", JSON, ...)
+```
+- Python 필드명: `meta_data`
+- 실제 DB 컬럼명: `metadata`
+
+### 2. PostgreSQL JSONB vs SQLite JSON
+
+**문제:** PostgreSQL 전용 JSONB 타입은 SQLite에서 지원하지 않음
+
+**해결:** 
+- `from sqlalchemy.dialects.postgresql import JSONB, ARRAY` 제거
+- `from sqlalchemy import JSON` 사용
+- SQLite는 JSON1 extension으로 JSON 지원
+- 태그 배열도 JSON으로 저장
+
+### 3. SQLite In-Memory 데이터베이스 연결 격리
+
+**문제:** SQLite `:memory:` 데이터베이스는 연결마다 별도의 DB 인스턴스 생성
+
+**증상:** `create_tables()`로 테이블 생성해도 세션에서 "no such table" 에러
+
+**해결:**
+```python
+# StaticPool 사용으로 단일 연결 유지
+self.engine = create_async_engine(
+    "sqlite+aiosqlite:///:memory:",
+    poolclass=StaticPool,  # <- 핵심!
+    ...
+)
+```
+
+### 4. JSON 배열 태그 검색
+
+**문제:** PostgreSQL의 `ARRAY.contains([tag])`가 SQLite JSON에서 작동하지 않음
+
+**해결:**
+```python
+# 크로스-DB 호환 검색
+SimulationModel.tags.cast(String).contains(f'"{tag}"')
+```
+- JSON 배열을 문자열로 캐스팅 후 substring 검색
+- PostgreSQL과 SQLite 모두에서 작동
+
+### 5. Pytest가 TestDatabaseConnection을 테스트로 인식
+
+**문제:** `TestDatabaseConnection` 클래스명이 pytest 컨벤션(`Test*`)과 겹침
+
+**해결:** `InMemoryDatabaseConnection`으로 리네이밍
+
+---
+
+## 📊 테스트 커버리지
+
+Phase 4 완료 후 전체 커버리지:
+- **전체**: 33% (1288줄 중 867줄 커버)
+- **도메인 계층**: 68% (entities.py)
+- **인프라 계층**: 
+  - models.py: 100%
+  - connection.py: 74%
+  - sql_repository.py: 83%
+
+---
+
+## 💡 학습 내용
+
+### SQLAlchemy 2.0 Modern Style
+
+1. **Mapped 타입 힌트:**
+   ```python
+   # Old
+   id = Column(UUID, primary_key=True)
+   
+   # New
+   id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+   ```
+
+2. **관계 정의:**
+   ```python
+   datasets: Mapped[list["DatasetModel"]] = relationship(
+       "DatasetModel", 
+       back_populates="simulation", 
+       cascade="all, delete-orphan"
+   )
+   ```
+
+3. **비동기 세션:**
+   ```python
+   async with async_sessionmaker() as session:
+       result = await session.execute(select(Model))
+   ```
+
+### Repository Pattern 장점
+
+1. **관심사 분리:** 도메인 로직과 데이터 접근 로직 분리
+2. **테스트 용이성:** Mock Repository로 쉽게 테스트
+3. **DB 독립성:** 구현체 교체 가능 (PostgreSQL → MongoDB)
+
+### Unit of Work Pattern
+
+- 여러 Repository 작업을 하나의 트랜잭션으로 묶음
+- 원자성(Atomicity) 보장
+- 일관된 트랜잭션 관리
+
+---
+
+## 📝 다음 단계 (Phase 5)
+
+- [ ] JSON 스키마 정의 및 검증
+- [ ] Pydantic 모델로 데이터 검증
+- [ ] JSON 파일 읽기/쓰기 서비스
+- [ ] 스키마 버전 관리
+- [ ] JSON 변환 유틸리티
+
