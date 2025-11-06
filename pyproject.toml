@@ -127,7 +127,11 @@ cache = [
     "redis>=5.0.0",
 ]
 
-all = ["kooai[dev,llm,docs,parsers,storage,tasks,cache]"]
+load = [
+    "locust>=2.15.0",
+]
+
+all = ["kooai[dev,llm,docs,parsers,storage,tasks,cache,load]"]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/kooai"
