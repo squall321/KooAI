@@ -2,7 +2,7 @@
  * Simulation detail page
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Box,
@@ -13,12 +13,18 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { useSimulation } from '../api/hooks';
+import { MeshViewer3D } from '../components/visualization/MeshViewer3D';
+import { FieldAnalysisPanel } from '../components/analysis/FieldAnalysisPanel';
+import { ConvergenceAnalysisPanel } from '../components/analysis/ConvergenceAnalysisPanel';
 
 export const SimulationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { data: simulation, isLoading, isError, error } = useSimulation(id!);
+  const [activeTab, setActiveTab] = useState(0);
 
   if (isLoading) {
     return (
@@ -159,20 +165,38 @@ export const SimulationDetailPage: React.FC = () => {
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              <Box
-                sx={{
-                  height: 500,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: 'grey.100',
-                  borderRadius: 1,
-                }}
-              >
-                <Typography variant="body1" color="text.secondary">
-                  3D Viewer - Coming Soon
-                </Typography>
+              <Box sx={{ height: 500, width: '100%' }}>
+                <MeshViewer3D wireframe />
               </Box>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box sx={{ gridColumn: { xs: '1', md: 'span 2' } }}>
+          <Card>
+            <Tabs
+              value={activeTab}
+              onChange={(_, newValue) => setActiveTab(newValue)}
+              sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
+            >
+              <Tab label="Field Analysis" />
+              <Tab label="Convergence Analysis" />
+            </Tabs>
+
+            <CardContent>
+              {activeTab === 0 && (
+                <FieldAnalysisPanel
+                  simulationId={simulation.simulation_id}
+                  fields={simulation.fields}
+                  numTimesteps={simulation.num_timesteps}
+                />
+              )}
+              {activeTab === 1 && (
+                <ConvergenceAnalysisPanel
+                  simulationId={simulation.simulation_id}
+                  fields={simulation.fields}
+                />
+              )}
             </CardContent>
           </Card>
         </Box>
