@@ -13,9 +13,14 @@ from alembic import context
 
 # 프로젝트 모델 임포트
 from src.infrastructure.database.models import Base
+from src.infrastructure.database.config import get_sync_database_url
 
 # Alembic Config 객체
 config = context.config
+
+# 환경 변수로부터 데이터베이스 URL 가져오기
+db_url = get_sync_database_url()
+config.set_main_option("sqlalchemy.url", db_url)
 
 # 로깅 설정
 if config.config_file_name is not None:
