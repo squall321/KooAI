@@ -1,0 +1,29 @@
+apiVersion: v2
+name: kooai
+description: A Helm chart for KooAI Simulation Post-Processing Platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+keywords:
+  - kooai
+  - simulation
+  - post-processing
+  - ai
+  - analysis
+
+home: https://github.com/yourusername/kooai
+sources:
+  - https://github.com/yourusername/kooai
+
+maintainers:
+  - name: KooAI Team
+    email: team@kooai.example.com
+
+icon: https://raw.githubusercontent.com/yourusername/kooai/main/docs/logo.png
+
+dependencies: []
+
+annotations:
+  category: Analytics
+  licenses: MIT

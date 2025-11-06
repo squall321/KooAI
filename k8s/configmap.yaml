@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kooai-config
+  namespace: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: config
+data:
+  # Application
+  KOOAI_ENV: "production"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+
+  # API
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  API_WORKERS: "4"
+
+  # Database
+  DATABASE_HOST: "kooai-postgres"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "kooai"
+  DATABASE_POOL_SIZE: "20"
+  DATABASE_MAX_OVERFLOW: "10"
+
+  # Redis
+  REDIS_HOST: "kooai-redis"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+
+  # Storage
+  STORAGE_TYPE: "local"
+  STORAGE_PATH: "/app/data"
+  MAX_UPLOAD_SIZE: "104857600"  # 100MB
+
+  # CORS
+  CORS_ORIGINS: "*"
+  CORS_CREDENTIALS: "true"
+
+  # Performance
+  CACHE_TTL: "3600"
+  QUERY_TIMEOUT: "30"

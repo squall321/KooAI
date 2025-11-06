@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: namespace
+    environment: production

@@ -1,0 +1,71 @@
+---
+# PostgreSQL Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kooai-postgres-pvc
+  namespace: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard  # Update based on your cluster's storage class
+
+---
+# Redis Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kooai-redis-pvc
+  namespace: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+# API Data Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kooai-api-data-pvc
+  namespace: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: api
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods can mount
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard
+
+---
+# API Logs Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kooai-api-logs-pvc
+  namespace: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: api
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods can write logs
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard

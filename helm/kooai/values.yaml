@@ -1,0 +1,288 @@
+# Default values for kooai
+# This is a YAML-formatted file
+# Declare variables to be passed into your templates
+
+# Global settings
+global:
+  storageClass: "standard"
+
+# Namespace
+namespaceOverride: ""
+
+# API Deployment
+api:
+  replicaCount: 3
+
+  image:
+    repository: ghcr.io/yourusername/kooai
+    pullPolicy: IfNotPresent
+    tag: "latest"
+
+  imagePullSecrets: []
+
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: false
+
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+    annotations: {}
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                    - api
+            topologyKey: kubernetes.io/hostname
+
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  startupProbe:
+    enabled: true
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+
+  persistence:
+    data:
+      enabled: true
+      accessMode: ReadWriteMany
+      size: 20Gi
+      storageClass: ""
+    logs:
+      enabled: true
+      accessMode: ReadWriteMany
+      size: 5Gi
+      storageClass: ""
+
+# PostgreSQL
+postgresql:
+  enabled: true
+
+  image:
+    repository: pgvector/pgvector
+    tag: pg16
+    pullPolicy: IfNotPresent
+
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+    accessMode: ReadWriteOnce
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+  auth:
+    username: kooai
+    password: ""  # Set via --set or external secret
+    database: kooai
+
+  primary:
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Redis
+redis:
+  enabled: true
+
+  image:
+    repository: redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+    accessMode: ReadWriteOnce
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  auth:
+    password: ""  # Set via --set or external secret
+
+  master:
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Ingress
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: kooai.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: kooai-tls
+      hosts:
+        - kooai.example.com
+
+# Configuration
+config:
+  kooaiEnv: production
+  debug: false
+  logLevel: INFO
+  logFormat: json
+  apiWorkers: 4
+  storageType: local
+  storagePath: /app/data
+  maxUploadSize: "104857600"  # 100MB
+  corsOrigins: "*"
+  corsCredentials: true
+  cacheTTL: 3600
+  queryTimeout: 30
+
+# Secrets (use external secret management in production)
+secrets:
+  # Application secret key (generate with: python -c "import secrets; print(secrets.token_urlsafe(64))")
+  secretKey: ""
+
+  # External service API keys (optional)
+  openaiApiKey: ""
+  anthropicApiKey: ""
+
+# Monitoring (Prometheus, Grafana)
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+
+# Network Policy
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Additional environment variables
+extraEnv: []
+  # - name: CUSTOM_VAR
+  #   value: "custom-value"
+
+# Additional volumes
+extraVolumes: []
+  # - name: extra-config
+  #   configMap:
+  #     name: extra-config
+
+# Additional volume mounts
+extraVolumeMounts: []
+  # - name: extra-config
+  #   mountPath: /etc/extra-config
+  #   readOnly: true

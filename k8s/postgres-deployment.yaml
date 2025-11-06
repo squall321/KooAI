@@ -1,0 +1,174 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kooai-postgres
+  namespace: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: "16"
+spec:
+  replicas: 1  # PostgreSQL is typically single-instance
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kooai
+      app.kubernetes.io/component: database
+  strategy:
+    type: Recreate  # Required for databases with persistent storage
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kooai
+        app.kubernetes.io/component: database
+        app.kubernetes.io/version: "16"
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg16
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: kooai-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kooai-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: kooai-config
+                  key: DATABASE_NAME
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: kooai-postgres-pvc
+        - name: init-scripts
+          configMap:
+            name: kooai-postgres-init
+            optional: true
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kooai-postgres
+  namespace: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: database
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: postgres
+      protocol: TCP
+      name: postgres
+  selector:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: database
+
+---
+# ConfigMap for PostgreSQL initialization scripts
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kooai-postgres-init
+  namespace: kooai
+  labels:
+    app.kubernetes.io/name: kooai
+    app.kubernetes.io/component: database
+data:
+  init.sql: |
+    -- KooAI Database Initialization Script
+    -- PostgreSQL 16 with pgvector extension
+
+    -- Enable required extensions
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    -- Create schemas
+    CREATE SCHEMA IF NOT EXISTS kooai;
+
+    -- Set search path
+    SET search_path TO kooai, public;
+
+    -- Create simulation_results table
+    CREATE TABLE IF NOT EXISTS simulation_results (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name VARCHAR(255) NOT NULL,
+        simulation_type VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        metadata JSONB DEFAULT '{}',
+
+        -- Indexes
+        CONSTRAINT simulation_results_name_key UNIQUE (name)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_simulation_results_created_at
+        ON simulation_results(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_simulation_results_type
+        ON simulation_results(simulation_type);
+    CREATE INDEX IF NOT EXISTS idx_simulation_results_metadata
+        ON simulation_results USING gin(metadata);
+
+    -- Create trigger for updated_at
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+
+    CREATE TRIGGER update_simulation_results_updated_at
+        BEFORE UPDATE ON simulation_results
+        FOR EACH ROW
+        EXECUTE FUNCTION update_updated_at_column();
+
+    -- Grant permissions to application user
+    GRANT ALL PRIVILEGES ON SCHEMA kooai TO CURRENT_USER;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA kooai TO CURRENT_USER;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA kooai TO CURRENT_USER;

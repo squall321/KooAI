@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kooai
+
+# Resources to deploy
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  # secrets.yaml should be created from secrets.yaml.template
+  - persistent-volumes.yaml
+  - postgres-deployment.yaml
+  - redis-deployment.yaml
+  - api-deployment.yaml
+  - ingress.yaml
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: kooai
+
+# Common annotations
+commonAnnotations:
+  description: "KooAI Simulation Post-Processing Platform"
+  documentation: "https://github.com/yourusername/kooai"
+
+# Images to use (can be overridden with kustomize edit set image)
+images:
+  - name: ghcr.io/yourusername/kooai
+    newTag: latest
+
+# ConfigMap generator (alternative to manual configmap.yaml)
+# Uncomment if you want to generate ConfigMap from files
+# configMapGenerator:
+#   - name: kooai-config
+#     files:
+#       - config/app.conf
+
+# Secret generator (NOT recommended for production - use sealed secrets or external secret management)
+# secretGenerator:
+#   - name: kooai-secrets
+#     literals:
+#       - POSTGRES_PASSWORD=changeme
+#       - REDIS_PASSWORD=changeme
+#       - SECRET_KEY=changeme
+
+# Patches and overlays
+patchesStrategicMerge: []
+
+# Resource limits
+replicas:
+  - name: kooai-api
+    count: 3
