@@ -2686,3 +2686,788 @@ LLM을 이용한 시뮬레이션 결과 분석 시스템 구축
 
 ### 커버리지: 70-93%
 
+
+
+## Phase 9: 데이터 처리 파이프라인 시스템 (완료 ✅)
+
+### 📅 완료 날짜: 2025-11-06
+
+### 목표
+ETL(Extract, Transform, Load) 패턴 기반 유연한 데이터 처리 파이프라인 구축
+
+---
+
+## ✅ 완료된 작업
+
+### 파일 생성: 9개
+- 파이프라인 코어: 2개 (base.py, parallel.py)
+- 처리 단계: 3개 (extraction, transformation, loading)
+- 테스트: 3개
+- __init__.py: 1개
+
+### 테스트: 40개 (100% 통과)
+- 파이프라인 기본 기능: 14개
+- 처리 단계: 12개  
+- 병렬 처리: 14개
+
+### 커버리지
+- base.py: 91%
+- parallel.py: 100%
+- extraction.py: 72%
+- transformation.py: 69%
+- loading.py: 58%
+
+---
+
+## 📁 파일 구조
+
+```
+src/core/pipeline/
+├── __init__.py                   # 파이프라인 공개 API
+├── base.py                       # 핵심 추상화 (336 lines)
+├── parallel.py                   # 병렬 처리 (242 lines)
+└── stages/
+    ├── __init__.py
+    ├── extraction.py             # 데이터 추출 단계 (163 lines)
+    ├── transformation.py         # 데이터 변환 단계 (266 lines)
+    └── loading.py                # 데이터 저장 단계 (229 lines)
+
+tests/unit/pipeline/
+├── test_pipeline.py              # 파이프라인 테스트 (241 lines)
+├── test_stages.py                # 단계 테스트 (199 lines)
+└── test_parallel.py              # 병렬 처리 테스트 (289 lines)
+```
+
+---
+
+## 🏗️ 핵심 아키텍처
+
+### 1. ProcessingStage (처리 단계)
+
+**기본 인터페이스:**
+```python
+class ProcessingStage(ABC):
+    """처리 단계 추상 클래스"""
+    
+    @abstractmethod
+    async def process(self, data: Any, context: PipelineContext) -> Any:
+        """데이터 처리 (서브클래스에서 구현)"""
+        pass
+    
+    async def execute(self, data: Any, context: PipelineContext) -> StageResult:
+        """실행 (타이밍, 에러 처리 포함)"""
+        started_at = datetime.utcnow()
+        
+        try:
+            result_data = await self.process(data, context)
+            status = StageStatus.COMPLETED
+            error = None
+        except Exception as e:
+            result_data = data
+            status = StageStatus.FAILED
+            error = str(e)
+        
+        completed_at = datetime.utcnow()
+        
+        return StageResult(
+            stage_name=self.name,
+            status=status,
+            data=result_data,
+            error=error,
+            started_at=started_at,
+            completed_at=completed_at,
+        )
+```
+
+**사용 예시:**
+```python
+class DoubleStage(ProcessingStage):
+    """값을 2배로 만드는 단계"""
+    
+    async def process(self, data: Any, context: PipelineContext) -> Any:
+        return data * 2
+```
+
+### 2. Pipeline (파이프라인)
+
+**체인 방식 구성:**
+```python
+pipeline = (
+    Pipeline()
+    .add_stage(FileExtractionStage(file_path))
+    .add_stage(JSONExtractionStage())
+    .add_stage(FilterStage(lambda x: x['value'] > 100))
+    .add_stage(MapStage(lambda x: x['value'] * 2))
+    .add_stage(JSONLoadingStage(output_path))
+)
+
+result = await pipeline.execute(initial_data)
+```
+
+**실행 결과:**
+```python
+@dataclass
+class PipelineResult:
+    pipeline_id: UUID
+    final_data: Any                    # 최종 결과 데이터
+    context: PipelineContext           # 실행 컨텍스트
+    success: bool                      # 성공 여부
+    total_duration_seconds: float      # 총 실행 시간
+    stage_count: int                   # 단계 개수
+```
+
+### 3. PipelineContext (컨텍스트)
+
+**단계 간 데이터 공유:**
+```python
+@dataclass
+class PipelineContext:
+    pipeline_id: UUID
+    metadata: Dict[str, Any]           # 메타데이터
+    stage_results: List[StageResult]   # 단계별 결과
+    created_at: datetime
+    
+    def add_stage_result(self, result: StageResult) -> None:
+        """단계 결과 추가"""
+        
+    def get_last_result(self) -> Optional[StageResult]:
+        """마지막 단계 결과"""
+        
+    def has_failures(self) -> bool:
+        """실패한 단계 확인"""
+```
+
+---
+
+## 🔄 처리 단계 (Stages)
+
+### Extraction Stages (추출)
+
+#### 1. FileExtractionStage
+```python
+# 파일에서 텍스트 추출
+stage = FileExtractionStage(
+    file_path=Path("data/input.txt"),
+    encoding="utf-8"
+)
+
+content = await stage.process(None, context)
+# → "file content as string"
+```
+
+#### 2. JSONExtractionStage
+```python
+# JSON 파싱 및 경로 추출
+stage = JSONExtractionStage(
+    extract_path="data.results"  # JSONPath
+)
+
+json_str = '{"data": {"results": [1, 2, 3]}}'
+result = await stage.process(json_str, context)
+# → [1, 2, 3]
+```
+
+#### 3. DatabaseExtractionStage
+```python
+# 데이터베이스 쿼리
+stage = DatabaseExtractionStage(
+    repository=my_repository,
+    query_params={"filter": "active"}
+)
+
+data = await stage.process(None, context)
+```
+
+### Transformation Stages (변환)
+
+#### 1. FilterStage
+```python
+# 데이터 필터링
+stage = FilterStage(lambda x: x > 10)
+
+data = [5, 15, 8, 20, 12]
+filtered = await stage.process(data, context)
+# → [15, 20, 12]
+```
+
+#### 2. MapStage
+```python
+# 데이터 매핑
+stage = MapStage(lambda x: x * 2)
+
+data = [1, 2, 3]
+mapped = await stage.process(data, context)
+# → [2, 4, 6]
+```
+
+#### 3. AggregateStage
+```python
+# 데이터 집계
+stage = AggregateStage(sum)
+
+data = [1, 2, 3, 4, 5]
+total = await stage.process(data, context)
+# → 15
+```
+
+#### 4. ValidationStage
+```python
+# 데이터 검증
+stage = ValidationStage(
+    validator=lambda x: x > 0,
+    error_message="Must be positive"
+)
+
+# 통과
+result = await stage.process(5, context)  # → 5
+
+# 실패 (ValueError 발생)
+result = await stage.process(-5, context)
+```
+
+#### 5. NormalizeStage
+```python
+# Min-Max 정규화
+stage = NormalizeStage(min_val=0, max_val=100)
+
+data = [0, 25, 50, 75, 100]
+normalized = await stage.process(data, context)
+# → [0.0, 0.25, 0.5, 0.75, 1.0]
+```
+
+### Loading Stages (저장)
+
+#### 1. FileLoadingStage
+```python
+# 파일에 저장
+stage = FileLoadingStage(
+    file_path=Path("output/result.txt"),
+    mode="w",
+    encoding="utf-8"
+)
+
+data = "Output content"
+result = await stage.process(data, context)
+# → data를 파일에 저장하고 그대로 반환
+```
+
+#### 2. JSONLoadingStage
+```python
+# JSON 파일로 저장
+stage = JSONLoadingStage(
+    file_path=Path("output/data.json"),
+    indent=2
+)
+
+data = {"key": "value", "numbers": [1, 2, 3]}
+result = await stage.process(data, context)
+# → JSON 파일 저장
+```
+
+#### 3. DatabaseLoadingStage
+```python
+# 데이터베이스에 저장
+stage = DatabaseLoadingStage(
+    repository=my_repository,
+    batch_size=100
+)
+
+data = [item1, item2, ...]  # 저장할 항목들
+result = await stage.process(data, context)
+```
+
+#### 4. CacheLoadingStage
+```python
+# Redis 캐시에 저장
+stage = CacheLoadingStage(
+    cache_key="simulation:123:results",
+    cache_client=redis_client,
+    ttl=3600  # 1시간
+)
+
+data = {"results": [1, 2, 3]}
+result = await stage.process(data, context)
+```
+
+---
+
+## ⚡ 병렬 처리
+
+### 1. ParallelPipeline
+
+**여러 데이터를 병렬로 처리:**
+```python
+# 기본 파이프라인 정의
+pipeline = Pipeline().add_stage(DoubleStage())
+
+# 병렬 파이프라인 래핑
+parallel_pipeline = ParallelPipeline(
+    pipeline=pipeline,
+    max_concurrency=10  # 최대 동시 실행 개수
+)
+
+# 병렬 실행
+data_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+results = await parallel_pipeline.execute(data_list)
+
+# 각 결과는 PipelineResult
+for result in results:
+    print(f"Data: {result.final_data}, Success: {result.success}")
+```
+
+### 2. ParallelStage
+
+**리스트 항목을 병렬 처리:**
+```python
+async def process_item(item):
+    # 비동기 처리 로직
+    return item * 2
+
+stage = ParallelStage(
+    process_func=process_item,
+    max_concurrency=5
+)
+
+data = [1, 2, 3, 4, 5]
+results = await stage.process(data, context)
+# → [2, 4, 6, 8, 10]
+```
+
+### 3. BatchStage
+
+**배치 단위 처리:**
+```python
+async def process_batch(batch: List[Any]) -> List[Any]:
+    # 배치를 한 번에 처리 (예: 데이터베이스 bulk insert)
+    return [item * 2 for item in batch]
+
+stage = BatchStage(
+    batch_func=process_batch,
+    batch_size=100
+)
+
+data = list(range(250))  # 250개 항목
+results = await stage.process(data, context)
+# → 3개 배치로 처리 (100, 100, 50)
+```
+
+### 4. ConditionalStage
+
+**조건부 실행:**
+```python
+def is_large(data):
+    return data > 100
+
+true_pipeline = Pipeline().add_stage(DoubleStage())
+false_pipeline = Pipeline().add_stage(TripleStage())
+
+stage = ConditionalStage(
+    condition_func=is_large,
+    true_stage=true_pipeline,   # > 100이면 2배
+    false_stage=false_pipeline  # ≤ 100이면 3배
+)
+
+result1 = await stage.process(150, context)  # → 300
+result2 = await stage.process(50, context)   # → 150
+```
+
+---
+
+## 🔧 고급 기능
+
+### 1. 파이프라인 훅 (Hooks)
+
+```python
+# 훅 함수 정의
+async def before_stage_hook(stage_name: str, data: Any, context: PipelineContext):
+    print(f"Starting stage: {stage_name}")
+
+async def after_stage_hook(result: StageResult, context: PipelineContext):
+    print(f"Completed: {result.stage_name} in {result.get_duration_seconds()}s")
+
+async def error_hook(stage_name: str, error: Exception, context: PipelineContext):
+    print(f"Error in {stage_name}: {error}")
+
+# 훅 등록
+pipeline = Pipeline(
+    before_stage=before_stage_hook,
+    after_stage=after_stage_hook,
+    on_error=error_hook
+)
+```
+
+### 2. 에러 처리
+
+```python
+# 첫 실패에서 중단
+pipeline = Pipeline(stop_on_failure=True)
+
+# 계속 진행 (기본값)
+pipeline = Pipeline(stop_on_failure=False)
+
+# 실행 결과 확인
+result = await pipeline.execute(data)
+
+if result.success:
+    print("All stages succeeded")
+else:
+    print("Some stages failed")
+    
+    # 실패한 단계 확인
+    for stage_result in result.get_stage_results():
+        if stage_result.is_failed():
+            print(f"Failed: {stage_result.stage_name}")
+            print(f"Error: {stage_result.error}")
+```
+
+### 3. 메타데이터 활용
+
+```python
+# 단계에서 메타데이터 기록
+class CustomStage(ProcessingStage):
+    async def process(self, data: Any, context: PipelineContext) -> Any:
+        # 처리 통계 기록
+        context.metadata[f"{self.name}_item_count"] = len(data)
+        context.metadata[f"{self.name}_max_value"] = max(data)
+        
+        # 처리 수행
+        result = [x * 2 for x in data]
+        
+        return result
+
+# 파이프라인 실행 후 메타데이터 확인
+result = await pipeline.execute(data)
+print(result.context.metadata)
+# {
+#   "CustomStage_item_count": 5,
+#   "CustomStage_max_value": 100,
+#   ...
+# }
+```
+
+---
+
+## 📊 실제 사용 예시
+
+### 예시 1: 시뮬레이션 데이터 처리
+
+```python
+# 시뮬레이션 결과를 파일에서 읽어 처리하고 저장
+pipeline = (
+    Pipeline()
+    # 1. 파일에서 JSON 읽기
+    .add_stage(FileExtractionStage(
+        file_path=Path("simulations/sim_001/results.json")
+    ))
+    # 2. JSON 파싱
+    .add_stage(JSONExtractionStage(
+        extract_path="results.data_points"
+    ))
+    # 3. 유효한 데이터만 필터링
+    .add_stage(FilterStage(
+        lambda x: x['valid'] and x['value'] is not None
+    ))
+    # 4. 값 추출
+    .add_stage(MapStage(
+        lambda x: x['value']
+    ))
+    # 5. 정규화
+    .add_stage(NormalizeStage(min_val=0, max_val=1000))
+    # 6. 통계 계산
+    .add_stage(AggregateStage(
+        lambda values: {
+            'mean': sum(values) / len(values),
+            'min': min(values),
+            'max': max(values),
+            'count': len(values)
+        }
+    ))
+    # 7. JSON으로 저장
+    .add_stage(JSONLoadingStage(
+        file_path=Path("output/statistics.json")
+    ))
+)
+
+result = await pipeline.execute(None)
+print(f"Stats: {result.final_data}")
+```
+
+### 예시 2: 배치 데이터 처리
+
+```python
+# 여러 시뮬레이션 결과를 병렬로 처리
+simulation_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# 각 시뮬레이션 처리 파이프라인
+single_sim_pipeline = (
+    Pipeline()
+    .add_stage(DatabaseExtractionStage(
+        repository=sim_repository
+    ))
+    .add_stage(MapStage(lambda x: x['results']))
+    .add_stage(AggregateStage(calculate_summary))
+)
+
+# 병렬 처리
+parallel_pipeline = ParallelPipeline(
+    pipeline=single_sim_pipeline,
+    max_concurrency=5
+)
+
+results = await parallel_pipeline.execute(simulation_ids)
+
+# 모든 결과 통합
+all_summaries = [r.final_data for r in results if r.success]
+```
+
+### 예시 3: 조건부 처리
+
+```python
+# 데이터 크기에 따라 다른 처리 방식 적용
+def is_large_dataset(data):
+    return len(data) > 1000
+
+# 소규모 데이터: 정밀 처리
+small_data_pipeline = (
+    Pipeline()
+    .add_stage(DetailedAnalysisStage())
+    .add_stage(HighPrecisionCalculationStage())
+)
+
+# 대규모 데이터: 샘플링 처리
+large_data_pipeline = (
+    Pipeline()
+    .add_stage(SamplingStage(sample_rate=0.1))
+    .add_stage(ApproximateAnalysisStage())
+)
+
+# 조건부 파이프라인
+pipeline = (
+    Pipeline()
+    .add_stage(FileExtractionStage(file_path))
+    .add_stage(JSONExtractionStage())
+    .add_stage(ConditionalStage(
+        condition_func=is_large_dataset,
+        true_stage=large_data_pipeline,
+        false_stage=small_data_pipeline
+    ))
+    .add_stage(JSONLoadingStage(output_path))
+)
+```
+
+---
+
+## 🎨 디자인 패턴
+
+### 1. Pipeline Pattern (파이프라인 패턴)
+- 데이터 처리를 단계별로 분리
+- 각 단계는 독립적이고 재사용 가능
+- 체인 방식으로 구성
+
+### 2. Template Method Pattern (템플릿 메서드 패턴)
+- `ProcessingStage.execute()`: 실행 흐름 정의
+- `ProcessingStage.process()`: 서브클래스에서 구현
+
+### 3. Strategy Pattern (전략 패턴)
+- 각 단계는 교체 가능한 전략
+- 동일한 인터페이스, 다른 구현
+
+### 4. Decorator Pattern (데코레이터 패턴)
+- 파이프라인에 훅 추가
+- 기능 확장 without 수정
+
+---
+
+## 🚀 성능 고려사항
+
+### 1. 비동기 처리
+- 모든 단계는 `async/await` 기반
+- I/O 바운드 작업에 효율적
+- 병렬 실행 시 성능 극대화
+
+### 2. 동시성 제어
+```python
+# Semaphore로 동시 실행 개수 제한
+semaphore = asyncio.Semaphore(max_concurrency)
+
+async def process_item(item):
+    async with semaphore:
+        return await heavy_processing(item)
+```
+
+### 3. 메모리 관리
+- 배치 처리로 대용량 데이터 분할
+- 스트리밍 방식 고려 (향후 구현)
+
+### 4. 에러 복구
+- 각 단계의 독립적 에러 처리
+- `stop_on_failure` 옵션으로 제어
+- 실패한 단계만 재실행 가능 (향후 구현)
+
+---
+
+## 🎯 테스트 전략
+
+### 단위 테스트 (40개)
+
+**1. Pipeline 기본 기능 (14개)**
+- 빈 파이프라인
+- 단일/다중 단계
+- 체인 구성
+- 에러 처리
+- 컨텍스트 공유
+- 결과 직렬화
+
+**2. Processing Stages (12개)**
+- FileExtractionStage: 파일 읽기
+- JSONExtractionStage: JSON 파싱, 경로 추출
+- FilterStage: 리스트/단일 항목 필터링
+- MapStage: 리스트/단일 항목 매핑
+- AggregateStage: 집계
+- ValidationStage: 검증 통과/실패
+- FileLoadingStage: 파일 쓰기
+- JSONLoadingStage: JSON 저장
+
+**3. Parallel Processing (14개)**
+- ParallelPipeline: 병렬 실행, 동시성 제한
+- ParallelStage: 병렬 처리, 타입 체크
+- BatchStage: 배치 처리, 크기 조절
+- ConditionalStage: True/False 경로, 람다 조건
+
+### 테스트 커버리지
+```
+src/core/pipeline/base.py         91%
+src/core/pipeline/parallel.py     100%
+src/core/pipeline/stages/*.py     58-72%
+```
+
+---
+
+## 🔍 배운 점
+
+### 1. 파이프라인 추상화의 장점
+- **재사용성**: 단계를 조합해 다양한 파이프라인 구성
+- **가독성**: 데이터 흐름이 명확
+- **테스트**: 각 단계를 독립적으로 테스트
+- **유지보수**: 단계 수정이 전체 시스템에 영향 최소화
+
+### 2. 비동기 프로그래밍
+- `asyncio.Semaphore`로 동시성 제어
+- `asyncio.gather`로 병렬 실행
+- 예외 처리: `return_exceptions` 옵션
+
+### 3. 컨텍스트 패턴
+- 단계 간 메타데이터 공유
+- 실행 통계 수집
+- 디버깅 정보 축적
+
+### 4. 에러 처리 전략
+- 단계별 독립적 에러 처리
+- 선택적 중단 (`stop_on_failure`)
+- 에러 정보를 `StageResult`에 저장
+
+---
+
+## 📝 다음 단계 (Phase 10)
+
+- [ ] 플러그인 시스템
+  - [ ] 플러그인 인터페이스 정의
+  - [ ] 동적 로딩 메커니즘
+  - [ ] 플러그인 레지스트리
+  - [ ] 의존성 관리
+  - [ ] 설정 시스템
+- [ ] 커스텀 Processing Stage 플러그인
+- [ ] 커스텀 Model Adapter 플러그인
+- [ ] 플러그인 샌드박싱 (보안)
+- [ ] 플러그인 버전 관리
+
+---
+
+## 💡 아키텍처 다이어그램
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Application                          │
+│  (파이프라인 구성 및 실행)                                │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+        ┌────────────────────────────┐
+        │       Pipeline             │
+        │  - add_stage()             │
+        │  - execute()               │
+        │  - hooks                   │
+        └────────┬───────────────────┘
+                 │
+                 │ 단계 실행
+                 │
+                 ▼
+    ┌───────────────────────────────────┐
+    │     ProcessingStage (ABC)         │
+    │  - process()                      │
+    │  - execute()                      │
+    └─────┬─────────────────────────────┘
+          │
+          │ 상속
+          │
+    ┌─────┴─────────────────┬───────────────────┐
+    │                       │                   │
+    ▼                       ▼                   ▼
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│  Extraction  │    │Transformation│    │   Loading    │
+│              │    │              │    │              │
+│ - File       │    │ - Filter     │    │ - File       │
+│ - JSON       │    │ - Map        │    │ - JSON       │
+│ - Database   │    │ - Aggregate  │    │ - Database   │
+│              │    │ - Validate   │    │ - Cache      │
+│              │    │ - Normalize  │    │              │
+└──────────────┘    └──────────────┘    └──────────────┘
+
+병렬 처리:
+┌────────────────────────────────────────────────────┐
+│           ParallelPipeline                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐         │
+│  │Pipeline 1│  │Pipeline 2│  │Pipeline 3│  ...    │
+│  └──────────┘  └──────────┘  └──────────┘         │
+│  Semaphore (max_concurrency)                       │
+└────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────┐
+│             ParallelStage                          │
+│  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐          │
+│  │Item 1│  │Item 2│  │Item 3│  │Item 4│  ...     │
+│  └──────┘  └──────┘  └──────┘  └──────┘          │
+│  asyncio.gather()                                  │
+└────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────┐
+│              BatchStage                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────┐   │
+│  │  Batch 1    │  │  Batch 2    │  │ Batch 3 │   │
+│  │ [1...100]   │  │ [101...200] │  │[201...] │   │
+│  └─────────────┘  └─────────────┘  └─────────┘   │
+│  순차 또는 병렬 처리                               │
+└────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────┐
+│          ConditionalStage                          │
+│                                                    │
+│       Condition?                                   │
+│      /         \                                   │
+│    True       False                                │
+│     │           │                                  │
+│     ▼           ▼                                  │
+│  Pipeline1  Pipeline2                              │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📈 통계
+
+- **총 코드 라인**: ~1,236 lines
+- **테스트 라인**: ~729 lines
+- **테스트 커버리지**: 58-100%
+- **테스트 개수**: 40개
+- **테스트 성공률**: 100%
+
