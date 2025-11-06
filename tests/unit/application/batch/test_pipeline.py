@@ -143,7 +143,11 @@ def test_analyze_stage():
     sim_data = {"fields": {"temperature": [1, 2, 3]}}
     result = stage.process(sim_data)
 
-    assert result["field"] == "temperature"
+    # AnalyzeStage should return the simulation data with analysis results added
+    assert "analysis_results" in result
+    assert "temperature" in result["analysis_results"]
+    assert result["analysis_results"]["temperature"]["field"] == "temperature"
+    assert result["analysis_results"]["temperature"]["mean"] == 42.0
 
 
 def test_export_stage():

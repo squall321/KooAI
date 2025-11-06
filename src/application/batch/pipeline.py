@@ -100,11 +100,19 @@ class AnalyzeStage(PipelineStage):
     def process(self, simulation_data: Any) -> Any:
         """Analyze simulation"""
         analysis_result = self.analyzer_func(simulation_data, self.field_name)
-        simulation_data.analysis_results = getattr(
-            simulation_data, 'analysis_results', {}
-        )
-        simulation_data.analysis_results[self.field_name] = analysis_result
-        return simulation_data
+
+        # Handle both dict and object
+        if isinstance(simulation_data, dict):
+            if 'analysis_results' not in simulation_data:
+                simulation_data['analysis_results'] = {}
+            simulation_data['analysis_results'][self.field_name] = analysis_result
+            return simulation_data
+        else:
+            simulation_data.analysis_results = getattr(
+                simulation_data, 'analysis_results', {}
+            )
+            simulation_data.analysis_results[self.field_name] = analysis_result
+            return simulation_data
 
 
 class ValidateStage(PipelineStage):

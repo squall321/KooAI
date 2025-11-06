@@ -206,9 +206,9 @@ class MultiFormatExporter:
         """Custom JSON serializer for NumPy types"""
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        elif isinstance(obj, (np.int_, np.intc, np.intp, np.int8, np.int16, np.int32, np.int64)):
+        elif isinstance(obj, np.integer):
             return int(obj)
-        elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
+        elif isinstance(obj, np.floating):
             return float(obj)
         elif isinstance(obj, np.bool_):
             return bool(obj)
