@@ -75,7 +75,8 @@ log/
 
 # Data
 data/
-storage/
+/storage/
+/data/storage/
 models/
 checkpoints/
 experiments/

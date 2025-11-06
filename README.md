@@ -18,6 +18,7 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
 - **📊 다양한 시뮬레이션 형식 지원**: CSV, VTK Legacy ASCII, VTU (VTK XML), HDF5 등
 - **🔬 고급 결과 분석**: 통계 분석, 극값 탐지, 이상치 감지, 수렴성 분석
 - **📐 3D 기하학 처리**: 메시 분석, 변환, 스무딩, 서브디비전
+- **💾 파일 스토리지 통합**: 로컬 파일 시스템, S3, MinIO 지원 (GCS, Azure 계획)
 - **🚀 REST API**: FastAPI 기반 RESTful API with 자동 문서화
 - **💻 CLI 도구**: Click + Rich 기반 명령줄 인터페이스
 - **🏗️ Clean Architecture**: 계층 분리, 의존성 역전, 테스트 가능한 설계
@@ -47,6 +48,16 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
 - Laplacian smoothing
 - Loop subdivision
 - 메시 단순화 (decimation)
+
+### 파일 스토리지
+- **로컬 파일 시스템**: 개발/테스트용 로컬 스토리지
+- **AWS S3**: 프로덕션 클라우드 스토리지
+- **MinIO**: S3 호환 자체 호스팅 스토리지
+- **Presigned URL**: 안전한 임시 URL 생성
+- **멀티파트 업로드**: 대용량 파일 최적화
+- **메타데이터 관리**: 커스텀 파일 메타데이터
+- **배치 작업**: 다중 파일 업로드/삭제
+- **자동 정리**: 오래된 파일 자동 삭제
 
 ## 🏗️ 아키텍처
 
@@ -101,6 +112,11 @@ pip install -e ".[dev]"
 HDF5 파서 지원:
 ```bash
 pip install -e ".[parsers]"
+```
+
+S3/MinIO 스토리지 지원:
+```bash
+pip install -e ".[storage]"
 ```
 
 모든 의존성 포함:

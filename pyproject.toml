@@ -114,7 +114,12 @@ parsers = [
     "h5py>=3.9.0",
 ]
 
-all = ["kooai[dev,llm,docs,parsers]"]
+storage = [
+    "aioboto3>=12.0.0",
+    "types-aiobotocore[s3]>=2.9.0",
+]
+
+all = ["kooai[dev,llm,docs,parsers,storage]"]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/kooai"
@@ -225,5 +230,7 @@ module = [
     "trimesh.*",
     "shapely.*",
     "h5py.*",
+    "aioboto3.*",
+    "types_aiobotocore_s3.*",
 ]
 ignore_missing_imports = true
