@@ -1680,3 +1680,984 @@ def validate_time_steps(cls, v, info):
 - [ ] 모델 체크포인트 관리
 - [ ] TensorBoard 로깅
 
+
+---
+
+## Phase 6: VAE 모델 아키텍처 설계
+
+### ✅ 완료된 작업
+
+#### 1. VAE 모델 구조 (`src/core/ai_models/vae/model.py`)
+
+**3계층 아키텍처:**
+
+**a) ContourEncoder**
+```python
+class ContourEncoder(nn.Module):
+    - input_dim: 2D/3D 좌표
+    - hidden_dims: [64, 128, 256, 512]
+    - latent_dim: 잠재 공간 차원
+    - 출력: mu (평균), logvar (로그 분산), z (잠재 벡터)
+```
+
+**특징:**
+- BatchNorm + ReLU + Dropout
+- 포인트별 인코딩 → 평균 풀링
+- Reparameterization trick: z = μ + σ * ε
+
+**b) ContourDecoder**
+```python
+class ContourDecoder(nn.Module):
+    - latent_dim → hidden_dims → output (num_points, 2)
+    - 잠재 벡터에서 전체 컨투어 재구성
+```
+
+**c) ContourVAE (통합 모델)**
+```python
+model = ContourVAE(
+    input_dim=2,
+    latent_dim=32,
+    encoder_hidden_dims=[64, 128, 256, 512],
+    decoder_hidden_dims=[512, 256, 128, 64],
+    num_points=100,
+)
+
+# 순전파
+recon, mu, logvar, z = model(x)
+
+# 인코딩만
+z = model.encode(x)
+
+# 디코딩만
+recon = model.decode(z)
+
+# 샘플 생성
+samples = model.sample(num_samples=10, device=device)
+```
+
+#### 2. VAE 손실 함수 (`VAELoss`)
+
+**Total Loss = Reconstruction Loss + β * KL Divergence**
+
+**a) 재구성 손실**
+- **MSE**: Mean Squared Error
+- **Chamfer Distance**: 포인트 집합 간 거리
+  ```python
+  loss_fn = VAELoss(recon_loss_type="chamfer", beta=1.0)
+  ```
+
+**b) KL Divergence**
+```python
+KL(q(z|x) || p(z)) = -0.5 * Σ(1 + log(σ²) - μ² - σ²)
+```
+
+**c) Beta 스케줄링**
+- **Linear warmup**: 0 → β over 10k steps
+- **Cyclical annealing**: 주기적으로 0 → β 반복
+```python
+loss_fn = VAELoss(beta=1.0, beta_schedule="linear")
+```
+
+#### 3. 데이터 전처리 파이프라인 (`preprocessing.py`)
+
+**a) ContourNormalizer**
+
+컨투어 정규화 (중심 정렬 + 스케일링):
+
+```python
+normalizer = ContourNormalizer(
+    center=True,
+    scale=True,
+    scale_method="max",  # "max", "std", "bbox"
+)
+
+# 학습
+normalized = normalizer.fit_transform(contours)
+
+# 역변환
+original = normalizer.inverse_transform(normalized)
+```
+
+**스케일 방법:**
+- **max**: 최대값 기준 [-1, 1]
+- **std**: 표준편차 기준
+- **bbox**: 바운딩 박스 대각선 길이 기준
+
+**b) ContourSampler**
+
+가변 길이 컨투어 → 고정 포인트 수:
+
+```python
+sampler = ContourSampler()
+
+# 균등 간격 샘플링 (누적 거리 기반)
+sampled = sampler.uniform_sample(contour, num_points=100, closed=True)
+
+# 랜덤 샘플링
+sampled = sampler.random_sample(contour, num_points=100, replace=False)
+```
+
+**c) ContourAugmentor**
+
+데이터 증강 6가지:
+
+```python
+augmentor = ContourAugmentor()
+
+# 회전
+rotated = augmentor.rotate(contour, angle=np.pi/4)
+
+# 스케일링
+scaled = augmentor.scale(contour, scale_factor=1.2)
+
+# 평행 이동
+translated = augmentor.translate(contour, offset=[10, 20])
+
+# 노이즈 추가
+noisy = augmentor.add_noise(contour, noise_level=0.01, noise_type="gaussian")
+
+# 반전
+flipped = augmentor.flip(contour, axis=0)  # x축 반전
+
+# 랜덤 증강 (조합)
+augmented = augmentor.random_augment(
+    contour,
+    rotation_range=(-π/6, π/6),
+    scale_range=(0.8, 1.2),
+    noise_level=0.01,
+    flip_prob=0.5,
+)
+```
+
+**d) ContourDataset (PyTorch Dataset)**
+
+```python
+dataset = ContourDataset(
+    contours,
+    num_points=100,
+    normalize=True,
+    augment=True,
+    augment_params={
+        "rotation_range": (-np.pi/6, np.pi/6),
+        "scale_range": (0.8, 1.2),
+        "noise_level": 0.01,
+    }
+)
+
+loader = DataLoader(dataset, batch_size=32, shuffle=True)
+```
+
+#### 4. VAE Trainer (`trainer.py`)
+
+**학습 루프 완전 자동화:**
+
+```python
+# Trainer 생성
+trainer = create_trainer(
+    model=model,
+    learning_rate=1e-3,
+    weight_decay=1e-5,
+    device=device,
+    checkpoint_dir=Path("checkpoints"),
+    log_dir=Path("runs"),
+    recon_loss_type="mse",
+    beta=1.0,
+    beta_schedule="linear",
+)
+
+# 학습
+history = trainer.train(
+    train_loader=train_loader,
+    val_loader=val_loader,
+    num_epochs=100,
+    save_every=10,
+    early_stopping_patience=20,
+)
+```
+
+**주요 기능:**
+
+**a) 학습 관리**
+- 에폭별 학습/검증
+- 프로그레스 바 (tqdm)
+- Early stopping
+- 학습 히스토리 저장
+
+**b) 체크포인트 관리**
+```python
+# 자동 저장
+- best.pth: 최고 성능 모델
+- last.pth: 마지막 모델
+- epoch_N.pth: 주기적 저장 (save_every)
+
+# 체크포인트 로드
+trainer.load_checkpoint(Path("checkpoints/best.pth"))
+```
+
+**체크포인트 구조:**
+```python
+{
+    "epoch": 현재 에폭,
+    "global_step": 전체 step,
+    "model_state_dict": 모델 가중치,
+    "optimizer_state_dict": 옵티마이저 상태,
+    "best_val_loss": 최고 검증 손실,
+    "history": 학습 히스토리,
+    "model_config": 모델 설정,
+}
+```
+
+**c) TensorBoard 로깅**
+
+자동 로깅:
+- train/loss, train/recon_loss, train/kl_loss, train/beta
+- val/loss, val/recon_loss, val/kl_loss
+- samples/generated (생성된 컨투어 시각화)
+
+```bash
+# TensorBoard 실행
+tensorboard --logdir runs/
+```
+
+**d) 샘플 생성 및 로깅**
+```python
+# 샘플 생성
+samples = trainer.generate_samples(num_samples=10)
+
+# 시각화 로깅
+trainer.log_samples(epoch=50, num_samples=8)
+```
+
+#### 5. 테스트 (`tests/unit/ai_models/vae/`)
+
+**작성된 테스트:**
+
+**a) test_model.py**
+- ContourEncoder 순전파 (4 tests)
+- ContourDecoder 순전파 (1 test)
+- ContourVAE 전체 (7 tests)
+- VAELoss 손실 계산 (5 tests)
+- 통합 테스트 (2 tests)
+
+**b) test_preprocessing.py**
+- ContourNormalizer (4 tests)
+- ContourSampler (3 tests)
+- ContourAugmentor (6 tests)
+- ContourDataset (3 tests)
+- 통합 테스트 (1 test)
+
+**총 34개 테스트 작성 완료**
+
+---
+
+## 🎯 주요 기능 하이라이트
+
+### 1. 유연한 VAE 아키텍처
+
+**설정 가능한 파라미터:**
+- 입력 차원 (2D/3D)
+- 잠재 공간 차원
+- 은닉층 구조
+- 드롭아웃 비율
+
+**예시:**
+```python
+# 작은 모델 (빠른 학습)
+model_small = ContourVAE(latent_dim=16, encoder_hidden_dims=[32, 64])
+
+# 큰 모델 (높은 정확도)
+model_large = ContourVAE(latent_dim=128, encoder_hidden_dims=[128, 256, 512, 1024])
+```
+
+### 2. 고급 손실 함수
+
+**Chamfer Distance:**
+- 포인트 집합 간 거리 측정
+- 컨투어 재구성에 적합
+- MSE보다 형상 보존에 유리
+
+**Beta 스케줄링:**
+- KL collapse 방지
+- 학습 초기: 재구성 집중 (β ≈ 0)
+- 학습 후반: 잠재 공간 정규화 (β ≈ 1)
+
+### 3. 강력한 데이터 증강
+
+**6가지 증강 기법:**
+1. 회전 (Rotation)
+2. 스케일링 (Scaling)
+3. 평행 이동 (Translation)
+4. 노이즈 추가 (Gaussian/Uniform)
+5. 반전 (Flip)
+6. 랜덤 조합
+
+**효과:**
+- 과적합 방지
+- 일반화 성능 향상
+- 적은 데이터로도 학습 가능
+
+### 4. 완전 자동화된 학습
+
+**원클릭 학습:**
+```python
+history = trainer.train(
+    train_loader,
+    val_loader,
+    num_epochs=100,
+    early_stopping_patience=20,
+)
+```
+
+**포함 기능:**
+- ✅ 자동 체크포인트 저장
+- ✅ TensorBoard 로깅
+- ✅ Early stopping
+- ✅ 프로그레스 바
+- ✅ 학습 히스토리
+- ✅ Best 모델 추적
+
+---
+
+## 🔬 VAE 작동 원리
+
+### 1. Reparameterization Trick
+
+**문제:** 샘플링은 미분 불가능
+**해결:** z = μ + σ * ε (ε ~ N(0, 1))
+
+```python
+def reparameterize(mu, logvar):
+    std = torch.exp(0.5 * logvar)
+    eps = torch.randn_like(std)
+    return mu + eps * std
+```
+
+### 2. 잠재 공간 (Latent Space)
+
+**역할:**
+- 컨투어의 압축된 표현
+- 의미 있는 특징 학습
+- 보간 및 생성 가능
+
+**예시:**
+```
+원본 컨투어: (100, 2) = 200 차원
+→ 인코딩 → 
+잠재 벡터: (32,) = 32 차원 (87.5% 압축)
+→ 디코딩 →
+재구성 컨투어: (100, 2) = 200 차원
+```
+
+### 3. KL Divergence의 의미
+
+**정규화 역할:**
+- 잠재 공간을 표준 정규분포로 유도
+- 연속적이고 부드러운 잠재 공간 형성
+- 새로운 샘플 생성 가능
+
+---
+
+## 💡 학습 내용
+
+### 1. PyTorch 모범 사례
+
+**Module 구조화:**
+- `nn.Module` 상속
+- `forward()` 메서드 정의
+- `state_dict()` 저장/로드
+
+**BatchNorm 배치:**
+- Conv/Linear → BatchNorm → Activation → Dropout
+
+### 2. VAE vs AE
+
+**Autoencoder (AE):**
+- 결정적 인코딩 (Deterministic)
+- 재구성만 최적화
+- 잠재 공간 불연속
+
+**Variational Autoencoder (VAE):**
+- 확률적 인코딩 (Stochastic)
+- 재구성 + 정규화
+- 잠재 공간 연속 → 생성 가능
+
+### 3. 데이터 증강의 중요성
+
+**학습 데이터 부족 문제:**
+- 실제 시뮬레이션 데이터는 제한적
+- 증강으로 가상 데이터 생성
+- 다양한 변형에 robust
+
+---
+
+## Phase 7: AI 모델 레지스트리 및 관리 시스템 (완료 ✅)
+
+### 📅 완료 날짜: 2025-11-06
+
+### 목표
+
+외부 AI 모델 통합, 버전 관리, 다양한 프레임워크 지원을 위한 모델 레지스트리 시스템 구축
+
+---
+
+## ✅ 완료된 작업
+
+### 1. 모델 어댑터 패턴 구현
+
+**파일:** `src/core/ai_models/adapters/base.py`
+
+다양한 AI 프레임워크를 통합하기 위한 어댑터 패턴을 구현했습니다.
+
+#### 핵심 인터페이스:
+
+```python
+class IModelAdapter(Protocol):
+    """모델 어댑터 인터페이스"""
+    def load(self, config: ModelConfig) -> None: ...
+    def predict(self, input_data: Any, **kwargs) -> InferenceResult: ...
+    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]: ...
+    def get_model_info(self) -> Dict[str, Any]: ...
+    def unload(self) -> None: ...
+
+class BaseModelAdapter(ABC):
+    """어댑터 기본 구현"""
+    # 공통 기능 제공
+    - 모델 로드 상태 관리
+    - 기본 배치 추론
+    - 언로드 기능
+```
+
+#### 주요 데이터 클래스:
+
+```python
+@dataclass
+class ModelConfig:
+    """모델 설정"""
+    framework: ModelFramework
+    model_path: Path
+    device: str = "cpu"
+    batch_size: int = 1
+    precision: str = "fp32"
+    config: Dict[str, Any]
+
+@dataclass
+class InferenceResult:
+    """추론 결과"""
+    output: Any
+    metadata: Dict[str, Any]
+    inference_time_ms: Optional[float]
+```
+
+#### ModelAdapterFactory:
+
+```python
+class ModelAdapterFactory:
+    """어댑터 팩토리"""
+    _adapters: Dict[ModelFramework, type[BaseModelAdapter]]
+
+    @classmethod
+    def register(cls, framework, adapter_class): ...
+
+    @classmethod
+    def create(cls, framework) -> BaseModelAdapter: ...
+```
+
+---
+
+### 2. PyTorch 어댑터 구현
+
+**파일:** `src/core/ai_models/adapters/pytorch.py`
+
+PyTorch 모델을 로드하고 추론하는 어댑터를 구현했습니다.
+
+#### 주요 기능:
+
+```python
+class PyTorchAdapter(BaseModelAdapter):
+    def load(self, config: ModelConfig):
+        """PyTorch 체크포인트 로드"""
+        - .pt, .pth 파일 지원
+        - state_dict 및 전체 checkpoint 지원
+        - 디바이스 자동 설정 (CPU/CUDA)
+        - 평가 모드 자동 전환
+
+    def predict(self, input_data, **kwargs):
+        """추론 수행"""
+        - Tensor, numpy, list 입력 지원
+        - gradient 계산 비활성화
+        - 추론 시간 측정
+        - numpy 변환 옵션
+
+    def batch_predict(self, input_data_list, **kwargs):
+        """최적화된 배치 추론"""
+        - 배치 크기 자동 조정
+        - 효율적인 메모리 사용
+```
+
+#### 사용 예시:
+
+```python
+from src.core.ai_models.adapters.pytorch import PyTorchAdapter
+
+config = ModelConfig(
+    framework=ModelFramework.PYTORCH,
+    model_path=Path("model.pth"),
+    device="cuda",
+)
+
+adapter = PyTorchAdapter()
+adapter.load(config)
+
+result = adapter.predict(input_data)
+print(f"Output: {result.output}")
+print(f"Inference time: {result.inference_time_ms}ms")
+```
+
+---
+
+### 3. Hugging Face 어댑터 구현
+
+**파일:** `src/core/ai_models/adapters/huggingface.py`
+
+Hugging Face Transformers 모델을 지원하는 어댑터를 구현했습니다.
+
+#### 주요 기능:
+
+```python
+class HuggingFaceAdapter(BaseModelAdapter):
+    def load(self, config: ModelConfig):
+        """Transformers 모델 로드"""
+        - AutoModel, AutoModelForSequenceClassification 등 지원
+        - 토크나이저 자동 로드
+        - 다양한 태스크 지원 (classification, generation, etc.)
+
+    def predict(self, input_data, **kwargs):
+        """추론 수행"""
+        - 문자열, 문자열 리스트, dict 입력 지원
+        - 자동 토크나이징
+        - logits, hidden_states 출력
+
+    def generate(self, input_text, **kwargs):
+        """텍스트 생성 (LLM)"""
+        - max_new_tokens, temperature, top_p 지원
+        - 샘플링 설정
+```
+
+#### 지원하는 모델 타입:
+
+- AutoModel (특징 추출)
+- AutoModelForSequenceClassification (분류)
+- AutoModelForCausalLM (생성)
+- AutoModelForMaskedLM (마스크 언어 모델)
+
+---
+
+### 4. ONNX 어댑터 구현
+
+**파일:** `src/core/ai_models/adapters/onnx.py`
+
+ONNX Runtime을 사용하여 ONNX 모델을 지원합니다.
+
+#### 주요 기능:
+
+```python
+class ONNXAdapter(BaseModelAdapter):
+    def load(self, config: ModelConfig):
+        """ONNX 모델 로드"""
+        - .onnx 파일 지원
+        - Execution providers 설정 (CPU, CUDA)
+        - Session options 설정
+        - 입력/출력 이름 자동 추출
+
+    def predict(self, input_data, **kwargs):
+        """추론 수행"""
+        - numpy array, dict, list 입력 지원
+        - 다중 입력/출력 지원
+        - 출력 이름 선택 가능
+```
+
+#### Execution Providers:
+
+- CPUExecutionProvider
+- CUDAExecutionProvider (GPU)
+- TensorrtExecutionProvider (고성능)
+
+---
+
+### 5. AI 모델 레지스트리 구현
+
+**파일:** `src/core/ai_models/registry.py`
+
+모델을 등록하고 관리하는 중앙 레지스트리를 구현했습니다.
+
+#### ModelMetadata:
+
+```python
+class ModelMetadata:
+    """모델 메타데이터"""
+    id: UUID
+    name: str
+    version: str
+    framework: ModelFramework
+    model_path: Path
+    model_type: str
+    description: Optional[str]
+    tags: List[str]
+    registered_at: datetime
+    last_used_at: Optional[datetime]
+    usage_count: int
+
+    def to_dict() -> Dict[str, Any]: ...
+    def from_dict(data: Dict) -> ModelMetadata: ...
+```
+
+#### AIModelRegistry:
+
+```python
+class AIModelRegistry:
+    """AI 모델 레지스트리"""
+
+    def register(self, name, version, framework, model_path, ...) -> ModelMetadata:
+        """모델 등록"""
+        - 중복 검사
+        - overwrite 옵션
+        - 메타데이터 생성
+        - 영속성 (JSON 저장)
+
+    def unregister(self, name, version) -> None:
+        """모델 등록 해제"""
+
+    def load(self, name, version="latest", device="cpu") -> BaseModelAdapter:
+        """모델 로드"""
+        - 최신 버전 자동 선택
+        - 어댑터 자동 생성
+        - 캐싱 (재사용)
+        - 사용 통계 추적
+
+    def list_models(self, framework=None, tags=None) -> List[ModelMetadata]:
+        """모델 목록 조회"""
+        - 프레임워크 필터링
+        - 태그 필터링
+
+    def list_versions(self, name) -> List[str]:
+        """버전 목록 조회 (최신순)"""
+```
+
+#### 사용 예시:
+
+```python
+from src.core.ai_models import AIModelRegistry, ModelFramework
+
+# 레지스트리 생성
+registry = AIModelRegistry()
+
+# 모델 등록
+registry.register(
+    name="contour_vae",
+    version="1.0.0",
+    framework=ModelFramework.PYTORCH,
+    model_path=Path("models/vae.pth"),
+    model_type="vae",
+    tags=["production", "contour"],
+    description="Production VAE for contour compression"
+)
+
+# 모델 로드
+adapter = registry.load("contour_vae", version="latest", device="cuda")
+
+# 추론
+result = adapter.predict(contour_data)
+
+# 모델 목록
+models = registry.list_models(framework=ModelFramework.PYTORCH)
+for model in models:
+    print(f"{model.name}:{model.version} - {model.description}")
+```
+
+---
+
+### 6. 모델 저장소 인프라 구현
+
+**파일:** `src/infrastructure/model_storage.py`
+
+모델 파일을 저장하고 관리하는 저장소 시스템을 구현했습니다.
+
+#### StorageConfig:
+
+```python
+@dataclass
+class StorageConfig:
+    """저장소 설정"""
+    backend: StorageBackend
+    base_path: Path
+    enable_checksum: bool = True
+    enable_compression: bool = False
+    git_lfs_enabled: bool = False
+    git_lfs_patterns: list = ["*.pth", "*.onnx", "*.bin"]
+```
+
+#### ModelStorage:
+
+```python
+class ModelStorage:
+    """모델 저장소"""
+
+    def save(self, model_file, model_name, version, metadata) -> Path:
+        """모델 저장"""
+        - 파일 복사
+        - SHA256 체크섬 생성
+        - 메타데이터 JSON 저장
+        - Git LFS 추적 (선택적)
+        - 디렉토리 구조: base_path/model_name/version/
+
+    def load(self, model_name, version, filename) -> Path:
+        """모델 로드"""
+        - 경로 반환
+        - 체크섬 검증
+
+    def delete(self, model_name, version) -> None:
+        """모델 삭제"""
+
+    def exists(self, model_name, version, filename) -> bool:
+        """존재 확인"""
+
+    def get_metadata(self, model_name, version) -> Dict:
+        """메타데이터 조회"""
+
+    def list_versions(self, model_name) -> List[str]:
+        """버전 목록"""
+
+    def get_size(self, model_name, version) -> int:
+        """모델 크기 (바이트)"""
+```
+
+#### Git LFS 지원:
+
+```python
+class ModelStorage:
+    def _init_git_lfs(self):
+        """Git LFS 초기화"""
+        - git lfs install
+        - git lfs track 설정
+        - .gitattributes 생성
+
+    def _track_with_git_lfs(self, file_path):
+        """파일을 Git LFS로 추적"""
+        - 대용량 모델 파일 관리
+        - 버전 관리 효율화
+```
+
+#### 사용 예시:
+
+```python
+from src.infrastructure.model_storage import ModelStorageFactory
+
+# 로컬 저장소
+storage = ModelStorageFactory.create_local_storage(
+    base_path=Path("/models"),
+    enable_checksum=True
+)
+
+# 모델 저장
+storage.save(
+    model_file=Path("trained_model.pth"),
+    model_name="vae",
+    version="1.0.0",
+    metadata={
+        "framework": "pytorch",
+        "parameters": 1000000,
+        "accuracy": 0.95
+    }
+)
+
+# 모델 로드
+model_path = storage.load("vae", "1.0.0", "trained_model.pth")
+
+# Git LFS 저장소
+git_storage = ModelStorageFactory.create_git_lfs_storage(
+    base_path=Path("/models_lfs")
+)
+```
+
+---
+
+### 7. 테스트 작성 및 실행
+
+**테스트 파일:**
+- `tests/unit/ai_models/registry/test_registry.py` (17 tests)
+- `tests/unit/ai_models/test_adapters.py` (10 tests)
+- `tests/unit/infrastructure/test_model_storage.py` (15 tests)
+
+**총 42 테스트, 100% 통과 ✅**
+
+#### Registry 테스트:
+
+```python
+- test_register_model
+- test_register_duplicate_raises_error
+- test_register_with_overwrite
+- test_unregister_model
+- test_get_metadata
+- test_get_metadata_latest_version
+- test_list_models
+- test_list_models_with_framework_filter
+- test_list_models_with_tags_filter
+- test_list_versions
+- test_registry_persistence
+```
+
+#### Adapter 테스트:
+
+```python
+- test_create_model_config
+- test_config_validates_path_exists
+- test_create_inference_result
+- test_get_output
+- test_get_metadata
+- test_list_frameworks
+- test_framework_values
+- test_inference_mode_values
+```
+
+#### Storage 테스트:
+
+```python
+- test_save_model
+- test_save_with_metadata
+- test_save_creates_checksum
+- test_load_model
+- test_delete_model
+- test_exists
+- test_list_versions
+- test_get_size
+```
+
+---
+
+## 📊 Phase 7 통계
+
+- **파일 생성:** 11개
+  - 어댑터: 4개 (base, pytorch, huggingface, onnx)
+  - 레지스트리: 1개
+  - 저장소: 1개
+  - 테스트: 3개
+  - __init__.py: 2개
+
+- **코드 라인:** ~2,400 라인
+  - 어댑터: ~900 라인
+  - 레지스트리: ~380 라인
+  - 저장소: ~350 라인
+  - 테스트: ~770 라인
+
+- **테스트 커버리지:**
+  - registry.py: 72%
+  - base.py: 79%
+  - model_storage.py: 84%
+  - 전체: 42 테스트 통과
+
+---
+
+## 💡 핵심 학습 내용
+
+### 1. 어댑터 패턴의 강력함
+
+**문제:**
+- PyTorch, TensorFlow, HuggingFace, ONNX 등 다양한 프레임워크
+- 각 프레임워크마다 다른 API
+- 통일된 인터페이스 필요
+
+**해결:**
+```python
+# 통일된 인터페이스
+adapter = ModelAdapterFactory.create(framework)
+adapter.load(config)
+result = adapter.predict(input_data)
+
+# 프레임워크 변경 시
+# 코드 수정 없이 config만 변경
+```
+
+### 2. Registry 패턴
+
+**중앙 집중식 관리:**
+- 모든 모델을 한 곳에서 관리
+- 버전 관리
+- 사용 통계
+- 자동 캐싱
+
+### 3. Git LFS 활용
+
+**대용량 파일 관리:**
+- 모델 파일은 수백 MB ~ GB
+- Git은 대용량 파일에 비효율적
+- Git LFS로 효율적 버전 관리
+
+### 4. 체크섬 검증
+
+**데이터 무결성:**
+- SHA256 해시로 파일 검증
+- 손상된 파일 감지
+- 다운로드 무결성 보장
+
+---
+
+## 🎯 아키텍처 다이어그램
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Application Layer                     │
+│  (모델 로드, 추론 요청)                                  │
+└────────────────────┬────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────┐
+│              AIModelRegistry                             │
+│  - register()                                            │
+│  - load() → BaseModelAdapter                             │
+│  - list_models()                                         │
+│  - list_versions()                                       │
+└────────┬───────────────────────────────┬────────────────┘
+         │                               │
+         │ 메타데이터                     │ 어댑터 생성
+         │                               │
+         ▼                               ▼
+┌──────────────────┐         ┌───────────────────────────┐
+│  ModelStorage    │         │ ModelAdapterFactory       │
+│  - save()        │         │  - create()               │
+│  - load()        │         └──────────┬────────────────┘
+│  - checksum      │                    │
+│  - Git LFS       │                    │ 팩토리 생성
+└──────────────────┘                    │
+                                        ▼
+                     ┌──────────────────────────────────────┐
+                     │      BaseModelAdapter                │
+                     │  - load(config)                      │
+                     │  - predict(input) → InferenceResult  │
+                     │  - batch_predict()                   │
+                     │  - get_model_info()                  │
+                     └──────────┬───────────────────────────┘
+                                │
+                ┌───────────────┼───────────────┐
+                │               │               │
+                ▼               ▼               ▼
+        ┌──────────────┐ ┌────────────┐ ┌───────────┐
+        │  PyTorch     │ │ HuggingFace│ │   ONNX    │
+        │  Adapter     │ │  Adapter   │ │  Adapter  │
+        └──────────────┘ └────────────┘ └───────────┘
+```
+
+---
+
+## 📝 다음 단계 (Phase 8)
+
+- [ ] LLM 클라이언트 추상화
+- [ ] 프롬프트 템플릿 시스템 (Jinja2)
+- [ ] Few-shot 예시 관리
+- [ ] LLM 체인 구성
+  - [ ] 데이터 요약 체인
+  - [ ] 비교 분석 체인
+  - [ ] 인사이트 생성 체인
+- [ ] OpenAI, Anthropic, local LLM 어댑터
+- [ ] 컨텍스트 윈도우 관리
+- [ ] 스트리밍 응답 지원
+
