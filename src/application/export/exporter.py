@@ -46,9 +46,7 @@ class MultiFormatExporter:
         self,
         simulation_data: Any,
         output_path: Path,
-        format: Export
-
-Format = ExportFormat.JSON,
+        format: ExportFormat = ExportFormat.JSON,
         include_metadata: bool = True,
     ) -> None:
         """
