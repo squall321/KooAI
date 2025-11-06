@@ -5081,3 +5081,533 @@ Phase 14에서 구축한 Application Layer를 기반으로:
    - 사용자 가이드
    - 아키텍처 문서
 
+
+---
+
+## Phase 15: REST API (Presentation Layer) (2025-11-06)
+
+### ✅ 완료된 작업
+
+#### 1. Pydantic 스키마 구현
+
+**파일:** `src/presentation/api/schemas/simulation_schemas.py` (351 lines)
+
+FastAPI용 Request/Response 스키마를 정의했습니다:
+
+**주요 스키마:**
+
+```python
+# 업로드
+class UploadSimulationRequest(BaseModel):
+    name: Optional[str]
+    simulation_type: Optional[str]
+    metadata: Optional[Dict]
+
+class UploadSimulationResponse(BaseModel):
+    simulation_id: str
+    name: str
+    simulation_type: str
+    num_vertices: int
+    num_timesteps: int
+    fields: List[str]
+
+# 조회
+class SimulationInfoResponse(BaseModel):
+    simulation_id: str
+    name: str
+    simulation_type: str
+    num_vertices: int
+    num_timesteps: int
+    time_range: tuple
+    fields: List[str]
+    metadata: Dict
+
+# 필드 분석
+class AnalyzeFieldRequest(BaseModel):
+    timestep: int = Field(..., ge=0)
+    field_name: str
+    compute_extremes: bool = False
+    n_extremes: int = Field(10, ge=1, le=100)
+    detect_outliers: bool = False
+    outlier_threshold: float = Field(3.0, gt=0.0)
+    compute_histogram: bool = False
+    histogram_bins: int = Field(50, ge=10, le=200)
+
+class AnalyzeFieldResponse(BaseModel):
+    field_name: str
+    field_type: str
+    statistics: Dict[str, float]
+    extremes: Optional[Dict]
+    outliers: Optional[List[int]]
+    histogram: Optional[Dict]
+
+# 타임스텝 비교
+class CompareTimestepsRequest(BaseModel):
+    timestep1: int = Field(..., ge=0)
+    timestep2: int = Field(..., ge=0)
+    field_name: str
+
+# 수렴성 분석
+class ComputeConvergenceResponse(BaseModel):
+    field_name: str
+    convergence_data: List[ConvergenceDataPoint]
+
+# 공간 분석
+class SpatialAnalysisRequest(BaseModel):
+    timestep: int = Field(..., ge=0)
+    field_name: str
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+
+# 목록 조회
+class ListSimulationsResponse(BaseModel):
+    simulations: List[SimulationSummary]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+# 에러
+class ErrorResponse(BaseModel):
+    error: str
+    message: str
+    detail: Optional[Dict]
+```
+
+모든 스키마에는 Pydantic 검증 규칙과 OpenAPI 예제가 포함되어 있습니다.
+
+#### 2. 의존성 주입 시스템
+
+**파일:** `src/presentation/api/dependencies.py` (38 lines)
+
+FastAPI Depends를 사용한 의존성 주입:
+
+```python
+@lru_cache()
+def get_simulation_repository() -> SimulationResultRepository:
+    """
+    시뮬레이션 리포지토리 의존성
+    
+    싱글톤 패턴으로 리포지토리 인스턴스 제공.
+    """
+    return InMemorySimulationResultRepository()
+
+def get_simulation_service(
+    repository: SimulationResultRepository = Depends(get_simulation_repository),
+) -> SimulationService:
+    """
+    시뮬레이션 서비스 의존성
+    
+    리포지토리를 주입받아 서비스 인스턴스 생성.
+    """
+    return SimulationService(repository)
+```
+
+**특징:**
+- 싱글톤 패턴 (@lru_cache)
+- 의존성 체인 (Repository → Service)
+- 테스트 시 쉬운 모킹
+
+#### 3. 예외 처리 시스템
+
+**파일:** `src/presentation/api/exceptions.py` (74 lines)
+
+Use Case 에러를 HTTP 상태 코드로 변환:
+
+```python
+# 에러 핸들러 매핑
+ValidationError      → 400 Bad Request
+NotFoundError        → 404 Not Found
+AlreadyExistsError   → 409 Conflict
+UseCaseError         → 500 Internal Server Error
+Exception            → 500 Internal Server Error
+
+# 에러 응답 형식
+{
+    "error": "NotFoundError",
+    "message": "Simulation not found: abc123",
+    "detail": null
+}
+
+# 핸들러 등록
+def register_exception_handlers(app):
+    app.add_exception_handler(ValidationError, validation_error_handler)
+    app.add_exception_handler(NotFoundError, not_found_error_handler)
+    app.add_exception_handler(AlreadyExistsError, already_exists_error_handler)
+    app.add_exception_handler(UseCaseError, use_case_error_handler)
+    app.add_exception_handler(Exception, general_exception_handler)
+```
+
+#### 4. API 라우트 구현
+
+**파일:** `src/presentation/api/routes/simulation_routes.py` (348 lines)
+
+8개의 REST API 엔드포인트를 구현했습니다:
+
+**a) POST /api/v1/simulations/upload**
+```python
+@router.post("/upload", status_code=201)
+async def upload_simulation(
+    file: UploadFile = File(...),
+    name: Optional[str] = Form(None),
+    simulation_type: Optional[str] = Form(None),
+    service: SimulationService = Depends(get_simulation_service),
+):
+    """
+    시뮬레이션 파일 업로드
+    
+    지원 포맷: CSV, VTK Legacy ASCII
+    """
+```
+
+**b) GET /api/v1/simulations/{simulation_id}**
+```python
+@router.get("/{simulation_id}")
+async def get_simulation(
+    simulation_id: str,
+    service: SimulationService = Depends(get_simulation_service),
+):
+    """시뮬레이션 정보 조회"""
+```
+
+**c) DELETE /api/v1/simulations/{simulation_id}**
+```python
+@router.delete("/{simulation_id}")
+async def delete_simulation(...):
+    """시뮬레이션 삭제"""
+```
+
+**d) GET /api/v1/simulations/**
+```python
+@router.get("/")
+async def list_simulations(page: int = 1, page_size: int = 20, ...):
+    """시뮬레이션 목록 조회 (페이지네이션)"""
+```
+
+**e) POST /api/v1/simulations/{simulation_id}/analyze**
+```python
+@router.post("/{simulation_id}/analyze")
+async def analyze_field(
+    simulation_id: str,
+    request: AnalyzeFieldRequest,
+    ...
+):
+    """필드 분석 (통계/극값/이상치/히스토그램)"""
+```
+
+**f) POST /api/v1/simulations/{simulation_id}/compare**
+```python
+@router.post("/{simulation_id}/compare")
+async def compare_timesteps(...):
+    """타임스텝 간 비교"""
+```
+
+**g) POST /api/v1/simulations/{simulation_id}/convergence**
+```python
+@router.post("/{simulation_id}/convergence")
+async def compute_convergence(
+    simulation_id: str,
+    field_name: str,
+    ...
+):
+    """수렴성 분석"""
+```
+
+**h) POST /api/v1/simulations/{simulation_id}/spatial**
+```python
+@router.post("/{simulation_id}/spatial")
+async def spatial_analysis(...):
+    """공간 영역 분석"""
+```
+
+#### 5. FastAPI 애플리케이션
+
+**파일:** `src/presentation/api/main.py` (57 lines)
+
+메인 FastAPI 앱 설정:
+
+```python
+app = FastAPI(
+    title="Simulation Post-Processing API",
+    description="AI-powered simulation result analysis and processing",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 예외 핸들러 등록
+register_exception_handlers(app)
+
+# 라우터 등록
+app.include_router(simulation_routes.router, prefix="/api/v1")
+
+# 헬스 체크
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "version": "1.0.0"}
+```
+
+**제공 기능:**
+- 자동 OpenAPI 문서 (/docs, /redoc)
+- CORS 지원
+- 에러 핸들링
+- 헬스 체크 엔드포인트
+
+#### 6. API 테스트
+
+**파일:** `tests/api/test_simulation_api.py` (253 lines, 10 tests)
+
+FastAPI TestClient를 사용한 통합 테스트:
+
+**테스트 클래스:**
+- **TestHealthCheck** (2 tests): 헬스 체크, 루트 엔드포인트
+- **TestSimulationAPI** (6 tests):
+  - test_upload_simulation: CSV 업로드
+  - test_get_simulation: 시뮬레이션 조회
+  - test_get_nonexistent_simulation: 404 에러
+  - test_list_simulations: 목록 조회
+  - test_analyze_field: 필드 분석
+  - test_delete_simulation: 시뮬레이션 삭제
+- **TestConvergenceAPI** (1 test): 수렴성 분석 (단일 타임스텝)
+- **TestSpatialAnalysisAPI** (1 test): 공간 분석
+
+**테스트 결과:**
+```
+10 passed in 4.47s
+
+Coverage:
+- simulation_routes.py: 93%
+- simulation_schemas.py: 100%
+- main.py: 100%
+- dependencies.py: 100%
+- exceptions.py: 79%
+```
+
+**테스트 예시:**
+```python
+def test_upload_simulation(self, sample_csv_content):
+    """시뮬레이션 업로드"""
+    with open(csv_path, "rb") as f:
+        response = client.post(
+            "/api/v1/simulations/upload",
+            files={"file": ("test.csv", f, "text/csv")},
+            data={"name": "Test Simulation"},
+        )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert "simulation_id" in data
+    assert data["name"] == "Test Simulation"
+    assert data["num_vertices"] == 3
+    assert "temperature" in data["fields"]
+```
+
+### 🏗️ 아키텍처
+
+#### REST API 구조
+
+```
+src/presentation/api/
+├── main.py                      # FastAPI 앱
+├── dependencies.py              # 의존성 주입
+├── exceptions.py                # 예외 처리
+├── routes/
+│   ├── __init__.py
+│   └── simulation_routes.py    # 시뮬레이션 엔드포인트
+└── schemas/
+    ├── __init__.py
+    └── simulation_schemas.py   # Pydantic 스키마
+```
+
+#### 요청 흐름
+
+```
+HTTP Request
+    ↓
+FastAPI Router (simulation_routes.py)
+    ↓
+Dependency Injection (dependencies.py)
+    ↓
+Application Service (SimulationService)
+    ↓
+Use Cases (UploadSimulationUseCase 등)
+    ↓
+Core Domain (SimulationResult, Parsers, Analysis)
+    ↓
+Repository (InMemorySimulationResultRepository)
+    ↓
+HTTP Response (Pydantic Schema)
+```
+
+#### 에러 처리 흐름
+
+```
+Use Case Error
+    ↓
+Exception Handler (exceptions.py)
+    ↓
+HTTP Error Response
+    - ValidationError → 400
+    - NotFoundError → 404
+    - AlreadyExistsError → 409
+    - UseCaseError → 500
+```
+
+### 📊 통계
+
+- **총 코드 라인:** ~868 lines
+  - simulation_schemas.py: 351 lines
+  - simulation_routes.py: 348 lines
+  - exceptions.py: 74 lines
+  - dependencies.py: 38 lines
+  - main.py: 57 lines
+  
+- **테스트:** 10 tests (100% pass)
+- **테스트 코드:** 253 lines
+- **API 커버리지:** 93%
+
+### 🎯 주요 기능
+
+#### 1. 자동 문서화
+FastAPI의 자동 OpenAPI 문서 생성:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+#### 2. 파일 업로드
+멀티파트 폼 데이터로 시뮬레이션 파일 업로드
+
+#### 3. RESTful API
+표준 HTTP 메서드 사용:
+- GET: 조회
+- POST: 생성, 분석 작업
+- DELETE: 삭제
+
+#### 4. 페이지네이션
+목록 조회 시 페이지 기반 페이지네이션 지원
+
+#### 5. 에러 처리
+일관된 에러 응답 형식
+
+#### 6. 의존성 주입
+FastAPI Depends를 사용한 깔끔한 DI
+
+### 📈 API 엔드포인트 목록
+
+| 메서드 | 엔드포인트 | 설명 | 상태 코드 |
+|--------|-----------|------|----------|
+| GET | `/health` | 헬스 체크 | 200 |
+| GET | `/` | API 루트 | 200 |
+| POST | `/api/v1/simulations/upload` | 시뮬레이션 업로드 | 201 |
+| GET | `/api/v1/simulations/{id}` | 시뮬레이션 조회 | 200/404 |
+| DELETE | `/api/v1/simulations/{id}` | 시뮬레이션 삭제 | 200/404 |
+| GET | `/api/v1/simulations/` | 시뮬레이션 목록 | 200 |
+| POST | `/api/v1/simulations/{id}/analyze` | 필드 분석 | 200/404 |
+| POST | `/api/v1/simulations/{id}/compare` | 타임스텝 비교 | 200/404 |
+| POST | `/api/v1/simulations/{id}/convergence` | 수렴성 분석 | 200/404 |
+| POST | `/api/v1/simulations/{id}/spatial` | 공간 분석 | 200/404 |
+
+### 🔧 사용 예시
+
+#### API 서버 실행
+
+```bash
+# 개발 모드
+uvicorn src.presentation.api.main:app --reload
+
+# 프로덕션 모드
+uvicorn src.presentation.api.main:app --host 0.0.0.0 --port 8000
+```
+
+#### cURL 예시
+
+**1. 시뮬레이션 업로드**
+```bash
+curl -X POST http://localhost:8000/api/v1/simulations/upload \
+  -F "file=@simulation.csv" \
+  -F "name=My Simulation"
+```
+
+**2. 시뮬레이션 조회**
+```bash
+curl http://localhost:8000/api/v1/simulations/{simulation_id}
+```
+
+**3. 필드 분석**
+```bash
+curl -X POST http://localhost:8000/api/v1/simulations/{simulation_id}/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "timestep": 0,
+    "field_name": "temperature",
+    "compute_extremes": true,
+    "detect_outliers": true
+  }'
+```
+
+**4. 목록 조회**
+```bash
+curl http://localhost:8000/api/v1/simulations/?page=1&page_size=20
+```
+
+#### Python 클라이언트 예시
+
+```python
+import requests
+
+# 업로드
+with open("simulation.csv", "rb") as f:
+    response = requests.post(
+        "http://localhost:8000/api/v1/simulations/upload",
+        files={"file": f},
+        data={"name": "My Simulation"},
+    )
+    
+simulation_id = response.json()["simulation_id"]
+
+# 필드 분석
+analysis = requests.post(
+    f"http://localhost:8000/api/v1/simulations/{simulation_id}/analyze",
+    json={
+        "timestep": 0,
+        "field_name": "temperature",
+        "compute_extremes": True,
+        "n_extremes": 10,
+    },
+).json()
+
+print(f"Temperature range: {analysis['statistics']['min']} - {analysis['statistics']['max']}")
+```
+
+### 🎯 다음 단계 (Phase 16 예정)
+
+Phase 15에서 구축한 REST API를 기반으로:
+
+1. **CLI 인터페이스**
+   - Click 기반 명령줄 도구
+   - 진행상황 표시 (rich/tqdm)
+   - 결과 테이블 출력
+
+2. **데이터베이스 통합**
+   - PostgreSQL Repository 구현
+   - 영구 저장소
+   - 데이터베이스 마이그레이션
+
+3. **인증/인가**
+   - JWT 기반 인증
+   - API 키 관리
+   - 권한 관리
+
+4. **성능 최적화**
+   - 비동기 처리
+   - 캐싱 (Redis)
+   - 백그라운드 작업 (Celery)
+
