@@ -4262,3 +4262,352 @@ rotation = MeshTransform.rotation_matrix_axis_angle(axis, np.pi / 4)
 - **테스트**: 18개 (100% 통과)
 
 Phase 11 (Transfer Learning) 완료 후 진행
+
+---
+
+## Phase 13: 시뮬레이션 결과 파싱 및 분석 (2025-11-06)
+
+### ✅ 완료된 작업
+
+#### 1. 시뮬레이션 결과 도메인 모델 구현
+
+**파일:** `src/core/simulation/models.py` (296 lines)
+
+시뮬레이션 결과를 표현하는 도메인 모델을 구현했습니다:
+
+```python
+# 필드 타입 및 위치
+class FieldType(Enum):
+    SCALAR = "scalar"  # 스칼라 필드 (온도, 압력 등)
+    VECTOR = "vector"  # 벡터 필드 (속도, 힘 등)
+    TENSOR = "tensor"  # 텐서 필드 (응력, 변형률 등)
+
+class DataLocation(Enum):
+    NODE = "node"      # 노드/꼭짓점 데이터
+    CELL = "cell"      # 셀/요소 데이터
+    POINT = "point"    # 포인트 데이터
+
+# 필드 데이터 컨테이너
+@dataclass
+class FieldData:
+    name: str
+    field_type: FieldType
+    location: DataLocation
+    data: np.ndarray
+    unit: Optional[str] = None
+    
+    def get_min(self) -> float
+    def get_max(self) -> float
+    def get_mean(self) -> float
+    def get_std(self) -> float
+
+# 메시 데이터
+@dataclass
+class MeshData:
+    vertices: np.ndarray  # N x 3
+    cells: Optional[np.ndarray] = None
+    faces: Optional[np.ndarray] = None
+    
+    @property
+    def num_vertices(self) -> int
+    def get_bounds(self) -> tuple[np.ndarray, np.ndarray]
+
+# 타임스텝 데이터
+@dataclass
+class TimeStepData:
+    time: float
+    step: int
+    fields: Dict[str, FieldData]
+    
+    def add_field(self, field: FieldData)
+    def get_field(self, name: str) -> Optional[FieldData]
+    def has_field(self, name: str) -> bool
+
+# 시뮬레이션 결과
+@dataclass
+class SimulationResult:
+    name: str
+    simulation_type: str  # "CFD", "FEA", "Particle" 등
+    mesh: MeshData
+    timesteps: List[TimeStepData]
+    
+    def add_timestep(self, timestep: TimeStepData)
+    def get_timestep(self, step: int) -> Optional[TimeStepData]
+    def list_all_fields(self) -> List[str]
+    def get_field_over_time(self, field_name: str) -> List[tuple[float, FieldData]]
+```
+
+#### 2. 파서 시스템 구현
+
+**a) 기본 파서 인터페이스** (`src/core/simulation/parsers/base.py`)
+
+```python
+class BaseParser(ABC):
+    @abstractmethod
+    def can_parse(self, file_path: Path) -> bool:
+        """파일 파싱 가능 여부"""
+        
+    @abstractmethod
+    def parse(self, file_path: Path, **options) -> SimulationResult:
+        """파일 파싱"""
+        
+    @abstractmethod
+    def get_supported_extensions(self) -> List[str]:
+        """지원 파일 확장자"""
+
+class ParserRegistry:
+    """파서 레지스트리 - 파일 타입에 따라 자동 선택"""
+    
+    def register(self, parser: BaseParser)
+    def get_parser(self, file_path: Path) -> Optional[BaseParser]
+    def parse(self, file_path: Path, **options) -> SimulationResult
+```
+
+**b) CSV 파서** (`src/core/simulation/parsers/csv_parser.py` - 259 lines)
+
+CSV 형식의 시뮬레이션 결과를 파싱합니다:
+
+```python
+class CSVParser(BaseParser):
+    def parse(self, file_path: Path, delimiter: str = ",") -> SimulationResult:
+        # CSV 형식:
+        # x, y, z, field1, field2_x, field2_y, field2_z
+        
+        # 1. 좌표 추출 (x, y, z)
+        # 2. 벡터 필드 인식 (name_x, name_y, name_z 패턴)
+        # 3. 스칼라 필드 추출
+        # 4. SimulationResult 생성
+```
+
+**주요 기능:**
+- 좌표 컬럼 자동 인식 (x/X/coord_x 등)
+- 벡터 필드 자동 감지 (field_x, field_y, field_z 패턴)
+- 스칼라 필드 자동 추출
+- 다양한 구분자 지원
+
+**c) VTK 파서** (`src/core/simulation/parsers/vtk_parser.py` - 369 lines)
+
+VTK Legacy ASCII 형식을 파싱합니다:
+
+```python
+class VTKParser(BaseParser):
+    """
+    지원 데이터셋:
+    - POLYDATA
+    - UNSTRUCTURED_GRID
+    - STRUCTURED_POINTS (예정)
+    - STRUCTURED_GRID (예정)
+    
+    지원 필드:
+    - SCALARS
+    - VECTORS
+    - TENSORS (예정)
+    """
+    
+    def parse(self, file_path: Path, time: float = 0.0, step: int = 0) -> SimulationResult:
+        # 1. VTK 헤더 파싱
+        # 2. 데이터셋 타입 확인 및 파싱
+        # 3. 필드 데이터 파싱
+        # 4. SimulationResult 생성
+```
+
+**파싱 흐름:**
+1. 헤더 검증 (버전, 형식)
+2. POLYDATA/UNSTRUCTURED_GRID 파싱
+3. POINTS (꼭짓점) 읽기
+4. POLYGONS/CELLS 읽기
+5. SCALARS/VECTORS 필드 읽기
+
+#### 3. 결과 분석 시스템 구현
+
+**파일:** `src/core/simulation/analysis.py` (414 lines)
+
+**a) ResultAnalyzer - 통계 분석 및 메트릭 계산**
+
+```python
+class ResultAnalyzer:
+    @staticmethod
+    def compute_field_statistics(field: FieldData) -> Dict[str, float]:
+        """필드 통계: min, max, mean, std, percentiles"""
+        return {
+            "min": ...,
+            "max": ...,
+            "mean": ...,
+            "std": ...,
+            "median": ...,
+            "percentile_25": ...,
+            "percentile_75": ...,
+            "percentile_95": ...,
+            "percentile_99": ...,
+        }
+    
+    @staticmethod
+    def find_extreme_values(field: FieldData, n_extremes: int = 10) -> Tuple[np.ndarray, np.ndarray]:
+        """극값 찾기 (최댓값, 최솟값 인덱스)"""
+    
+    @staticmethod
+    def detect_outliers(field: FieldData, threshold: float = 3.0) -> np.ndarray:
+        """이상치 탐지 (Z-score 기반)"""
+    
+    @staticmethod
+    def compute_gradient(field: FieldData, vertices: np.ndarray, faces: np.ndarray) -> np.ndarray:
+        """스칼라 필드 그래디언트 계산"""
+    
+    @staticmethod
+    def compute_field_histogram(field: FieldData, bins: int = 50) -> Tuple[np.ndarray, np.ndarray]:
+        """필드 히스토그램"""
+    
+    @staticmethod
+    def compare_timesteps(timestep1: TimeStepData, timestep2: TimeStepData, field_name: str) -> Dict[str, float]:
+        """타임스텝 간 비교: max_diff, mean_diff, rms_diff, relative_change"""
+    
+    @staticmethod
+    def compute_convergence_metrics(result: SimulationResult, field_name: str) -> List[Dict[str, float]]:
+        """수렴성 분석 (시간에 따른 변화율)"""
+```
+
+**b) SpatialAnalyzer - 공간 분석**
+
+```python
+class SpatialAnalyzer:
+    @staticmethod
+    def compute_region_statistics(field: FieldData, vertices: np.ndarray, region_mask: np.ndarray) -> Dict[str, float]:
+        """특정 영역의 통계"""
+    
+    @staticmethod
+    def find_region_by_value(field: FieldData, min_value: Optional[float] = None, max_value: Optional[float] = None) -> np.ndarray:
+        """값 범위로 영역 찾기"""
+```
+
+#### 4. 테스트 구현
+
+**파일:** `tests/unit/simulation/test_simulation.py` (556 lines, 23 tests)
+
+**테스트 클래스:**
+- `TestFieldData` (4 tests): 필드 데이터 생성 및 검증
+- `TestMeshData` (3 tests): 메시 데이터 및 바운딩 박스
+- `TestSimulationResult` (3 tests): 시뮬레이션 결과 관리
+- `TestCSVParser` (3 tests): CSV 파싱 (스칼라, 벡터)
+- `TestVTKParser` (2 tests): VTK POLYDATA 파싱
+- `TestParserRegistry` (1 test): 파서 자동 선택
+- `TestResultAnalyzer` (5 tests): 통계, 극값, 이상치, 메트릭
+- `TestSpatialAnalyzer` (2 tests): 영역 통계 및 검색
+
+**테스트 결과:**
+```
+23 passed in 2.85s
+
+Coverage:
+- models.py: 87%
+- parsers/base.py: 71%
+- parsers/csv_parser.py: 86%
+- parsers/vtk_parser.py: 60%
+- analysis.py: 44%
+```
+
+#### 5. 주요 기능
+
+**a) 다형적 파일 파싱**
+```python
+# 파서 레지스트리 사용
+registry = ParserRegistry()
+registry.register(CSVParser())
+registry.register(VTKParser())
+
+# 파일 타입에 따라 자동 파싱
+result = registry.parse(Path("simulation_result.csv"))
+```
+
+**b) 필드 데이터 분석**
+```python
+# 통계 계산
+stats = ResultAnalyzer.compute_field_statistics(temperature_field)
+print(f"Temperature range: {stats['min']} - {stats['max']} K")
+
+# 극값 찾기
+max_indices, min_indices = ResultAnalyzer.find_extreme_values(pressure_field, n_extremes=10)
+
+# 이상치 탐지
+outliers = ResultAnalyzer.detect_outliers(velocity_field, threshold=3.0)
+```
+
+**c) 타임스텝 비교**
+```python
+# 두 타임스텝 간 차이 분석
+diff_metrics = ResultAnalyzer.compare_timesteps(ts1, ts2, "temperature")
+print(f"RMS change: {diff_metrics['rms_diff']}")
+print(f"Relative change: {diff_metrics['relative_change']}")
+
+# 수렴성 분석
+convergence = ResultAnalyzer.compute_convergence_metrics(result, "temperature")
+```
+
+**d) 공간 영역 분석**
+```python
+# 값 범위로 영역 찾기 (예: 고온 영역)
+hot_region = SpatialAnalyzer.find_region_by_value(temperature_field, min_value=400.0)
+
+# 영역 통계
+region_stats = SpatialAnalyzer.compute_region_statistics(
+    field=temperature_field,
+    vertices=mesh.vertices,
+    region_mask=hot_region
+)
+```
+
+### 🏗️ 아키텍처
+
+```
+src/core/simulation/
+├── models.py                 # 도메인 모델
+│   ├── FieldType/DataLocation (Enum)
+│   ├── FieldData              # 필드 데이터 (스칼라/벡터/텐서)
+│   ├── MeshData               # 메시/격자 데이터
+│   ├── TimeStepData           # 타임스텝 데이터
+│   ├── SimulationResult       # 시뮬레이션 결과 컨테이너
+│   └── SimulationMetrics      # 메트릭
+├── parsers/
+│   ├── base.py               # 파서 인터페이스 및 레지스트리
+│   ├── csv_parser.py         # CSV 파서
+│   └── vtk_parser.py         # VTK 파서
+└── analysis.py               # 결과 분석
+    ├── ResultAnalyzer        # 통계, 극값, 이상치, 수렴성
+    └── SpatialAnalyzer       # 공간 분석
+```
+
+### 📊 통계
+
+- **총 코드 라인:** ~1,438 lines
+  - models.py: 296 lines
+  - parsers/base.py: 147 lines
+  - parsers/csv_parser.py: 259 lines
+  - parsers/vtk_parser.py: 369 lines
+  - analysis.py: 414 lines
+  
+- **테스트:** 23 tests (100% pass)
+- **테스트 코드:** 556 lines
+
+### 🎯 다음 단계 (Phase 14 예정)
+
+Phase 13에서 구축한 시뮬레이션 결과 처리 시스템을 기반으로:
+
+1. **고급 분석 알고리즘**
+   - FFT/주파수 분석
+   - 모드 분해 (POD, DMD)
+   - 상관관계 분석
+
+2. **시각화 시스템**
+   - 3D 렌더링
+   - 등고선/컬러맵
+   - 애니메이션
+
+3. **결과 비교 시스템**
+   - 멀티 시뮬레이션 비교
+   - 파라메트릭 스터디 분석
+   - 최적화 결과 평가
+
+4. **리포트 생성**
+   - 자동 리포트 생성
+   - 템플릿 기반 문서화
+   - 결과 요약 및 인사이트
+
