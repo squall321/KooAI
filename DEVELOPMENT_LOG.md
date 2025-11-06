@@ -3850,3 +3850,214 @@ adapter = adapter_registry.create_adapter("my_adapter")
 - [ ] 체크포인트 관리
 - [ ] 학습 메트릭 추적
 
+
+
+## Phase 11: Transfer Learning & Fine-tuning (완료 ✅)
+
+### 📅 완료 날짜: 2025-11-06
+
+### 목표
+사전 학습 모델 관리 및 Fine-tuning 인프라 구축
+
+---
+
+## ✅ 완료된 작업
+
+### 파일 생성: 5개
+- 사전 학습 모델 관리: pretrained.py (401 lines)
+- Fine-tuning 설정: config.py (350 lines)
+- 체크포인트 관리: checkpoint.py (370 lines)
+- 메트릭 추적: metrics.py (375 lines)
+- __init__.py: 1개
+
+### 테스트: 13개 (100% 통과)
+- PretrainedModelManager: 3개
+- FinetuneConfig: 4개
+- MetricsTracker: 6개
+
+### 커버리지
+- config.py: 100%
+- metrics.py: 61%
+- checkpoint.py: 26%
+- pretrained.py: 43%
+
+---
+
+## 📁 파일 구조
+
+```
+src/core/training/
+├── __init__.py
+├── pretrained.py            # 사전 학습 모델 관리 (401 lines)
+├── config.py                # Fine-tuning 설정 (350 lines)
+├── checkpoint.py            # 체크포인트 관리 (370 lines)
+└── metrics.py               # 메트릭 추적 (375 lines)
+
+tests/unit/training/
+└── test_training_system.py  # 통합 테스트 (211 lines)
+```
+
+---
+
+## 🏗️ 핵심 아키텍처
+
+### 1. 사전 학습 모델 관리
+
+```python
+from src.core.training import PretrainedModelManager, ModelSource
+
+# 모델 관리자 생성
+manager = PretrainedModelManager(cache_dir=Path("./models"))
+
+# HuggingFace 모델 등록
+manager.register_model(
+    name="bert-base",
+    source=ModelSource.HUGGINGFACE,
+    model_id="bert-base-uncased",
+    framework="pytorch",
+    task="text-classification"
+)
+
+# 모델 다운로드 및 로드
+model = manager.load_model("bert-base")
+```
+
+### 2. Fine-tuning 설정
+
+```python
+from src.core.training import (
+    FinetuneConfig,
+    OptimizerConfig,
+    OptimizerType,
+    SchedulerConfig,
+    SchedulerType
+)
+
+# 옵티마이저 설정
+optimizer = OptimizerConfig(
+    type=OptimizerType.ADAMW,
+    learning_rate=1e-4,
+    weight_decay=0.01
+)
+
+# 스케줄러 설정
+scheduler = SchedulerConfig(
+    type=SchedulerType.LINEAR,
+    warmup_steps=100,
+    num_training_steps=1000
+)
+
+# Fine-tuning 설정
+config = FinetuneConfig(
+    model_name="my_model",
+    pretrained_model_name="bert-base",
+    optimizer=optimizer,
+    scheduler=scheduler,
+    output_dir=Path("./outputs")
+)
+
+# 설정 저장/로드
+config.save(Path("config.json"))
+loaded_config = FinetuneConfig.load(Path("config.json"))
+```
+
+### 3. 체크포인트 관리
+
+```python
+from src.core.training import CheckpointManager
+
+# 체크포인트 관리자
+checkpoint_manager = CheckpointManager(
+    checkpoint_dir=Path("./checkpoints"),
+    max_checkpoints=3,
+    best_metric_name="val_loss",
+    best_metric_mode="min"
+)
+
+# 체크포인트 저장
+checkpoint_manager.save_checkpoint(
+    model=model,
+    optimizer=optimizer,
+    scheduler=scheduler,
+    epoch=1,
+    step=100,
+    metrics={"val_loss": 0.5, "val_acc": 0.9}
+)
+
+# 최고 체크포인트 로드
+checkpoint_manager.load_best_checkpoint(model, optimizer, scheduler)
+```
+
+### 4. 메트릭 추적
+
+```python
+from src.core.training import MetricsTracker
+
+# 메트릭 추적기
+tracker = MetricsTracker(log_dir=Path("./logs"))
+
+# 메트릭 기록
+tracker.log_metrics(
+    metrics={"loss": 0.5, "accuracy": 0.9},
+    step=100,
+    epoch=1,
+    phase="train"
+)
+
+# 히스토리 조회
+history = tracker.get_metric_history("loss", phase="train")
+
+# 최적 메트릭
+best_loss, best_step = tracker.get_best_metric("loss")
+
+# CSV 내보내기
+tracker.export_to_csv(Path("metrics.csv"))
+
+# 플롯 생성
+tracker.plot_metrics(
+    metric_names=["loss", "accuracy"],
+    output_path=Path("metrics.png")
+)
+```
+
+---
+
+## 💡 주요 기능
+
+### 1. 다중 소스 모델 관리
+- HuggingFace Hub
+- Local files
+- URL 다운로드
+- Custom sources
+
+### 2. 포괄적인 Fine-tuning 설정
+- 옵티마이저 (Adam, AdamW, SGD, etc.)
+- 스케줄러 (Linear, Cosine, Exponential, etc.)
+- 데이터 로더 설정
+- Mixed Precision (FP16/BF16)
+- Gradient Accumulation
+- Early Stopping
+
+### 3. 스마트 체크포인트 관리
+- 자동 최적 모델 선택
+- 메트릭 기반 저장
+- 최대 개수 제한
+- 메타데이터 추적
+
+### 4. 고급 메트릭 추적
+- JSON Lines 형식 저장
+- 히스토리 조회
+- 요약 통계
+- CSV/Plot 내보내기
+- Phase별 필터링
+
+---
+
+## 📊 통계
+
+- **총 코드**: ~1,496 lines
+- **테스트**: ~211 lines
+- **파일**: 5개
+- **테스트**: 13개 (100% 통과)
+
+Phase 10 (플러그인 시스템) 완료 후 진행
