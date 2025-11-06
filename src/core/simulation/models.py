@@ -168,6 +168,7 @@ class SimulationResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
     source_file: Optional[Path] = None
+    id: Optional[str] = None  # Repository에서 할당
 
     def add_timestep(self, timestep: TimeStepData) -> None:
         """타임스텝 추가"""

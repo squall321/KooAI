@@ -112,13 +112,22 @@ class ResultAnalyzer:
         else:
             data = np.linalg.norm(field.data.reshape(len(field.data), -1), axis=1)
 
-        # 최댓값 인덱스
-        max_indices = np.argpartition(data, -n_extremes)[-n_extremes:]
-        max_indices = max_indices[np.argsort(data[max_indices])[::-1]]
+        # n_extremes가 데이터 크기보다 크면 조정
+        n_extremes = min(n_extremes, len(data))
 
-        # 최솟값 인덱스
-        min_indices = np.argpartition(data, n_extremes)[:n_extremes]
-        min_indices = min_indices[np.argsort(data[min_indices])]
+        # 최댓값 인덱스
+        if n_extremes < len(data):
+            max_indices = np.argpartition(data, -n_extremes)[-n_extremes:]
+            max_indices = max_indices[np.argsort(data[max_indices])[::-1]]
+
+            # 최솟값 인덱스
+            min_indices = np.argpartition(data, n_extremes)[:n_extremes]
+            min_indices = min_indices[np.argsort(data[min_indices])]
+        else:
+            # 모든 데이터를 정렬
+            sorted_indices = np.argsort(data)
+            max_indices = sorted_indices[::-1]
+            min_indices = sorted_indices
 
         return max_indices, min_indices
 

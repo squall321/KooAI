@@ -9,7 +9,7 @@ from uuid import UUID
 from datetime import datetime
 
 from src.core.domain.entities import (
-    SimulationResult,
+    SimulationResult as DomainSimulationResult,
     Dataset,
     Analysis,
     AIModel,
@@ -17,15 +17,22 @@ from src.core.domain.entities import (
     AnalysisStatus,
 )
 
+# Import for new simulation system
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.core.simulation.models import SimulationResult
+
 
 class ISimulationRepository(Protocol):
     """
     시뮬레이션 리포지토리 인터페이스
 
     시뮬레이션 결과 데이터의 영속성을 관리합니다.
+    (도메인 엔티티용 - 레거시)
     """
 
-    async def save(self, simulation: SimulationResult) -> UUID:
+    async def save(self, simulation: DomainSimulationResult) -> UUID:
         """
         시뮬레이션 저장
 
@@ -37,7 +44,7 @@ class ISimulationRepository(Protocol):
         """
         ...
 
-    async def find_by_id(self, simulation_id: UUID) -> Optional[SimulationResult]:
+    async def find_by_id(self, simulation_id: UUID) -> Optional[DomainSimulationResult]:
         """
         ID로 시뮬레이션 조회
 
@@ -45,11 +52,11 @@ class ISimulationRepository(Protocol):
             simulation_id: 시뮬레이션 ID
 
         Returns:
-            Optional[SimulationResult]: 시뮬레이션 또는 None
+            Optional[DomainSimulationResult]: 시뮬레이션 또는 None
         """
         ...
 
-    async def find_by_name(self, name: str) -> List[SimulationResult]:
+    async def find_by_name(self, name: str) -> List[DomainSimulationResult]:
         """
         이름으로 시뮬레이션 조회
 
@@ -57,11 +64,11 @@ class ISimulationRepository(Protocol):
             name: 시뮬레이션 이름
 
         Returns:
-            List[SimulationResult]: 시뮬레이션 목록
+            List[DomainSimulationResult]: 시뮬레이션 목록
         """
         ...
 
-    async def find_by_status(self, status: SimulationStatus) -> List[SimulationResult]:
+    async def find_by_status(self, status: SimulationStatus) -> List[DomainSimulationResult]:
         """
         상태로 시뮬레이션 조회
 
@@ -69,11 +76,11 @@ class ISimulationRepository(Protocol):
             status: 시뮬레이션 상태
 
         Returns:
-            List[SimulationResult]: 시뮬레이션 목록
+            List[DomainSimulationResult]: 시뮬레이션 목록
         """
         ...
 
-    async def find_by_type(self, sim_type: str) -> List[SimulationResult]:
+    async def find_by_type(self, sim_type: str) -> List[DomainSimulationResult]:
         """
         타입으로 시뮬레이션 조회
 
@@ -81,7 +88,7 @@ class ISimulationRepository(Protocol):
             sim_type: 시뮬레이션 타입
 
         Returns:
-            List[SimulationResult]: 시뮬레이션 목록
+            List[DomainSimulationResult]: 시뮬레이션 목록
         """
         ...
 
@@ -90,7 +97,7 @@ class ISimulationRepository(Protocol):
         criteria: Dict[str, Any],
         limit: int = 100,
         offset: int = 0,
-    ) -> List[SimulationResult]:
+    ) -> List[DomainSimulationResult]:
         """
         복합 조건으로 시뮬레이션 조회
 
@@ -100,11 +107,11 @@ class ISimulationRepository(Protocol):
             offset: 오프셋
 
         Returns:
-            List[SimulationResult]: 시뮬레이션 목록
+            List[DomainSimulationResult]: 시뮬레이션 목록
         """
         ...
 
-    async def update(self, simulation: SimulationResult) -> None:
+    async def update(self, simulation: DomainSimulationResult) -> None:
         """
         시뮬레이션 업데이트
 
@@ -254,4 +261,106 @@ class IAIModelRepository(Protocol):
 
     async def delete(self, model_id: UUID) -> None:
         """모델 삭제"""
+        ...
+
+
+class SimulationResultRepository(Protocol):
+    """
+    시뮬레이션 결과 리포지토리 인터페이스
+    
+    시뮬레이션 파싱 결과(Phase 13)의 영속성을 관리합니다.
+    """
+    
+    def add(self, result: "SimulationResult") -> "SimulationResult":
+        """
+        시뮬레이션 결과 저장
+        
+        Args:
+            result: 저장할 시뮬레이션 결과
+            
+        Returns:
+            SimulationResult: 저장된 결과 (ID 포함)
+        """
+        ...
+    
+    def get_by_id(self, result_id: str) -> Optional["SimulationResult"]:
+        """
+        ID로 시뮬레이션 결과 조회
+        
+        Args:
+            result_id: 시뮬레이션 결과 ID
+            
+        Returns:
+            Optional[SimulationResult]: 시뮬레이션 결과 또는 None
+        """
+        ...
+    
+    def get_by_name(self, name: str) -> Optional["SimulationResult"]:
+        """
+        이름으로 시뮬레이션 결과 조회
+        
+        Args:
+            name: 시뮬레이션 이름
+            
+        Returns:
+            Optional[SimulationResult]: 시뮬레이션 결과 또는 None
+        """
+        ...
+    
+    def list_all(self, skip: int = 0, limit: int = 100) -> List["SimulationResult"]:
+        """
+        모든 시뮬레이션 결과 조회
+        
+        Args:
+            skip: 건너뛸 개수
+            limit: 최대 결과 수
+            
+        Returns:
+            List[SimulationResult]: 시뮬레이션 결과 목록
+        """
+        ...
+    
+    def update(self, result: "SimulationResult") -> "SimulationResult":
+        """
+        시뮬레이션 결과 업데이트
+        
+        Args:
+            result: 업데이트할 시뮬레이션 결과
+            
+        Returns:
+            SimulationResult: 업데이트된 결과
+        """
+        ...
+    
+    def delete(self, result_id: str) -> bool:
+        """
+        시뮬레이션 결과 삭제
+        
+        Args:
+            result_id: 삭제할 시뮬레이션 결과 ID
+            
+        Returns:
+            bool: 삭제 성공 여부
+        """
+        ...
+    
+    def exists(self, result_id: str) -> bool:
+        """
+        시뮬레이션 결과 존재 여부 확인
+        
+        Args:
+            result_id: 시뮬레이션 결과 ID
+            
+        Returns:
+            bool: 존재하면 True
+        """
+        ...
+    
+    def count(self) -> int:
+        """
+        저장된 시뮬레이션 결과 개수
+        
+        Returns:
+            int: 시뮬레이션 결과 개수
+        """
         ...

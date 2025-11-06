@@ -4611,3 +4611,473 @@ Phase 13에서 구축한 시뮬레이션 결과 처리 시스템을 기반으로
    - 템플릿 기반 문서화
    - 결과 요약 및 인사이트
 
+
+---
+
+## Phase 14: Application Use Cases 및 서비스 계층 (2025-11-06)
+
+### ✅ 완료된 작업
+
+#### 1. Use Case 기본 구조 구현
+
+**파일:** `src/application/use_cases/base.py` (58 lines)
+
+Clean Architecture의 Use Case 패턴을 구현했습니다:
+
+```python
+class UseCase(ABC, Generic[TRequest, TResponse]):
+    """
+    Use Case 기본 클래스
+    
+    단일 책임 원칙을 따라 하나의 비즈니스 로직만 처리.
+    """
+    
+    @abstractmethod
+    def execute(self, request: TRequest) -> TResponse:
+        """Use Case 실행"""
+
+# 에러 타입
+class UseCaseError(Exception): pass
+class ValidationError(UseCaseError): pass
+class NotFoundError(UseCaseError): pass
+class AlreadyExistsError(UseCaseError): pass
+```
+
+#### 2. 시뮬레이션 Use Cases 구현
+
+**파일:** `src/application/use_cases/simulation_use_cases.py` (512 lines)
+
+7개의 주요 Use Cases를 구현했습니다:
+
+**a) UploadSimulationUseCase**
+```python
+@dataclass
+class UploadSimulationRequest:
+    file_path: Path
+    name: Optional[str] = None
+    simulation_type: Optional[str] = None
+    metadata: Optional[Dict] = None
+
+@dataclass
+class UploadSimulationResponse:
+    simulation_id: str
+    name: str
+    simulation_type: str
+    num_vertices: int
+    num_timesteps: int
+    fields: List[str]
+
+class UploadSimulationUseCase(UseCase[UploadSimulationRequest, UploadSimulationResponse]):
+    """시뮬레이션 파일 업로드 및 파싱"""
+    
+    def execute(self, request: UploadSimulationRequest) -> UploadSimulationResponse:
+        # 1. 파일 검증
+        # 2. 파서 레지스트리로 파싱
+        # 3. 리포지토리에 저장
+        # 4. 응답 반환
+```
+
+**b) GetSimulationUseCase**
+```python
+class GetSimulationUseCase(UseCase[GetSimulationRequest, GetSimulationResponse]):
+    """시뮬레이션 결과 조회"""
+```
+
+**c) AnalyzeFieldUseCase**
+```python
+@dataclass
+class AnalyzeFieldRequest:
+    simulation_id: str
+    timestep: int
+    field_name: str
+    compute_extremes: bool = False
+    n_extremes: int = 10
+    detect_outliers: bool = False
+    outlier_threshold: float = 3.0
+    compute_histogram: bool = False
+    histogram_bins: int = 50
+
+class AnalyzeFieldUseCase(UseCase[AnalyzeFieldRequest, AnalyzeFieldResponse]):
+    """필드 데이터 분석 (통계, 극값, 이상치, 히스토그램)"""
+```
+
+**d) CompareTimestepsUseCase**
+```python
+class CompareTimestepsUseCase(UseCase[CompareTimestepsRequest, CompareTimestepsResponse]):
+    """타임스텝 간 비교 분석"""
+```
+
+**e) ComputeConvergenceUseCase**
+```python
+class ComputeConvergenceUseCase(UseCase[ComputeConvergenceRequest, ComputeConvergenceResponse]):
+    """수렴성 분석 (시간에 따른 변화율)"""
+```
+
+**f) SpatialAnalysisUseCase**
+```python
+class SpatialAnalysisUseCase(UseCase[SpatialAnalysisRequest, SpatialAnalysisResponse]):
+    """공간 영역 분석 (값 범위로 영역 검색)"""
+```
+
+**g) ListSimulationsUseCase**
+```python
+class ListSimulationsUseCase(UseCase[ListSimulationsRequest, ListSimulationsResponse]):
+    """시뮬레이션 목록 조회 (페이지네이션)"""
+```
+
+#### 3. Repository 인터페이스 확장
+
+**파일:** `src/core/repositories/interfaces.py`
+
+SimulationResultRepository 인터페이스를 추가했습니다:
+
+```python
+class SimulationResultRepository(Protocol):
+    """시뮬레이션 결과 리포지토리 인터페이스"""
+    
+    def add(self, result: SimulationResult) -> SimulationResult
+    def get_by_id(self, result_id: str) -> Optional[SimulationResult]
+    def get_by_name(self, name: str) -> Optional[SimulationResult]
+    def list_all(self, skip: int = 0, limit: int = 100) -> List[SimulationResult]
+    def update(self, result: SimulationResult) -> SimulationResult
+    def delete(self, result_id: str) -> bool
+    def exists(self, result_id: str) -> bool
+    def count(self) -> int
+```
+
+#### 4. In-Memory Repository 구현
+
+**파일:** `src/infrastructure/repositories/memory_simulation_repository.py` (102 lines)
+
+테스트 및 개발용 메모리 기반 리포지토리 구현:
+
+```python
+class InMemorySimulationResultRepository(SimulationResultRepository):
+    """메모리 기반 시뮬레이션 결과 리포지토리"""
+    
+    def __init__(self):
+        self._storage: Dict[str, SimulationResult] = {}
+        self._name_index: Dict[str, str] = {}  # name -> id 매핑
+    
+    def add(self, result: SimulationResult) -> SimulationResult:
+        # UUID 생성
+        if not result.id:
+            result.id = str(uuid.uuid4())
+        
+        # 저장 및 인덱싱
+        self._storage[result.id] = result
+        self._name_index[result.name] = result.id
+        
+        return result
+```
+
+#### 5. Application Service 구현
+
+**파일:** `src/application/services/simulation_service.py` (311 lines)
+
+Use Cases를 조합한 고수준 서비스:
+
+```python
+class SimulationService:
+    """
+    시뮬레이션 결과 처리 서비스
+    
+    Use Cases를 조합하여 복잡한 워크플로우 제공.
+    """
+    
+    def __init__(self, repository: SimulationResultRepository):
+        self.repository = repository
+        
+        # Parser Registry 설정
+        self.parser_registry = ParserRegistry()
+        self.parser_registry.register(CSVParser())
+        self.parser_registry.register(VTKParser())
+        
+        # Use Cases 초기화
+        self.upload_use_case = UploadSimulationUseCase(...)
+        self.get_use_case = GetSimulationUseCase(...)
+        # ...
+```
+
+**주요 메서드:**
+
+```python
+def upload_and_analyze(
+    self,
+    file_path: Path,
+    name: Optional[str] = None,
+    analyze_all_fields: bool = True,
+) -> FullAnalysisResult:
+    """
+    시뮬레이션 업로드 및 전체 분석
+    
+    1. 파일 업로드
+    2. 시뮬레이션 정보 조회
+    3. 모든 필드 자동 분석
+    """
+
+def compare_all_timesteps(
+    self,
+    simulation_id: str,
+    field_name: str,
+) -> List[CompareTimestepsResponse]:
+    """모든 연속 타임스텝 비교"""
+
+def analyze_convergence(
+    self,
+    simulation_id: str,
+    field_names: Optional[List[str]] = None,
+) -> Dict[str, ComputeConvergenceResponse]:
+    """수렴성 분석 (모든 필드 또는 지정 필드)"""
+
+def find_critical_regions(
+    self,
+    simulation_id: str,
+    timestep: int,
+    field_name: str,
+    percentile: float = 95.0,
+) -> tuple[SpatialAnalysisResponse, SpatialAnalysisResponse]:
+    """임계 영역 찾기 (고/저 영역)"""
+
+def get_simulation_summary(
+    self,
+    simulation_id: str,
+) -> Dict:
+    """시뮬레이션 요약 정보"""
+```
+
+#### 6. 테스트 구현
+
+**a) Use Cases 테스트** (`tests/unit/application/test_simulation_use_cases.py` - 227 lines, 9 tests)
+
+- `TestUploadSimulationUseCase` (2 tests): CSV 업로드, 에러 처리
+- `TestGetSimulationUseCase` (2 tests): 조회, NotFoundError
+- `TestAnalyzeFieldUseCase` (2 tests): 스칼라/벡터 필드 분석
+- `TestListSimulationsUseCase` (2 tests): 목록 조회, 페이지네이션
+- `TestSpatialAnalysisUseCase` (1 test): 공간 영역 분석
+
+**b) Service 테스트** (`tests/unit/application/test_simulation_service.py` - 64 lines, 3 tests)
+
+- `test_upload_and_analyze`: 업로드 및 자동 분석 워크플로우
+- `test_list_simulations`: 목록 조회
+- `test_get_simulation_summary`: 요약 정보
+
+**테스트 결과:**
+```
+12 passed in 3.03s
+
+Coverage:
+- simulation_use_cases.py: 85%
+- simulation_service.py: 62%
+- memory_simulation_repository.py: 55%
+```
+
+#### 7. 버그 수정
+
+**파일:** `src/core/simulation/analysis.py`
+
+`find_extreme_values` 함수에서 n_extremes가 데이터 크기보다 큰 경우 처리:
+
+```python
+# n_extremes가 데이터 크기보다 크면 조정
+n_extremes = min(n_extremes, len(data))
+
+# 최댓값/최솟값 인덱스 계산
+if n_extremes < len(data):
+    max_indices = np.argpartition(data, -n_extremes)[-n_extremes:]
+    # ...
+else:
+    # 모든 데이터를 정렬
+    sorted_indices = np.argsort(data)
+    max_indices = sorted_indices[::-1]
+    min_indices = sorted_indices
+```
+
+### 🏗️ 아키텍처
+
+#### Clean Architecture 계층 구조
+
+```
+Application Layer (Use Cases & Services)
+├── Use Cases                    # 단일 책임 비즈니스 로직
+│   ├── UploadSimulationUseCase
+│   ├── GetSimulationUseCase
+│   ├── AnalyzeFieldUseCase
+│   ├── CompareTimestepsUseCase
+│   ├── ComputeConvergenceUseCase
+│   ├── SpatialAnalysisUseCase
+│   └── ListSimulationsUseCase
+│
+├── Services                     # Use Cases 조합
+│   └── SimulationService
+│       ├── upload_and_analyze()
+│       ├── compare_all_timesteps()
+│       ├── analyze_convergence()
+│       ├── find_critical_regions()
+│       └── get_simulation_summary()
+│
+└── Depends on
+    ├── Core Layer (Domain, Simulation, Repositories)
+    └── Infrastructure Layer (Repository 구현체)
+```
+
+#### 의존성 흐름
+
+```
+Presentation Layer (API, CLI)
+    ↓
+Application Layer (Use Cases, Services)
+    ↓
+Core Layer (Domain Models, Business Logic)
+    ↑
+Infrastructure Layer (Repository Implementations)
+```
+
+### 📊 통계
+
+- **총 코드 라인:** ~1,050 lines
+  - use_cases/base.py: 58 lines
+  - use_cases/simulation_use_cases.py: 512 lines
+  - services/simulation_service.py: 311 lines
+  - memory_simulation_repository.py: 102 lines
+  - repositories/interfaces.py: +107 lines
+  
+- **테스트:** 12 tests (100% pass)
+- **테스트 코드:** ~291 lines
+
+### 🎯 주요 패턴 및 원칙
+
+#### 1. Clean Architecture
+- Use Cases는 Core Layer에만 의존
+- Infrastructure는 Core의 인터페이스 구현
+- 의존성 역전 원칙 (DIP) 준수
+
+#### 2. CQRS 패턴
+- Command (Upload, Update, Delete)
+- Query (Get, List, Analyze)
+
+#### 3. Request/Response 패턴
+- 모든 Use Case는 명확한 Request/Response DTO 사용
+- 타입 안전성 보장
+
+#### 4. Repository 패턴
+- Core에서 인터페이스 정의 (Protocol)
+- Infrastructure에서 구현 (In-Memory, SQL 등)
+
+#### 5. Service Layer
+- Use Cases를 조합하여 복잡한 워크플로우 제공
+- 비즈니스 프로세스 캡슐화
+
+### 📈 커버리지
+
+Phase 14 구현으로 Application Layer 커버리지:
+- **Use Cases**: 85% (주요 흐름 테스트 완료)
+- **Services**: 62% (핵심 워크플로우 테스트)
+- **Repository**: 55% (CRUD 기본 동작 테스트)
+
+### 🔧 사용 예시
+
+#### Use Case 직접 사용
+
+```python
+from pathlib import Path
+from src.application.use_cases import (
+    UploadSimulationUseCase,
+    AnalyzeFieldUseCase,
+    UploadSimulationRequest,
+    AnalyzeFieldRequest,
+)
+from src.infrastructure.repositories.memory_simulation_repository import (
+    InMemorySimulationResultRepository,
+)
+from src.core.simulation import ParserRegistry, CSVParser
+
+# 리포지토리 및 파서 설정
+repository = InMemorySimulationResultRepository()
+parser_registry = ParserRegistry()
+parser_registry.register(CSVParser())
+
+# 업로드
+upload_use_case = UploadSimulationUseCase(parser_registry, repository)
+result = upload_use_case.execute(
+    UploadSimulationRequest(file_path=Path("simulation.csv"))
+)
+
+# 분석
+analyze_use_case = AnalyzeFieldUseCase(repository)
+analysis = analyze_use_case.execute(
+    AnalyzeFieldRequest(
+        simulation_id=result.simulation_id,
+        timestep=0,
+        field_name="temperature",
+        compute_extremes=True,
+        detect_outliers=True,
+    )
+)
+
+print(f"Temperature range: {analysis.statistics['min']} - {analysis.statistics['max']}")
+```
+
+#### Service 사용 (권장)
+
+```python
+from pathlib import Path
+from src.application.services import SimulationService
+from src.infrastructure.repositories.memory_simulation_repository import (
+    InMemorySimulationResultRepository,
+)
+
+# 서비스 초기화
+repository = InMemorySimulationResultRepository()
+service = SimulationService(repository)
+
+# 업로드 및 자동 분석
+result = service.upload_and_analyze(
+    file_path=Path("simulation.csv"),
+    name="CFD Simulation 1",
+    analyze_all_fields=True,
+)
+
+# 요약 정보 조회
+summary = service.get_simulation_summary(result.simulation_info.simulation_id)
+
+# 수렴성 분석
+convergence = service.analyze_convergence(
+    simulation_id=result.simulation_info.simulation_id,
+    field_names=["temperature", "pressure"],
+)
+
+# 임계 영역 찾기
+high_region, low_region = service.find_critical_regions(
+    simulation_id=result.simulation_info.simulation_id,
+    timestep=0,
+    field_name="temperature",
+    percentile=95.0,
+)
+```
+
+### 🎯 다음 단계 (Phase 15 예정)
+
+Phase 14에서 구축한 Application Layer를 기반으로:
+
+1. **REST API 구현** (Presentation Layer)
+   - FastAPI 엔드포인트
+   - Request/Response 스키마
+   - 에러 핸들링
+   - 인증/인가
+
+2. **CLI 인터페이스**
+   - 명령어 기반 인터페이스
+   - 진행상황 표시
+   - 결과 시각화
+
+3. **통합 테스트**
+   - End-to-end 테스트
+   - API 테스트
+   - 성능 테스트
+
+4. **문서화**
+   - API 문서 (OpenAPI/Swagger)
+   - 사용자 가이드
+   - 아키텍처 문서
+
