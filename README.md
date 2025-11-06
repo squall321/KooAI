@@ -17,6 +17,7 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
 
 - **📊 다양한 시뮬레이션 형식 지원**: CSV, VTK Legacy ASCII, VTU (VTK XML), HDF5 등
 - **🔬 고급 결과 분석**: 통계 분석, 극값 탐지, 이상치 감지, 수렴성 분석
+- **🎯 최첨단 분석 기법**: FFT, POD, DMD, 난류 통계, 시계열 분석, 상관관계 분석
 - **📐 3D 기하학 처리**: 메시 분석, 변환, 스무딩, 서브디비전
 - **💾 파일 스토리지 통합**: 로컬 파일 시스템, S3, MinIO 지원 (GCS, Azure 계획)
 - **⚡ 비동기 작업 처리**: Celery 기반 백그라운드 태스크, 대용량 파일 파싱, 복잡한 분석
@@ -71,6 +72,43 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
   - 만료된 결과 정리 (6시간마다)
   - 헬스 체크 (5분마다)
 - **모니터링**: Flower 웹 UI로 실시간 모니터링
+
+### 고급 분석 기법
+- **FFT (Fast Fourier Transform)**
+  - 주파수 도메인 분석
+  - Power spectral density
+  - Spectrogram (시간-주파수 분석)
+  - Coherence 분석
+- **POD (Proper Orthogonal Decomposition)**
+  - 공간 모드 추출
+  - 에너지 기반 모드 선택
+  - SVD, correlation, snapshot 방법 지원
+  - 필드 재구성
+- **DMD (Dynamic Mode Decomposition)**
+  - 시공간 coherent 구조 추출
+  - 모드 주파수 및 성장률 분석
+  - Exact/Standard DMD 알고리즘
+  - 미래 상태 예측
+- **시계열 분석**
+  - 통계량 계산 (평균, 분산, 왜도, 첨도)
+  - 자기상관함수
+  - 주기성 탐지
+  - 트렌드 분석 및 제거
+  - 이동평균 및 exponential smoothing
+  - 이상치 탐지 (Z-score, IQR, MAD)
+- **상관관계 분석**
+  - Cross-correlation
+  - Pearson/Spearman 상관계수
+  - Lagged correlation
+  - Mutual information
+  - Coherence spectrum
+- **난류 통계**
+  - Reynolds 응력 텐서
+  - 난류 운동에너지 (TKE)
+  - 난류 강도
+  - 소산율 (Dissipation rate)
+  - 비등방성 텐서
+  - 난류 불변량
 
 ## 🏗️ 아키텍처
 
