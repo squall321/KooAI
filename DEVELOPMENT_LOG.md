@@ -5611,3 +5611,442 @@ Phase 15에서 구축한 REST API를 기반으로:
    - 캐싱 (Redis)
    - 백그라운드 작업 (Celery)
 
+
+---
+
+## Phase 16: CLI 인터페이스 (2025-11-06)
+
+### ✅ 완료된 작업
+
+#### 1. CLI 유틸리티 함수
+
+**파일:** `src/presentation/cli/utils.py` (133 lines)
+
+Rich 라이브러리를 사용한 예쁜 콘솔 출력:
+
+```python
+from rich.console import Console
+from rich.table import Table
+from rich.progress import Progress
+
+console = Console()
+
+def print_success(message: str):
+    """성공 메시지 출력 (녹색 체크마크)"""
+    console.print(f"[green]✓[/green] {message}")
+
+def print_error(message: str):
+    """에러 메시지 출력 (빨간색 X)"""
+    console.print(f"[red]✗[/red] {message}", style="red")
+
+def print_simulation_table(simulations: List[Dict[str, Any]]):
+    """시뮬레이션 목록 테이블 출력"""
+    table = Table(title="Simulations", show_header=True)
+    table.add_column("ID")
+    table.add_column("Name")
+    # ...
+    console.print(table)
+
+def print_field_statistics(field_name: str, stats: Dict[str, float]):
+    """필드 통계 테이블 출력"""
+    # Rich Table로 통계 표시
+
+def with_progress(description: str):
+    """진행상황 표시 데코레이터"""
+    # Spinner와 텍스트 표시
+```
+
+**제공 기능:**
+- 색상 있는 메시지 출력 (성공/에러/경고/정보)
+- 테이블 형식 출력 (Rich Table)
+- 진행상황 표시 (Spinner)
+- 데이터 포매팅
+
+#### 2. CLI 명령어 구현
+
+**파일:** `src/presentation/cli/commands.py` (460 lines)
+
+Click 기반 8개 명령어 구현:
+
+**a) upload - 시뮬레이션 업로드**
+```bash
+kooai upload simulation.csv
+kooai upload simulation.csv --name "My Simulation" --analyze
+```
+
+```python
+@cli.command()
+@click.argument("file", type=click.Path(exists=True))
+@click.option("--name", "-n", help="시뮬레이션 이름")
+@click.option("--type", "-t", help="시뮬레이션 타입")
+@click.option("--analyze", "-a", is_flag=True, help="자동 분석")
+def upload(file: Path, name: str, sim_type: str, analyze: bool):
+    """시뮬레이션 파일 업로드"""
+```
+
+**b) list - 시뮬레이션 목록**
+```bash
+kooai list
+kooai list --page 2 --size 10
+```
+
+**c) info - 시뮬레이션 정보**
+```bash
+kooai info abc123
+```
+
+**d) analyze - 필드 분석**
+```bash
+kooai analyze abc123 temperature
+kooai analyze abc123 temperature --extremes --outliers
+```
+
+```python
+@click.option("--timestep", "-t", default=0)
+@click.option("--extremes", "-e", is_flag=True)
+@click.option("--outliers", "-o", is_flag=True)
+@click.option("--histogram", "-h", is_flag=True)
+```
+
+**e) compare - 타임스텝 비교**
+```bash
+kooai compare abc123 temperature --timestep1 0 --timestep2 1
+```
+
+**f) convergence - 수렴성 분석**
+```bash
+kooai convergence abc123 temperature
+```
+
+**g) spatial - 공간 분석**
+```bash
+kooai spatial abc123 temperature --min 400.0
+kooai spatial abc123 pressure --min 100.0 --max 200.0
+```
+
+**h) delete - 시뮬레이션 삭제**
+```bash
+kooai delete abc123
+```
+- 삭제 전 확인 프롬프트 포함
+
+#### 3. CLI 구조
+
+**명령어 그룹 (Click Group):**
+```python
+@click.group()
+@click.version_option(version="1.0.0", prog_name="kooai")
+def cli():
+    """KooAI CLI"""
+    pass
+```
+
+**서비스 싱글톤:**
+```python
+_service: Optional[SimulationService] = None
+
+def get_service() -> SimulationService:
+    """서비스 인스턴스 가져오기 (싱글톤)"""
+    global _service
+    if _service is None:
+        repository = InMemorySimulationResultRepository()
+        _service = SimulationService(repository)
+    return _service
+```
+
+**에러 처리:**
+```python
+try:
+    # 명령어 실행
+    result = service.execute(...)
+    print_success("Success!")
+except NotFoundError as e:
+    print_error(str(e))
+    sys.exit(1)
+except UseCaseError as e:
+    print_error(f"Failed: {e}")
+    sys.exit(1)
+```
+
+#### 4. CLI 엔트리포인트
+
+**파일:** `kooai_cli.py` (9 lines)
+
+```python
+#!/usr/bin/env python
+"""KooAI CLI 엔트리포인트"""
+
+from src.presentation.cli import cli
+
+if __name__ == "__main__":
+    cli()
+```
+
+**실행 방법:**
+```bash
+# 직접 실행
+python kooai_cli.py [COMMAND] [ARGS]
+
+# 모듈로 실행
+python -m src.presentation.cli.commands [COMMAND] [ARGS]
+```
+
+#### 5. CLI 테스트
+
+**파일:** `tests/unit/cli/test_commands.py` (95 lines, 10 tests)
+
+Click TestRunner를 사용한 테스트:
+
+```python
+from click.testing import CliRunner
+
+@pytest.fixture
+def runner():
+    return CliRunner()
+
+def test_upload_command(runner, sample_csv_file):
+    """업로드 명령어 테스트"""
+    result = runner.invoke(cli, ["upload", str(sample_csv_file)])
+    assert result.exit_code == 0
+    assert "Uploaded" in result.output
+```
+
+**테스트 클래스:**
+- `TestCLICommands` (10 tests):
+  - test_cli_help: CLI 헬프 메시지
+  - test_upload_command: 파일 업로드
+  - test_upload_nonexistent_file: 에러 처리
+  - test_list_command: 목록 조회
+  - test_upload_and_info: 업로드 후 정보 조회
+  - test_analyze_command_help: 분석 헬프
+  - test_compare_command_help: 비교 헬프
+  - test_convergence_command_help: 수렴성 헬프
+  - test_spatial_command_help: 공간 분석 헬프
+  - test_delete_command_help: 삭제 헬프
+
+**테스트 결과:**
+```
+10 passed in 3.65s
+
+Coverage:
+- commands.py: 42%
+- utils.py: 41%
+```
+
+### 🏗️ 아키텍처
+
+#### CLI 구조
+
+```
+src/presentation/cli/
+├── __init__.py              # CLI export
+├── commands.py              # Click 명령어 (8개)
+└── utils.py                 # 출력 유틸리티 (Rich)
+
+kooai_cli.py                 # 엔트리포인트
+```
+
+#### 명령어 흐름
+
+```
+사용자 입력
+    ↓
+Click Command (commands.py)
+    ↓
+Service 싱글톤 (get_service)
+    ↓
+Application Service
+    ↓
+Use Cases
+    ↓
+Core Domain
+    ↓
+Rich 출력 (utils.py)
+    ↓
+콘솔 표시
+```
+
+### 📊 통계
+
+- **총 코드 라인:** ~602 lines
+  - commands.py: 460 lines
+  - utils.py: 133 lines
+  - kooai_cli.py: 9 lines
+  
+- **테스트:** 10 tests (100% pass)
+- **테스트 코드:** 95 lines
+- **명령어:** 8개
+
+### 🎯 주요 기능
+
+#### 1. 색상 있는 출력
+- 성공: 녹색 ✓
+- 에러: 빨간색 ✗
+- 경고: 노란색 ⚠
+- 정보: 파란색 ℹ
+
+#### 2. 테이블 형식 출력
+Rich Table을 사용한 구조화된 데이터 표시:
+- 시뮬레이션 목록
+- 필드 통계
+- 수렴성 데이터
+
+#### 3. 진행상황 표시
+Spinner와 함께 진행 중인 작업 표시
+
+#### 4. 대화형 프롬프트
+삭제 시 확인 프롬프트 (Click confirmation_option)
+
+#### 5. 에러 처리
+- 적절한 종료 코드 (sys.exit)
+- 사용자 친화적 에러 메시지
+
+### 📈 CLI 명령어 목록
+
+| 명령어 | 설명 | 주요 옵션 |
+|--------|------|----------|
+| `upload` | 시뮬레이션 업로드 | `--name`, `--analyze` |
+| `list` | 시뮬레이션 목록 | `--page`, `--size` |
+| `info` | 시뮬레이션 정보 | - |
+| `analyze` | 필드 분석 | `--extremes`, `--outliers`, `--histogram` |
+| `compare` | 타임스텝 비교 | `--timestep1`, `--timestep2` |
+| `convergence` | 수렴성 분석 | - |
+| `spatial` | 공간 분석 | `--min`, `--max` |
+| `delete` | 시뮬레이션 삭제 | (확인 프롬프트) |
+
+### 🔧 사용 예시
+
+#### 1. 시뮬레이션 업로드 및 분석
+```bash
+# 기본 업로드
+python kooai_cli.py upload simulation.csv
+
+# 이름 지정 및 자동 분석
+python kooai_cli.py upload simulation.csv --name "CFD Test" --analyze
+
+# 출력:
+# ℹ Uploading simulation.csv...
+# ✓ Uploaded: abc123...
+# ℹ Name: CFD Test
+# ℹ Type: CSV
+# ℹ Vertices: 1,000
+# ℹ Timesteps: 10
+# ℹ Fields: temperature, pressure, velocity
+```
+
+#### 2. 시뮬레이션 목록 조회
+```bash
+python kooai_cli.py list --page 1 --size 10
+
+# 출력: 테이블 형식
+# ┏━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━┓
+# ┃ ID      ┃ Name      ┃ Type ┃ Timesteps ┃ Created At ┃
+# ┡━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━┩
+# │ abc123  │ CFD Test  │ CFD  │ 10        │ 2025-11-06 │
+# └─────────┴───────────┴──────┴───────────┴────────────┘
+```
+
+#### 3. 필드 분석
+```bash
+python kooai_cli.py analyze abc123 temperature --extremes --outliers
+
+# 출력:
+# ℹ Analyzing field 'temperature' at timestep 0...
+# ✓ Analysis complete for 'temperature'
+# ℹ Field type: scalar
+#
+# Field Statistics: temperature
+# ┏━━━━━━━━━━━━┳━━━━━━━━━━━┓
+# ┃ Metric     ┃ Value     ┃
+# ┡━━━━━━━━━━━━╇━━━━━━━━━━━┩
+# │ Min        │ 300.00    │
+# │ Max        │ 500.00    │
+# │ Mean       │ 400.00    │
+# │ Std        │ 50.00     │
+# └────────────┴───────────┘
+#
+# Extremes:
+#   Max values: 10 found
+#   Min values: 10 found
+#
+# Outliers: 5 detected
+```
+
+#### 4. 수렴성 분석
+```bash
+python kooai_cli.py convergence abc123 temperature
+
+# 출력: 수렴성 테이블
+# Convergence Analysis: temperature
+# ┏━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+# ┃ Timestep ┃ Time   ┃ RMS Change ┃ Relative Change┃
+# ┡━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+# │ 1        │ 0.100  │ 5.00e+00   │ 1.00e-01       │
+# │ 2        │ 0.200  │ 2.00e+00   │ 4.00e-02       │
+# │ 3        │ 0.300  │ 8.00e-01   │ 1.60e-02       │
+# └──────────┴────────┴────────────┴────────────────┘
+```
+
+#### 5. 공간 분석
+```bash
+python kooai_cli.py spatial abc123 temperature --min 450.0
+
+# 출력:
+# ℹ Analyzing spatial region for 'temperature'...
+# ✓ Spatial analysis complete
+#
+# Spatial Region Analysis
+#   Field: temperature
+#   Region size: 150 points
+#   Min value filter: >= 450.0
+#
+# Field Statistics: temperature (Region)
+# ┏━━━━━━━━━━┳━━━━━━━━━┓
+# ┃ Metric   ┃ Value   ┃
+# ┡━━━━━━━━━━╇━━━━━━━━━┩
+# │ Min      │ 450.00  │
+# │ Max      │ 500.00  │
+# │ Mean     │ 475.00  │
+# │ Count    │ 150     │
+# └──────────┴─────────┘
+```
+
+### 🎯 다음 단계 (완료 예정)
+
+Phase 1-16 완료로 주요 기능 구현이 끝났습니다:
+
+**완료된 기능:**
+- ✅ Core Domain Models
+- ✅ Simulation Parsing (CSV, VTK)
+- ✅ 3D Geometry Processing
+- ✅ Simulation Analysis
+- ✅ Application Use Cases
+- ✅ REST API (FastAPI)
+- ✅ CLI Interface (Click + Rich)
+
+**추가 개선 사항 (향후):**
+1. **데이터베이스 통합**
+   - PostgreSQL Repository
+   - 영구 저장소
+   - 마이그레이션
+
+2. **인증/인가**
+   - JWT 인증
+   - API 키
+   - 권한 관리
+
+3. **성능 최적화**
+   - 비동기 처리
+   - Redis 캐싱
+   - 백그라운드 작업
+
+4. **추가 파서**
+   - VTU (VTK XML)
+   - HDF5
+   - OpenFOAM 형식
+
+5. **고급 분석**
+   - FFT/주파수 분석
+   - POD/DMD 모드 분해
+   - 머신러닝 통합
+
