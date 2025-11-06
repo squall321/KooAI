@@ -6412,3 +6412,531 @@ Phase 1-17 완료 후 추가 개선 가능 항목:
 
 **다음 단계:** 프로젝트 유지보수 및 추가 기능 개발
 
+
+---
+
+## Phase 18: Docker & Production Deployment (2025-11-06)
+
+### ✅ 완료된 작업
+
+#### 1. Dockerfile 작성
+
+**파일**: `Dockerfile` (89 lines)
+
+프로덕션 환경을 위한 멀티 스테이지 Dockerfile을 구현했습니다.
+
+**주요 특징:**
+
+##### Stage 1: Builder
+- Python 3.11-slim 기반 이미지
+- 가상 환경 생성 (`/opt/venv`)
+- 필요한 시스템 패키지 설치 (gcc, g++, OpenGL 라이브러리)
+- Python 의존성 설치 (NumPy, pandas, FastAPI 등)
+
+##### Stage 2: Runtime
+- 최소한의 런타임 이미지
+- 빌더에서 가상 환경 복사
+- 비root 사용자 생성 (`kooai`)
+- 보안 강화 (권한 최소화)
+- Health check 포함
+- Port 8000 노출
+
+**보안 기능:**
+- 비root 사용자로 실행
+- 최소한의 시스템 패키지만 설치
+- 레이어 캐싱 최적화
+- 멀티 스테이지로 이미지 크기 최소화
+
+```dockerfile
+# Multi-stage build
+FROM python:3.11-slim as builder
+# ... build dependencies
+
+FROM python:3.11-slim
+# ... minimal runtime
+USER kooai  # Non-root user
+HEALTHCHECK CMD python -c "import requests; ..."
+```
+
+#### 2. .dockerignore 생성
+
+**파일**: `.dockerignore` (65 lines)
+
+Docker 빌드에서 제외할 파일들을 정의했습니다:
+
+- Python 캐시 파일 (`__pycache__`, `*.pyc`)
+- 가상 환경 (`venv/`, `.venv/`)
+- 테스트 파일 (`tests/`, `.pytest_cache/`)
+- IDE 설정 (`.vscode/`, `.idea/`)
+- Git 디렉토리 (`.git/`)
+- 문서 (`docs/`, `*.md` 제외 README.md)
+- 데이터 파일 (`*.csv`, `*.vtk`)
+- 로그 파일 (`logs/`, `*.log`)
+
+**효과:**
+- 빌드 속도 향상 (불필요한 파일 제외)
+- 이미지 크기 감소
+- 민감한 정보 보호
+
+#### 3. docker-compose.yml 업데이트
+
+**파일**: `docker-compose.yml` (업데이트)
+
+기존 docker-compose 파일을 Phase 12-17 구현에 맞게 업데이트했습니다:
+
+**변경 사항:**
+- Dockerfile 경로 수정 (`docker/Dockerfile` → `Dockerfile`)
+- 환경 변수 단순화
+- 볼륨 매핑 개선
+- Celery 서비스 비활성화 (아직 미구현)
+- Health check 추가
+
+**구성 요소:**
+1. **PostgreSQL** (pgvector/pgvector:pg16)
+   - Port: 5432
+   - Volume: postgres_data
+   - Health check 포함
+
+2. **Redis** (redis:7-alpine)
+   - Port: 6379
+   - Append-only 모드
+   - Health check 포함
+
+3. **API Server**
+   - Port: 8000
+   - Hot reload 지원 (개발 모드)
+   - Health check 포함
+
+4. **Prometheus** (선택적, `--profile monitoring`)
+   - Port: 9090
+   
+5. **Grafana** (선택적, `--profile monitoring`)
+   - Port: 3000
+
+#### 4. 배포 스크립트 생성
+
+##### 4.1 Docker 빌드 스크립트
+
+**파일**: `deploy/docker-build.sh` (43 lines)
+
+```bash
+./deploy/docker-build.sh [TAG] [PLATFORM]
+
+# 예시:
+./deploy/docker-build.sh v1.0.0
+./deploy/docker-build.sh latest linux/amd64
+```
+
+**기능:**
+- 컬러 출력 (Red/Green/Yellow)
+- 플랫폼 지정 가능 (멀티 아키텍처)
+- 태그 지정
+- 빌드 성공/실패 확인
+- 이미지 정보 표시
+
+##### 4.2 서비스 시작 스크립트
+
+**파일**: `deploy/start.sh` (84 lines)
+
+```bash
+./deploy/start.sh [PROFILE] [BUILD]
+
+# 예시:
+./deploy/start.sh default
+./deploy/start.sh production build
+./deploy/start.sh monitoring
+```
+
+**기능:**
+- 프로파일 기반 실행 (default/production/monitoring/all)
+- 필요한 디렉토리 자동 생성
+- 선택적 이미지 빌드
+- 서비스 상태 확인
+- 로그 표시
+- 접근 URL 안내
+
+**프로파일:**
+- `default`: 기본 서비스 (postgres, redis, api)
+- `production`: + Nginx
+- `monitoring`: + Prometheus, Grafana
+- `all`: 모든 서비스
+
+##### 4.3 서비스 정지 스크립트
+
+**파일**: `deploy/stop.sh` (29 lines)
+
+```bash
+./deploy/stop.sh [clean]
+
+# 예시:
+./deploy/stop.sh          # 볼륨 유지
+./deploy/stop.sh clean    # 볼륨 삭제
+```
+
+**기능:**
+- 서비스 정지
+- 선택적 볼륨 삭제
+- 재시작 방법 안내
+
+#### 5. 데이터베이스 초기화 스크립트
+
+**파일**: `deploy/init-db.sql` (58 lines)
+
+PostgreSQL 초기화를 위한 SQL 스크립트입니다.
+
+**생성 내용:**
+- uuid-ossp 확장 활성화
+- `kooai` 스키마 생성
+- `simulation_results` 테이블 생성
+  - id (UUID, Primary Key)
+  - name (VARCHAR 255, UNIQUE)
+  - simulation_type (VARCHAR 100)
+  - created_at, updated_at (TIMESTAMP)
+  - metadata (JSONB)
+
+**인덱스:**
+- `idx_simulation_results_created_at` (DESC)
+- `idx_simulation_results_type`
+- `idx_simulation_results_metadata` (GIN)
+
+**트리거:**
+- `update_updated_at_column`: updated_at 자동 업데이트
+
+**권한 설정:**
+- `kooai` 사용자에게 모든 권한 부여
+
+#### 6. Nginx 설정
+
+**파일**: `deploy/nginx.conf` (129 lines)
+
+프로덕션용 Nginx 리버스 프록시 설정입니다.
+
+**주요 기능:**
+
+##### 성능 최적화
+- Worker processes: auto
+- Connections: 1024
+- Sendfile, TCP_NOPUSH, TCP_NODELAY
+- Keepalive timeout: 65s
+- Client max body size: 100MB (대용량 업로드)
+
+##### Gzip 압축
+- 압축 레벨: 6
+- 대상: JSON, JavaScript, CSS, XML, fonts
+
+##### 레이트 리미팅
+- API: 10 req/s (burst 20)
+- Upload: 2 req/s (burst 5)
+
+##### 보안 헤더
+- X-Frame-Options: SAMEORIGIN
+- X-Content-Type-Options: nosniff
+- X-XSS-Protection: 1; mode=block
+
+##### 프록시 설정
+- Health check (레이트 제한 없음)
+- API 엔드포인트 (레이트 제한)
+- Upload 엔드포인트 (엄격한 레이트 제한, 확장된 타임아웃)
+- API 문서 (docs, redoc)
+
+##### SSL/TLS (주석 처리)
+- HTTPS 서버 설정 준비
+- TLS 1.2, 1.3 지원
+- 강력한 암호화
+
+#### 7. 프로덕션 환경 설정
+
+##### 7.1 docker-compose.production.yml
+
+**파일**: `docker-compose.production.yml` (134 lines)
+
+프로덕션 배포를 위한 별도의 docker-compose 설정입니다.
+
+**주요 특징:**
+
+1. **PostgreSQL**
+   - 환경 변수 필수 검증 (`POSTGRES_PASSWORD:?`)
+   - 리소스 제한 (2 CPUs, 2GB RAM)
+   - 영구 볼륨 (postgres_data_prod)
+   - 재시작 정책: always
+
+2. **Redis**
+   - 비밀번호 필수
+   - Maxmemory: 512MB (LRU eviction)
+   - 리소스 제한 (1 CPU, 512MB RAM)
+   - Append-only 영구 저장
+
+3. **API Server**
+   - 이미지 태그 지정 가능 (`VERSION`)
+   - 멀티 워커 (기본 4개)
+   - 복제 가능 (`API_REPLICAS`)
+   - 리소스 제한 (4 CPUs, 4GB RAM)
+   - Health check (40초 시작 대기)
+
+4. **Nginx**
+   - 포트 80, 443
+   - SSL 준비 (주석 처리)
+   - 리소스 제한 (1 CPU, 256MB RAM)
+   - Health check
+
+**보안:**
+- 모든 비밀번호 필수 검증
+- SECRET_KEY 필수
+- 전용 네트워크 (172.20.0.0/16)
+- 영구 볼륨 분리
+
+##### 7.2 .env.production.example
+
+**파일**: `.env.production.example` (43 lines)
+
+프로덕션 환경 변수 템플릿입니다.
+
+**중요 설정:**
+```bash
+# 보안 (필수 변경!)
+POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD_HERE
+REDIS_PASSWORD=CHANGE_ME_STRONG_REDIS_PASSWORD
+SECRET_KEY=GENERATE_A_SECURE_RANDOM_SECRET_KEY_HERE
+
+# 애플리케이션
+KOOAI_ENV=production
+DEBUG=false
+API_REPLICAS=2
+
+# CORS (실제 도메인으로 변경)
+CORS_ORIGINS=https://yourdomain.com
+```
+
+#### 8. 종합 배포 문서
+
+**파일**: `DEPLOYMENT.md` (513 lines)
+
+완전한 배포 가이드 문서를 작성했습니다.
+
+**포함 내용:**
+
+##### 1. 사전 요구사항
+- 필요한 소프트웨어 (Docker, Python, Git)
+- 하드웨어 요구사항 (개발/프로덕션)
+
+##### 2. 로컬 개발
+- Quick start
+- Docker Compose 사용법
+
+##### 3. Docker 배포
+- 이미지 빌드 (단일/멀티 플랫폼)
+- 컨테이너 실행
+- 환경 변수 설정
+
+##### 4. 프로덕션 배포
+- 환경 설정 (보안 키 생성)
+- Docker Compose 배포
+- SSL/TLS 설정 (Let's Encrypt)
+
+##### 5. Kubernetes 배포
+- Namespace 생성
+- Secrets 관리
+- 스케일링 및 오토스케일링
+
+##### 6. 모니터링 및 로깅
+- Prometheus 설정
+- Grafana 대시보드
+- 로그 집계 및 로테이션
+
+##### 7. 문제 해결
+- 일반적인 문제 5가지
+- Health check 방법
+- 백업 및 복원
+
+##### 8. 성능 최적화
+- 데이터베이스 튜닝
+- API 최적화
+- Nginx 최적화
+
+##### 9. 보안 모범 사례
+- 10가지 보안 체크리스트
+
+#### 9. README 업데이트
+
+README.md에 Docker 배포 섹션을 추가했습니다 (80+ lines).
+
+**추가된 섹션:**
+- 🐳 Docker 배포
+- 로컬 개발 환경
+- Docker 이미지 빌드
+- 프로덕션 배포
+- 환경 변수 설정
+
+### 📊 Phase 18 통계
+
+**생성된 파일:**
+- `Dockerfile` (89 lines)
+- `.dockerignore` (65 lines)
+- `deploy/docker-build.sh` (43 lines, executable)
+- `deploy/start.sh` (84 lines, executable)
+- `deploy/stop.sh` (29 lines, executable)
+- `deploy/init-db.sql` (58 lines)
+- `deploy/nginx.conf` (129 lines)
+- `docker-compose.production.yml` (134 lines)
+- `.env.production.example` (43 lines)
+- `DEPLOYMENT.md` (513 lines)
+
+**업데이트된 파일:**
+- `docker-compose.yml` (업데이트)
+- `README.md` (+80 lines Docker 섹션)
+
+**총 코드/설정:** ~1,267 lines
+
+### 🎯 주요 성과
+
+#### 1. 프로덕션 준비 완료
+- 멀티 스테이지 Dockerfile로 이미지 최적화
+- 비root 사용자로 보안 강화
+- Health check 및 재시작 정책
+
+#### 2. 완전한 배포 자동화
+- 원클릭 배포 스크립트 (`./deploy/start.sh`)
+- 프로파일 기반 환경 전환
+- 자동 디렉토리 생성 및 검증
+
+#### 3. 프로덕션 보안
+- 필수 환경 변수 검증
+- 비밀번호 강제
+- Nginx 레이트 리미팅
+- SSL/TLS 지원 준비
+
+#### 4. 스케일링 지원
+- Docker Compose 복제 기능
+- Kubernetes 배포 가이드
+- 리소스 제한 및 모니터링
+
+#### 5. 종합 문서화
+- 513 lines 배포 가이드
+- 단계별 지침
+- 문제 해결 섹션
+- 보안 체크리스트
+
+### 🚀 배포 시나리오
+
+#### 개발 환경
+```bash
+# 1분 안에 전체 스택 실행
+./deploy/start.sh
+```
+
+#### 프로덕션 환경
+```bash
+# 1. 환경 설정
+cp .env.production.example .env.production
+nano .env.production  # 비밀번호 설정
+
+# 2. 배포
+docker-compose -f docker-compose.production.yml up -d
+
+# 완료!
+```
+
+#### Kubernetes 환경
+```bash
+# 1. Secrets 생성
+kubectl create secret generic kooai-secrets ...
+
+# 2. 배포
+kubectl apply -f k8s/ -n kooai
+
+# 3. 스케일링
+kubectl scale deployment kooai-api --replicas=10
+```
+
+### 📈 배포 아키텍처
+
+```
+┌─────────────────────────────────────────┐
+│   Internet                               │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│   Nginx (Port 80/443)                   │
+│   - SSL Termination                     │
+│   - Rate Limiting                       │
+│   - Load Balancing                      │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│   KooAI API (Port 8000)                 │
+│   - Multiple Workers                    │
+│   - Auto-scaling                        │
+│   - Health Checks                       │
+└────┬─────────────────┬──────────────────┘
+     │                 │
+     ▼                 ▼
+┌─────────┐      ┌──────────┐
+│PostgreSQL│      │  Redis   │
+│(pgvector)│      │ (Cache)  │
+└──────────┘      └──────────┘
+```
+
+### 🔒 보안 강화
+
+Phase 18에서 구현된 보안 기능:
+
+1. **컨테이너 보안**
+   - 비root 사용자 실행
+   - 최소 권한 원칙
+   - 읽기 전용 파일시스템 (설정 파일)
+
+2. **네트워크 보안**
+   - 전용 Docker 네트워크
+   - 내부 서비스 간 통신만 허용
+   - Nginx 레이트 리미팅
+
+3. **데이터 보안**
+   - 필수 비밀번호 검증
+   - SSL/TLS 지원
+   - 볼륨 암호화 준비
+
+4. **애플리케이션 보안**
+   - Secret key 필수
+   - CORS 정책
+   - Security headers (Nginx)
+
+### 🎉 Phase 18 완료
+
+**날짜:** 2025-11-06
+
+**상태:** ✅ 완료
+
+**다음 단계:** Phase 19 - CI/CD Pipeline 또는 추가 기능 구현
+
+---
+
+## 프로젝트 종합 현황 (Phase 1-18)
+
+### 완료된 Phases
+1. ✅ Phase 1-2: Core Domain Models
+2. ✅ Phase 3: Data Types
+3. ✅ Phase 4: Repositories & Factories
+4. ✅ Phase 5: JSON Processing
+5. ✅ Phase 6: VAE Models
+6. ✅ Phase 7: AI Model Registry
+7. ✅ Phase 8: LLM Integration
+8. ✅ Phase 9: Data Processing Pipeline
+9. ✅ Phase 10: Plugin System
+10. ✅ Phase 11: Transfer Learning
+11. ✅ Phase 12: 3D Geometry Processing
+12. ✅ Phase 13: Simulation Parsing & Analysis
+13. ✅ Phase 14: Application Use Cases
+14. ✅ Phase 15: REST API
+15. ✅ Phase 16: CLI Interface
+16. ✅ Phase 17: Documentation
+17. ✅ **Phase 18: Docker & Production Deployment**
+
+### 최종 통계
+- **총 Phases:** 18개
+- **총 코드:** ~15,300+ lines
+- **테스트:** 73+ tests (100% pass)
+- **문서:** README, DEPLOYMENT, DEVELOPMENT_LOG
+- **배포 준비:** ✅ 완료
+

@@ -114,6 +114,87 @@ python kooai_cli.py analyze {simulation_id} temperature --extremes --outliers
 python kooai_cli.py convergence {simulation_id} temperature
 ```
 
+## 🐳 Docker 배포
+
+### 로컬 개발 환경
+
+Docker Compose를 사용하여 전체 스택을 쉽게 실행할 수 있습니다:
+
+```bash
+# 서비스 시작 (PostgreSQL, Redis, API)
+./deploy/start.sh
+
+# 또는 docker-compose 직접 사용
+docker-compose up -d
+
+# 로그 확인
+docker-compose logs -f api
+
+# 서비스 중지
+./deploy/stop.sh
+```
+
+### Docker 이미지 빌드
+
+```bash
+# 빌드 스크립트 사용
+./deploy/docker-build.sh
+
+# 또는 직접 빌드
+docker build -t kooai:latest .
+
+# 이미지 실행
+docker run -p 8000:8000 kooai:latest
+```
+
+### 프로덕션 배포
+
+프로덕션 환경을 위한 별도의 docker-compose 설정이 제공됩니다:
+
+```bash
+# 1. 프로덕션 환경 설정
+cp .env.production.example .env.production
+# .env.production 파일을 편집하여 비밀번호 등을 설정
+
+# 2. 프로덕션 서비스 시작
+docker-compose -f docker-compose.production.yml up -d
+
+# 3. 서비스 상태 확인
+docker-compose -f docker-compose.production.yml ps
+
+# 4. 로그 모니터링
+docker-compose -f docker-compose.production.yml logs -f
+```
+
+프로덕션 배포에는 다음이 포함됩니다:
+- PostgreSQL (pgvector 지원)
+- Redis (캐싱)
+- KooAI API (멀티 워커)
+- Nginx (리버스 프록시, 레이트 리미팅)
+
+### 환경 변수 설정
+
+중요한 환경 변수들:
+
+```bash
+# 보안 (필수!)
+SECRET_KEY=your-secret-key-here
+POSTGRES_PASSWORD=strong-password
+REDIS_PASSWORD=redis-password
+
+# 데이터베이스
+DATABASE_URL=postgresql://kooai:password@postgres:5432/kooai
+
+# API 설정
+API_WORKERS=4
+LOG_LEVEL=INFO
+
+# CORS (프론트엔드 도메인)
+CORS_ORIGINS=https://yourdomain.com
+```
+
+자세한 설정은 `.env.example` 및 `.env.production.example` 파일을 참조하세요.
+
 ## 📚 API 사용 예제
 
 ### 시뮬레이션 업로드

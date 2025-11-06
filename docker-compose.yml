@@ -43,23 +43,19 @@ services:
   api:
     build:
       context: .
-      dockerfile: docker/Dockerfile
-      target: development
+      dockerfile: Dockerfile
     container_name: kooai-api
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
-      - storage_data:/data/storage
-      - model_data:/data/models
-    env_file:
-      - .env
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./src:/app/src  # Hot reload for development
     environment:
-      - DATABASE_URL=postgresql+asyncpg://kooai:kooai_password@postgres:5432/kooai
+      - KOOAI_ENV=development
+      - DATABASE_URL=postgresql://kooai:kooai_password@postgres:5432/kooai
       - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - ENV=development
-      - DEBUG=true
+      - LOG_LEVEL=DEBUG
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,69 +64,69 @@ services:
     command: uvicorn src.presentation.api.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
       - kooai-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
-  # Celery Worker
-  celery-worker:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      target: development
-    container_name: kooai-celery-worker
-    volumes:
-      - .:/app
-      - storage_data:/data/storage
-      - model_data:/data/models
-    env_file:
-      - .env
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://kooai:kooai_password@postgres:5432/kooai
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - ENV=development
-    depends_on:
-      - postgres
-      - redis
-    command: celery -A src.infrastructure.queue.celery_app worker --loglevel=info
-    networks:
-      - kooai-network
+  # Celery Worker (disabled - not yet implemented)
+  # celery-worker:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: kooai-celery-worker
+  #   volumes:
+  #     - ./data:/app/data
+  #   environment:
+  #     - DATABASE_URL=postgresql://kooai:kooai_password@postgres:5432/kooai
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - CELERY_BROKER_URL=redis://redis:6379/1
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   command: celery -A src.infrastructure.queue.celery_app worker --loglevel=info
+  #   networks:
+  #     - kooai-network
+  #   profiles:
+  #     - celery
 
-  # Celery Beat (Scheduler)
-  celery-beat:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      target: development
-    container_name: kooai-celery-beat
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/1
-    depends_on:
-      - redis
-    command: celery -A src.infrastructure.queue.celery_app beat --loglevel=info
-    networks:
-      - kooai-network
+  # Celery Beat (disabled - not yet implemented)
+  # celery-beat:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: kooai-celery-beat
+  #   volumes:
+  #     - ./data:/app/data
+  #   environment:
+  #     - CELERY_BROKER_URL=redis://redis:6379/1
+  #   depends_on:
+  #     - redis
+  #   command: celery -A src.infrastructure.queue.celery_app beat --loglevel=info
+  #   networks:
+  #     - kooai-network
+  #   profiles:
+  #     - celery
 
-  # Flower (Celery monitoring)
-  flower:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-      target: development
-    container_name: kooai-flower
-    ports:
-      - "5555:5555"
-    env_file:
-      - .env
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/1
-    depends_on:
-      - redis
-    command: celery -A src.infrastructure.queue.celery_app flower --port=5555
-    networks:
-      - kooai-network
+  # Flower (disabled - not yet implemented)
+  # flower:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: kooai-flower
+  #   ports:
+  #     - "5555:5555"
+  #   environment:
+  #     - CELERY_BROKER_URL=redis://redis:6379/1
+  #   depends_on:
+  #     - redis
+  #   command: celery -A src.infrastructure.queue.celery_app flower --port=5555
+  #   networks:
+  #     - kooai-network
+  #   profiles:
+  #     - celery
 
   # Prometheus (Optional - for monitoring)
   prometheus:
