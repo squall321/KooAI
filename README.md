@@ -4,6 +4,11 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+[![CI](https://github.com/yourusername/kooai/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/kooai/actions/workflows/ci.yml)
+[![Docker](https://github.com/yourusername/kooai/actions/workflows/docker.yml/badge.svg)](https://github.com/yourusername/kooai/actions/workflows/docker.yml)
+[![Code Quality](https://github.com/yourusername/kooai/actions/workflows/code-quality.yml/badge.svg)](https://github.com/yourusername/kooai/actions/workflows/code-quality.yml)
+[![Release](https://github.com/yourusername/kooai/actions/workflows/release.yml/badge.svg)](https://github.com/yourusername/kooai/actions/workflows/release.yml)
+
 ## 🎯 프로젝트 개요
 
 KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 플랫폼입니다. Clean Architecture 원칙을 따르며 확장 가능하고 유지보수하기 쉬운 구조로 설계되었습니다.

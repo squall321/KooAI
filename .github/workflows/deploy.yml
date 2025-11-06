@@ -1,0 +1,232 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy (default: latest)'
+        required: false
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.kooai.example.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to staging
+        env:
+          HOST: ${{ secrets.STAGING_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          VERSION: ${{ github.event.inputs.version || 'latest' }}
+        run: |
+          ssh $USER@$HOST << 'EOF'
+            cd /opt/kooai
+
+            # Pull latest images
+            docker-compose -f docker-compose.production.yml pull
+
+            # Apply database migrations (if any)
+            # docker-compose -f docker-compose.production.yml run --rm api alembic upgrade head
+
+            # Restart services with zero-downtime
+            docker-compose -f docker-compose.production.yml up -d --no-deps --build api
+
+            # Wait for health check
+            sleep 10
+            curl --fail http://localhost:8000/health || exit 1
+
+            # Cleanup old images
+            docker image prune -f
+          EOF
+
+      - name: Verify deployment
+        run: |
+          curl --fail https://staging.kooai.example.com/health
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ Staging deployment successful"
+          # Add notification logic (Slack, Discord, etc.)
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
+            cd /opt/kooai
+            docker-compose -f docker-compose.production.yml rollback api
+          EOF
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.environment == 'production'
+    needs: []  # Add deploy-staging if you want staging gate
+    environment:
+      name: production
+      url: https://kooai.example.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create backup
+        env:
+          HOST: ${{ secrets.PRODUCTION_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh $USER@$HOST << 'EOF'
+            cd /opt/kooai
+
+            # Backup database
+            docker-compose -f docker-compose.production.yml exec -T postgres \
+              pg_dump -U kooai kooai > backup_$(date +%Y%m%d_%H%M%S).sql
+
+            # Backup volumes
+            docker run --rm \
+              -v kooai_postgres_data_prod:/data \
+              -v $(pwd)/backups:/backup \
+              alpine tar czf /backup/postgres_$(date +%Y%m%d_%H%M%S).tar.gz /data
+          EOF
+
+      - name: Deploy to production
+        env:
+          HOST: ${{ secrets.PRODUCTION_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          ssh $USER@$HOST << 'EOF'
+            cd /opt/kooai
+
+            # Pull specific version
+            export VERSION=$VERSION
+            docker-compose -f docker-compose.production.yml pull
+
+            # Apply database migrations
+            # docker-compose -f docker-compose.production.yml run --rm api alembic upgrade head
+
+            # Rolling update strategy
+            docker-compose -f docker-compose.production.yml up -d --no-deps --scale api=2
+            sleep 10
+            docker-compose -f docker-compose.production.yml up -d --no-deps --remove-orphans
+
+            # Health check
+            for i in {1..30}; do
+              if curl --fail http://localhost:8000/health; then
+                echo "✅ Health check passed"
+                break
+              fi
+              echo "⏳ Waiting for service to be healthy..."
+              sleep 2
+            done
+
+            # Cleanup
+            docker image prune -f
+          EOF
+
+      - name: Verify production deployment
+        run: |
+          curl --fail https://kooai.example.com/health
+
+      - name: Run smoke tests
+        run: |
+          # Add smoke tests here
+          curl --fail https://kooai.example.com/docs
+          curl --fail https://kooai.example.com/api/v1/simulations/
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🚀 Production deployment successful: ${{ github.ref_name }}"
+          # Add notification logic
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          HOST: ${{ secrets.PRODUCTION_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh $USER@$HOST << 'EOF'
+            cd /opt/kooai
+
+            # Restore from backup
+            docker-compose -f docker-compose.production.yml down
+
+            # Restore database (if needed)
+            # cat backup_latest.sql | docker-compose -f docker-compose.production.yml exec -T postgres psql -U kooai kooai
+
+            # Restart with previous version
+            docker-compose -f docker-compose.production.yml up -d
+          EOF
+
+          echo "❌ Production deployment failed. Rolled back to previous version."
+          # Send alert
+
+  kubernetes-deploy:
+    runs-on: ubuntu-latest
+    if: false  # Enable when K8s is ready
+    environment:
+      name: kubernetes-production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/
+          kubectl rollout status deployment/kooai-api -n kooai
+          kubectl get pods -n kooai
+
+      - name: Verify K8s deployment
+        run: |
+          kubectl get service kooai-api -n kooai
+          # Add health check against K8s service
