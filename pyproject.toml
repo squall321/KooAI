@@ -119,7 +119,11 @@ storage = [
     "types-aiobotocore[s3]>=2.9.0",
 ]
 
-all = ["kooai[dev,llm,docs,parsers,storage]"]
+tasks = [
+    "flower>=2.0.0",
+]
+
+all = ["kooai[dev,llm,docs,parsers,storage,tasks]"]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/kooai"

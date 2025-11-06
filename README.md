@@ -19,6 +19,7 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
 - **🔬 고급 결과 분석**: 통계 분석, 극값 탐지, 이상치 감지, 수렴성 분석
 - **📐 3D 기하학 처리**: 메시 분석, 변환, 스무딩, 서브디비전
 - **💾 파일 스토리지 통합**: 로컬 파일 시스템, S3, MinIO 지원 (GCS, Azure 계획)
+- **⚡ 비동기 작업 처리**: Celery 기반 백그라운드 태스크, 대용량 파일 파싱, 복잡한 분석
 - **🚀 REST API**: FastAPI 기반 RESTful API with 자동 문서화
 - **💻 CLI 도구**: Click + Rich 기반 명령줄 인터페이스
 - **🏗️ Clean Architecture**: 계층 분리, 의존성 역전, 테스트 가능한 설계
@@ -58,6 +59,18 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
 - **메타데이터 관리**: 커스텀 파일 메타데이터
 - **배치 작업**: 다중 파일 업로드/삭제
 - **자동 정리**: 오래된 파일 자동 삭제
+
+### 비동기 작업 처리 (Celery)
+- **백그라운드 파싱**: 대용량 시뮬레이션 파일 비동기 파싱
+- **복잡한 분석**: 수렴성 분석, 공간 분석 등 장시간 작업
+- **우선순위 큐**: High/Default/Low 우선순위 지원
+- **자동 재시도**: Exponential backoff를 통한 실패 처리
+- **진행률 추적**: 실시간 작업 진행률 모니터링
+- **스케줄링**: Celery Beat를 통한 주기적 작업
+  - 오래된 파일 정리 (매일 2AM)
+  - 만료된 결과 정리 (6시간마다)
+  - 헬스 체크 (5분마다)
+- **모니터링**: Flower 웹 UI로 실시간 모니터링
 
 ## 🏗️ 아키텍처
 
@@ -119,6 +132,11 @@ S3/MinIO 스토리지 지원:
 pip install -e ".[storage]"
 ```
 
+Flower 모니터링 지원:
+```bash
+pip install -e ".[tasks]"
+```
+
 모든 의존성 포함:
 ```bash
 pip install -e ".[all]"
@@ -152,6 +170,42 @@ python kooai_cli.py analyze {simulation_id} temperature --extremes --outliers
 
 # 수렴성 분석
 python kooai_cli.py convergence {simulation_id} temperature
+```
+
+### Celery 워커 실행
+
+**Redis 시작** (필수):
+```bash
+# Docker로 Redis 시작
+docker run -d -p 6379:6379 redis:latest
+```
+
+**워커 시작**:
+```bash
+# 모든 워커 시작
+chmod +x scripts/start_workers.sh
+./scripts/start_workers.sh
+
+# 또는 개별 워커 시작
+celery -A celery_worker worker -Q simulation --loglevel=info
+```
+
+**Beat 스케줄러 시작**:
+```bash
+chmod +x scripts/start_beat.sh
+./scripts/start_beat.sh
+```
+
+**Flower 모니터링 시작**:
+```bash
+celery -A celery_worker flower --port=5555
+# http://localhost:5555 에서 접근
+```
+
+**워커 중지**:
+```bash
+chmod +x scripts/stop_workers.sh
+./scripts/stop_workers.sh
 ```
 
 ## 🐳 Docker 배포
