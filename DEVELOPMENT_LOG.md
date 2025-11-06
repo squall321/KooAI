@@ -3471,3 +3471,382 @@ src/core/pipeline/stages/*.py     58-72%
 - **테스트 개수**: 40개
 - **테스트 성공률**: 100%
 
+
+
+## Phase 10: 플러그인 시스템 (완료 ✅)
+
+### 📅 완료 날짜: 2025-11-06
+
+### 목표
+동적 플러그인 시스템으로 시스템 확장성 제공
+
+---
+
+## ✅ 완료된 작업
+
+### 파일 생성: 10개
+- 플러그인 코어: 4개 (base.py, registry.py, loader.py, config.py)
+- 플러그인 타입: 2개 (stage_plugin.py, adapter_plugin.py)
+- 테스트: 1개
+- __init__.py: 3개
+
+### 테스트: 25개 (100% 통과)
+- PluginVersion: 4개
+- PluginDependency: 2개
+- BasePlugin: 3개
+- PluginRegistry: 8개
+- PluginConfigManager: 3개
+- ConfigBuilder: 3개
+- 통합 테스트: 2개
+
+### 커버리지
+- base.py: 83%
+- registry.py: 65%
+- config.py: 77%
+- stage_plugin.py: 42%
+- adapter_plugin.py: 42%
+
+---
+
+## 📁 파일 구조
+
+```
+src/core/plugins/
+├── __init__.py                   # 공개 API
+├── base.py                       # 플러그인 인터페이스 (417 lines)
+├── registry.py                   # 플러그인 레지스트리 (431 lines)
+├── loader.py                     # 동적 로더 (331 lines)
+├── config.py                     # 설정 관리 (280 lines)
+└── types/
+    ├── __init__.py
+    ├── stage_plugin.py           # ProcessingStage 플러그인 (145 lines)
+    └── adapter_plugin.py         # ModelAdapter 플러그인 (140 lines)
+
+tests/unit/plugins/
+└── test_plugin_system.py         # 통합 테스트 (407 lines)
+```
+
+---
+
+## 🏗️ 핵심 아키텍처
+
+### 1. 플러그인 라이프사이클
+
+```python
+from src.core.plugins import BasePlugin, PluginMetadata, PluginType, PluginVersion
+
+class MyPlugin(BasePlugin):
+    def __init__(self):
+        metadata = PluginMetadata(
+            name="my_plugin",
+            version=PluginVersion(1, 0, 0),
+            plugin_type=PluginType.CUSTOM,
+            description="My custom plugin"
+        )
+        super().__init__(metadata)
+    
+    async def _on_initialize(self, config):
+        # 초기화 로직
+        pass
+    
+    async def _on_activate(self):
+        # 활성화 로직
+        pass
+
+# 사용
+plugin = MyPlugin()
+await plugin.initialize({"key": "value"})  # REGISTERED → LOADED
+await plugin.activate()                     # LOADED → ACTIVE
+await plugin.deactivate()                   # ACTIVE → INACTIVE
+await plugin.cleanup()                      # INACTIVE → UNLOADED
+```
+
+### 2. 플러그인 레지스트리
+
+```python
+from src.core.plugins import PluginRegistry
+
+# 레지스트리 생성
+registry = PluginRegistry(storage_path=Path("plugins/metadata"))
+
+# 플러그인 등록
+registry.register(my_plugin)
+
+# 플러그인 조회
+plugin = registry.get("my_plugin")
+
+# 목록 조회
+all_plugins = registry.list_plugins()
+stage_plugins = registry.list_plugins(plugin_type=PluginType.STAGE)
+
+# 모든 플러그인 활성화 (의존성 순서 자동 해결)
+await registry.activate_all()
+```
+
+### 3. 동적 로더
+
+```python
+from src.core.plugins import PluginLoader
+
+loader = PluginLoader(registry)
+
+# 파일에서 로드
+plugin = loader.load_from_file(
+    plugin_path=Path("plugins/my_plugin.py"),
+    class_name="MyPlugin",
+    config={"setting": "value"}
+)
+
+# 모듈에서 로드
+plugin = loader.load_from_module(
+    module_path="my_plugins.custom",
+    class_name="CustomPlugin"
+)
+
+# 디렉토리에서 일괄 로드
+plugins = loader.load_from_directory(
+    plugins_dir=Path("plugins/"),
+    config_map={"plugin1": {...}, "plugin2": {...}}
+)
+```
+
+### 4. 설정 관리
+
+```python
+from src.core.plugins import PluginConfigManager, ConfigBuilder
+
+# 설정 매니저
+config_manager = PluginConfigManager(config_dir=Path("config/plugins"))
+
+# 스키마 등록 (JSON Schema)
+schema = {
+    "type": "object",
+    "properties": {
+        "host": {"type": "string"},
+        "port": {"type": "integer"}
+    },
+    "required": ["host", "port"]
+}
+config_manager.register_schema("my_plugin", schema)
+
+# 설정 빌더로 구성
+config = (
+    ConfigBuilder("my_plugin")
+    .set("host", "localhost")
+    .set("port", 8080)
+    .set_nested("database.name", "mydb")
+    .build()
+)
+
+# 저장 (스키마 검증 포함)
+config_manager.save_config("my_plugin", config)
+```
+
+### 5. 의존성 관리
+
+```python
+from src.core.plugins import PluginDependency, PluginVersion
+
+# 의존성 정의
+dependencies = [
+    PluginDependency(
+        name="base_plugin",
+        min_version=PluginVersion(1, 0, 0),
+        max_version=PluginVersion(2, 0, 0)
+    ),
+    PluginDependency(
+        name="optional_plugin",
+        optional=True
+    )
+]
+
+metadata = PluginMetadata(
+    name="dependent_plugin",
+    version=PluginVersion(1, 0, 0),
+    plugin_type=PluginType.CUSTOM,
+    dependencies=dependencies
+)
+
+# 레지스트리가 자동으로 의존성 확인
+registry.register(plugin)  # 의존성 미충족 시 PluginDependencyError
+
+# 활성화 순서 자동 해결 (Topological Sort)
+await registry.activate_all()  # 의존성 순서대로 활성화
+```
+
+---
+
+## 🔌 플러그인 타입
+
+### 1. Processing Stage 플러그인
+
+```python
+from src.core.plugins.types import StagePlugin, StagePluginRegistry
+from src.core.pipeline import ProcessingStage, PipelineContext
+
+# 커스텀 Stage 정의
+class MyCustomStage(ProcessingStage):
+    async def process(self, data, context: PipelineContext):
+        # 처리 로직
+        return data * 2
+
+# Stage 플러그인
+class MyStagePlugin(StagePlugin):
+    async def _on_initialize(self, config):
+        self._stage_class = MyCustomStage
+
+# 등록 및 사용
+stage_registry = StagePluginRegistry()
+stage_registry.register(my_stage_plugin)
+
+# Stage 인스턴스 생성
+stage = stage_registry.create_stage("my_stage")
+
+# 파이프라인에서 사용
+pipeline = Pipeline().add_stage(stage)
+```
+
+### 2. Model Adapter 플러그인
+
+```python
+from src.core.plugins.types import AdapterPlugin, AdapterPluginRegistry
+from src.core.ai_models.adapters.base import BaseModelAdapter
+
+# 커스텀 Adapter 정의
+class MyCustomAdapter(BaseModelAdapter):
+    def load(self, config):
+        # 모델 로드 로직
+        pass
+    
+    def predict(self, input_data, **kwargs):
+        # 추론 로직
+        pass
+
+# Adapter 플러그인
+class MyAdapterPlugin(AdapterPlugin):
+    async def _on_initialize(self, config):
+        self._adapter_class = MyCustomAdapter
+
+# 등록 및 사용
+adapter_registry = AdapterPluginRegistry()
+adapter_registry.register(my_adapter_plugin)
+
+# Adapter 인스턴스 생성
+adapter = adapter_registry.create_adapter("my_adapter")
+```
+
+---
+
+## 💡 주요 기능
+
+### 1. 버전 관리
+- Semantic Versioning (major.minor.patch)
+- 버전 비교 연산 (<, >, ==, >=, <=)
+- 최소/최대 버전 호환성 확인
+
+### 2. 의존성 해결
+- 필수/선택적 의존성
+- 버전 범위 확인
+- Topological Sort로 활성화 순서 자동 결정
+- 순환 의존성 감지
+
+### 3. 동적 로딩
+- importlib을 이용한 런타임 로딩
+- 파일/모듈/디렉토리 로드 지원
+- 모듈 캐싱
+- 플러그인 언로드
+
+### 4. 설정 검증
+- JSON Schema 기반 검증
+- Pydantic 동적 모델 생성
+- 필수 필드 확인
+- 타입 검증
+
+### 5. 헬스 체크
+- 플러그인 상태 모니터링
+- 커스텀 헬스 체크 훅
+- 전체 플러그인 일괄 확인
+
+---
+
+## 🎯 테스트 전략
+
+### 단위 테스트 (25개)
+
+**1. PluginVersion (4개)**
+- 버전 생성, 파싱
+- 버전 비교
+- 버전 동등성
+
+**2. PluginDependency (2개)**
+- 호환성 확인
+- 최소/최대 버전
+
+**3. BasePlugin (3개)**
+- 라이프사이클 (초기화 → 활성화 → 비활성화 → 정리)
+- 헬스 체크
+- 메타데이터
+
+**4. PluginRegistry (8개)**
+- 플러그인 등록/해제
+- 중복/버전 충돌 처리
+- 목록 조회 (전체, 타입별)
+- 의존성 검증
+- 활성화 순서 해결
+
+**5. PluginConfigManager (3개)**
+- 설정 설정/조회
+- 파일 저장/로드
+- 스키마 검증
+
+**6. ConfigBuilder (3개)**
+- 설정 빌드
+- 중첩 설정
+- 설정 병합
+
+---
+
+## 📊 통계
+
+- **총 코드**: ~1,744 lines
+- **테스트**: ~407 lines
+- **파일**: 10개
+- **테스트**: 25개 (100% 통과)
+
+---
+
+## 🎨 디자인 패턴
+
+### 1. Plugin Architecture Pattern
+- 동적 기능 확장
+- 느슨한 결합
+- 핫 스왑 가능
+
+### 2. Registry Pattern
+- 중앙 집중식 관리
+- 빠른 조회
+- 메타데이터 저장
+
+### 3. Factory Pattern
+- 플러그인 인스턴스 생성
+- 타입별 팩토리
+
+### 4. Builder Pattern
+- 설정 구성
+- 체이닝 지원
+
+### 5. Template Method Pattern
+- 라이프사이클 훅
+- 공통 로직 재사용
+
+---
+
+## 📝 다음 단계 (Phase 11)
+
+- [ ] Transfer Learning & Fine-tuning
+- [ ] 사전 학습 모델 관리
+- [ ] 미세 조정 파이프라인
+- [ ] 학습 스케줄러
+- [ ] 체크포인트 관리
+- [ ] 학습 메트릭 추적
+
