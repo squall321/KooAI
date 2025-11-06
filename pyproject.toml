@@ -1,0 +1,223 @@
+[project]
+name = "kooai"
+version = "0.1.0"
+description = "AI-powered simulation post-processing analysis platform"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+keywords = ["simulation", "ai", "analysis", "vae", "llm", "post-processing"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    # Core
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+
+    # Web Framework
+    "fastapi>=0.108.0",
+    "uvicorn[standard]>=0.25.0",
+    "python-multipart>=0.0.6",
+
+    # Database
+    "sqlalchemy[asyncio]>=2.0.0",
+    "asyncpg>=0.29.0",
+    "alembic>=1.13.0",
+    "psycopg2-binary>=2.9.9",
+    "pgvector>=0.2.4",
+
+    # Cache
+    "redis[hiredis]>=5.0.1",
+
+    # Data Processing
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+    "scipy>=1.11.0",
+
+    # 3D Geometry
+    "vtk>=9.3.0",
+    "pyvista>=0.43.0",
+    "trimesh>=4.0.0",
+    "shapely>=2.0.0",
+
+    # AI/ML
+    "torch>=2.1.0",
+    "transformers>=4.36.0",
+    "scikit-learn>=1.3.0",
+    "optuna>=3.5.0",
+
+    # Task Queue
+    "celery[redis]>=5.3.0",
+
+    # Authentication
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+
+    # Utilities
+    "aiofiles>=23.2.0",
+    "httpx>=0.25.0",
+    "orjson>=3.9.0",
+    "structlog>=23.2.0",
+
+    # Monitoring
+    "prometheus-client>=0.19.0",
+    "opentelemetry-api>=1.21.0",
+    "opentelemetry-sdk>=1.21.0",
+    "opentelemetry-instrumentation-fastapi>=0.42b0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "httpx>=0.25.0",
+
+    # Code Quality
+    "black>=23.12.0",
+    "ruff>=0.1.9",
+    "mypy>=1.7.0",
+    "isort>=5.13.0",
+    "pre-commit>=3.6.0",
+
+    # Type Stubs
+    "types-redis>=4.6.0",
+    "types-passlib>=1.7.7",
+    "pandas-stubs>=2.1.0",
+]
+
+llm = [
+    "openai>=1.6.0",
+    "anthropic>=0.8.0",
+    "langchain>=0.1.0",
+    "tiktoken>=0.5.0",
+]
+
+docs = [
+    "sphinx>=7.2.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "myst-parser>=2.0.0",
+]
+
+all = ["kooai[dev,llm,docs]"]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/kooai"
+Documentation = "https://kooai.readthedocs.io"
+Repository = "https://github.com/yourusername/kooai"
+Issues = "https://github.com/yourusername/kooai/issues"
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --cov=src --cov-report=term-missing --cov-report=html"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/migrations/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C",   # flake8-comprehensions
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"
+ignore_missing_imports = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "vtk.*",
+    "pyvista.*",
+    "trimesh.*",
+    "shapely.*",
+]
+ignore_missing_imports = true
