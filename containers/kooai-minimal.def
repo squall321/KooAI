@@ -1,0 +1,24 @@
+Bootstrap: docker
+From: python:3.11-slim
+
+%labels
+    Author KooAI Team
+    Version 1.0.0
+    Profile minimal
+
+%post
+    apt-get update && apt-get install -y build-essential git
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+    
+    mkdir -p /opt/kooai && cd /opt/kooai
+    python3 -m venv venv
+    . venv/bin/activate
+    pip install --upgrade pip
+    pip install fastapi uvicorn pydantic sqlalchemy
+
+%runscript
+    cd /opt/kooai
+    exec python -m uvicorn src.presentation.api.main:app --host 0.0.0.0
+
+%test
+    python3 --version
