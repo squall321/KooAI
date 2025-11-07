@@ -13,7 +13,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from .exceptions import register_exception_handlers
-from .routes import simulation_routes
+from .routes import simulation_routes, health_routes
 from .middleware.security import SecurityHeadersMiddleware
 
 # Rate limiter 초기화
@@ -66,9 +66,12 @@ register_exception_handlers(app)
 # 라우터 등록
 app.include_router(simulation_routes.router, prefix="/api/v1")
 
+# Health check routes (detailed with dependency checks)
+app.include_router(health_routes.router, prefix="/api/v1")
+
 
 # 헬스 체크 엔드포인트
-@app.get("/health", tags=["health"])
+@app.get("/health/simple", tags=["health"])
 @limiter.limit("100/minute")  # Rate limiting: 분당 100회
 async def health_check(request: Request):
     """헬스 체크"""
