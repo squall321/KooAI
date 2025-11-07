@@ -2,8 +2,9 @@
 Cache configuration
 """
 
+import os
 from typing import Optional
-from pydantic import Field, ConfigDict
+from pydantic import Field, ConfigDict, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -12,12 +13,17 @@ class CacheConfig(BaseSettings):
     Cache 설정
 
     Environment variables나 .env 파일에서 설정을 읽어옵니다.
+
+    우선순위:
+    1. REDIS_URL (전체 URL, Docker/Apptainer용)
+    2. CACHE_REDIS_URL (prefix 포함)
+    3. 개별 변수 (REDIS_HOST, REDIS_PORT 등)
     """
 
     # Redis connection
-    redis_url: str = Field(
-        default="redis://localhost:6379/1",
-        description="Redis connection URL",
+    redis_url: Optional[str] = Field(
+        default=None,
+        description="Redis connection URL (REDIS_URL 또는 CACHE_REDIS_URL)",
     )
     redis_host: str = Field(default="localhost", description="Redis host")
     redis_port: int = Field(default=6379, description="Redis port")
@@ -82,6 +88,43 @@ class CacheConfig(BaseSettings):
         env_prefix="CACHE_",
         case_sensitive=False,
     )
+
+    @field_validator("redis_url", mode="before")
+    @classmethod
+    def check_redis_url(cls, v):
+        """
+        REDIS_URL 환경 변수 확인
+
+        우선순위:
+        1. REDIS_URL (prefix 없음)
+        2. CACHE_REDIS_URL (prefix 포함)
+        3. 주어진 값 또는 None
+        """
+        if v is None:
+            # REDIS_URL 환경 변수 확인 (prefix 없음)
+            v = os.getenv("REDIS_URL")
+            if v is None:
+                # CACHE_REDIS_URL 환경 변수 확인 (prefix 포함)
+                v = os.getenv("CACHE_REDIS_URL")
+        return v
+
+    def get_redis_url(self) -> str:
+        """
+        실제 사용할 Redis URL 반환
+
+        redis_url이 설정되어 있으면 그것을 사용하고,
+        없으면 개별 변수로 URL을 구성합니다.
+
+        Returns:
+            str: Redis 연결 URL
+        """
+        if self.redis_url:
+            return self.redis_url
+
+        # 개별 변수로 URL 구성
+        auth = f":{self.redis_password}@" if self.redis_password else ""
+        protocol = "rediss" if self.redis_ssl else "redis"
+        return f"{protocol}://{auth}{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
 
 # Singleton instance

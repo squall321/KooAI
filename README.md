@@ -13,6 +13,87 @@
 
 KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 플랫폼입니다. Clean Architecture 원칙을 따르며 확장 가능하고 유지보수하기 쉬운 구조로 설계되었습니다.
 
+## 🚀 빠른 시작 (Quick Start)
+
+### 전제 조건
+- Python 3.11 이상
+- Git
+
+### 자동 설치 (권장)
+
+**Linux/macOS**:
+```bash
+git clone https://github.com/yourusername/kooai.git
+cd kooai
+./setup.sh
+```
+
+**Windows**:
+```batch
+git clone https://github.com/yourusername/kooai.git
+cd kooai
+setup.bat
+```
+
+설치 프로파일 선택:
+- **1 - Minimal**: 기본 기능만 (~300MB, 5분)
+- **2 - Standard**: 3D 파일 지원 (~800MB, 10분) **[권장]**
+- **3 - Full**: AI 기능 포함 (~3.5GB, 20분)
+- **4 - Dev**: 개발 환경 (~4GB, 25분)
+
+### 수동 설치
+
+```bash
+# 1. 가상환경 생성
+python3 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 2. 패키지 설치
+pip install --upgrade pip
+pip install -e ".[standard]"  # 또는 [minimal], [full], [dev]
+
+# 3. 환경 설정
+cp .env.example .env
+# .env 파일 편집 (필요시)
+
+# 4. 샘플 데이터 생성
+python scripts/generate_sample_data.py
+
+# 5. 설치 검증
+python scripts/verify_installation.py
+```
+
+### 첫 실행
+
+```bash
+# 가상환경 활성화 (필수)
+source venv/bin/activate
+
+# 예제 실행
+python examples/01_basic_usage.py
+
+# API 서버 시작
+uvicorn src.presentation.api.main:app --reload
+
+# 브라우저에서 API 문서 확인
+# http://localhost:8000/docs
+```
+
+### 문제 해결
+
+설치 문제가 발생하면:
+
+```bash
+# 설치 검증
+python scripts/verify_installation.py
+
+# 재설치
+rm -rf venv
+./setup.sh
+```
+
+---
+
 ### 핵심 기능
 
 - **📊 다양한 시뮬레이션 형식 지원**: CSV, VTK Legacy ASCII, VTU (VTK XML), HDF5 등
