@@ -7,11 +7,15 @@ Provides convenient decorators for caching function results.
 import functools
 import hashlib
 import json
+import time
 from typing import Any, Callable, Optional
+
 import structlog
 
-from .redis_cache import get_cache
+from .cache_monitor import get_cache_monitor
 from .config import get_cache_config
+from .multi_tier_cache import get_multi_tier_cache
+from .redis_cache import get_cache
 
 
 logger = structlog.get_logger(__name__)
@@ -49,6 +53,8 @@ def cache_result(
     ttl: Optional[int] = None,
     prefix: Optional[str] = None,
     key_func: Optional[Callable] = None,
+    use_multi_tier: bool = True,
+    monitor: bool = True,
 ):
     """
     Decorator to cache function results
@@ -57,9 +63,11 @@ def cache_result(
         ttl: Time to live in seconds (None = use default)
         prefix: Cache key prefix
         key_func: Custom function to generate cache key
+        use_multi_tier: Use multi-tier cache (L1+L2) instead of L2 only
+        monitor: Record metrics for monitoring
 
     Example:
-        @cache_result(ttl=3600, prefix="query:")
+        @cache_result(ttl=3600, prefix="query:", use_multi_tier=True)
         def expensive_query(user_id: int):
             return database.query(user_id)
     """
@@ -67,11 +75,19 @@ def cache_result(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            cache = get_cache()
             config = get_cache_config()
 
             if not config.cache_enabled:
                 return func(*args, **kwargs)
+
+            # 캐시 선택 (multi-tier 또는 Redis만)
+            if use_multi_tier:
+                cache = get_multi_tier_cache()
+            else:
+                cache = get_cache()
+
+            # 모니터
+            cache_monitor = get_cache_monitor() if monitor else None
 
             # Generate cache key
             if key_func is not None:
@@ -80,13 +96,23 @@ def cache_result(
                 cache_key = _make_cache_key(func, args, kwargs)
 
             # Try to get from cache
+            start_time = time.time()
             cached_value = cache.get(cache_key, prefix=prefix)
+            duration_ms = (time.time() - start_time) * 1000
+
             if cached_value is not None:
                 logger.debug(
                     "cache_hit",
                     function=func.__name__,
                     key=cache_key,
                 )
+
+                # Record metric
+                if cache_monitor:
+                    cache_monitor.record_get(
+                        key=cache_key, hit=True, duration_ms=duration_ms
+                    )
+
                 return cached_value
 
             # Cache miss - execute function
@@ -96,10 +122,23 @@ def cache_result(
                 key=cache_key,
             )
 
+            # Record miss metric
+            if cache_monitor:
+                cache_monitor.record_get(
+                    key=cache_key, hit=False, duration_ms=duration_ms
+                )
+
+            # Execute function
             result = func(*args, **kwargs)
 
             # Store in cache
+            set_start = time.time()
             cache.set(cache_key, result, ttl=ttl, prefix=prefix)
+            set_duration_ms = (time.time() - set_start) * 1000
+
+            # Record set metric
+            if cache_monitor:
+                cache_monitor.record_set(key=cache_key, duration_ms=set_duration_ms)
 
             return result
 
