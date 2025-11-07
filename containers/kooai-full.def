@@ -6,6 +6,9 @@ From: python:3.11-slim
     Version 1.0.0
     Profile full
 
+%files
+    . /opt/kooai/
+
 %post
     # Install system dependencies including development tools
     apt-get update && apt-get install -y \
@@ -44,54 +47,15 @@ From: python:3.11-slim
     
     # Upgrade pip
     pip install --upgrade pip setuptools wheel
-    
-    # Install KooAI core dependencies
-    pip install \
-        fastapi \
-        uvicorn[standard] \
-        pydantic \
-        pydantic-settings \
-        sqlalchemy \
-        alembic \
-        psycopg2-binary \
-        redis \
-        celery \
-        structlog \
-        prometheus-client
-    
-    # Install 3D processing libraries
-    pip install \
-        vtk \
-        pyvista \
-        meshio \
-        trimesh \
-        open3d
-    
-    # Install scientific computing
-    pip install \
-        numpy \
-        scipy \
-        pandas \
-        h5py \
-        scikit-learn \
-        scikit-image
-    
-    # Install PyTorch (CPU version for broader compatibility)
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-    
-    # Install TensorFlow (CPU version)
-    pip install tensorflow-cpu
-    
+
+    # Install KooAI with full dependencies
+    pip install -e ".[full]"
+
     # Install additional ML/DL tools
     pip install \
-        transformers \
-        datasets \
-        accelerate \
-        optuna \
-        ray[tune]
-    
-    # Install visualization and analysis
-    pip install \
+        torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
+        tensorflow-cpu \
+        open3d \
         matplotlib \
         seaborn \
         plotly \
@@ -99,19 +63,7 @@ From: python:3.11-slim
         ipython \
         jupyter \
         jupyterlab
-    
-    # Install utility libraries
-    pip install \
-        httpx \
-        python-multipart \
-        python-jose[cryptography] \
-        passlib[bcrypt] \
-        aiofiles \
-        Pillow \
-        click \
-        rich \
-        tqdm
-    
+
     # Install testing and quality tools
     pip install \
         pytest \

@@ -6,6 +6,9 @@ From: python:3.11-slim
     Version 1.0.0
     Profile standard
 
+%files
+    . /opt/kooai/
+
 %post
     # Install system dependencies
     apt-get update && apt-get install -y \
@@ -31,35 +34,10 @@ From: python:3.11-slim
     
     # Upgrade pip
     pip install --upgrade pip setuptools wheel
-    
+
     # Install KooAI with standard dependencies
-    pip install \
-        fastapi \
-        uvicorn[standard] \
-        pydantic \
-        pydantic-settings \
-        sqlalchemy \
-        alembic \
-        psycopg2-binary \
-        redis \
-        celery \
-        structlog \
-        prometheus-client \
-        vtk \
-        pyvista \
-        meshio \
-        trimesh \
-        h5py \
-        numpy \
-        scipy \
-        pandas \
-        httpx \
-        python-multipart \
-        python-jose[cryptography] \
-        passlib[bcrypt] \
-        aiofiles \
-        Pillow
-    
+    pip install -e ".[standard]"
+
     # Install testing tools
     pip install pytest pytest-cov pytest-asyncio pytest-xdist
 

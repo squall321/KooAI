@@ -6,19 +6,28 @@ From: python:3.11-slim
     Version 1.0.0
     Profile minimal
 
+%files
+    . /opt/kooai/
+
 %post
     apt-get update && apt-get install -y build-essential git
     apt-get clean && rm -rf /var/lib/apt/lists/*
-    
-    mkdir -p /opt/kooai && cd /opt/kooai
+
+    cd /opt/kooai
     python3 -m venv venv
     . venv/bin/activate
     pip install --upgrade pip
-    pip install fastapi uvicorn pydantic sqlalchemy
+    pip install -e ".[minimal]"
+
+%environment
+    export PATH=/opt/kooai/venv/bin:$PATH
+    export PYTHONPATH=/opt/kooai:$PYTHONPATH
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
 
 %runscript
     cd /opt/kooai
-    exec python -m uvicorn src.presentation.api.main:app --host 0.0.0.0
+    exec venv/bin/python -m uvicorn src.presentation.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
 
 %test
     python3 --version

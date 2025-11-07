@@ -76,12 +76,8 @@ jobs:
           apptainer exec kooai-standard.sif python --version
           apptainer exec kooai-standard.sif python -c "import vtk; print('VTK:', vtk.vtkVersion.GetVTKVersion())"
           apptainer exec kooai-standard.sif python -c "import pyvista; print('PyVista OK')"
-
-      - name: Test API startup
-        run: |
-          timeout 30s apptainer run kooai-standard.sif &
-          sleep 10
-          curl -f http://localhost:8000/health || echo "API not responding"
+          apptainer exec kooai-standard.sif python -c "import fastapi; print('FastAPI OK')"
+          apptainer exec kooai-standard.sif python -c "import src.presentation.api.main; print('KooAI app import OK')"
 
       - name: Get image info
         run: |
