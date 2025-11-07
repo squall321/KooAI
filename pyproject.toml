@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 dependencies = [
-    # Core
+    # Core (최소 필수 패키지만 포함)
     "python-dotenv>=1.0.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
@@ -27,62 +27,125 @@ dependencies = [
     "uvicorn[standard]>=0.25.0",
     "python-multipart>=0.0.6",
 
-    # Database
+    # Database (기본 - SQLite용)
     "sqlalchemy[asyncio]>=2.0.0",
-    "asyncpg>=0.29.0",
     "alembic>=1.13.0",
-    "psycopg2-binary>=2.9.9",
-    "pgvector>=0.2.4",
 
-    # Cache
-    "redis[hiredis]>=5.0.1",
-
-    # Data Processing
+    # Data Processing (경량)
     "numpy>=1.26.0",
     "pandas>=2.1.0",
     "scipy>=1.11.0",
 
+    # Utilities
+    "aiofiles>=23.2.0",
+    "httpx>=0.25.0",
+    "ijson>=3.2.0",
+    "structlog>=23.2.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+# ============================================
+# 사용자 프로파일 (User Profiles)
+# ============================================
+
+# Minimal: 기본 dependencies만 사용 (추가 설치 없음)
+minimal = []
+
+# Standard: 3D 파일 지원 + PostgreSQL + Redis (권장)
+standard = [
     # 3D Geometry
     "vtk>=9.3.0",
     "pyvista>=0.43.0",
     "trimesh>=4.0.0",
     "shapely>=2.0.0",
 
-    # AI/ML
+    # Database (PostgreSQL)
+    "asyncpg>=0.29.0",
+    "psycopg2-binary>=2.9.9",
+    "pgvector>=0.2.4",
+
+    # Cache (Redis)
+    "redis[hiredis]>=5.0.1",
+
+    # HDF5 Parser
+    "h5py>=3.9.0",
+]
+
+# AI/ML: AI 기능 (PyTorch, Transformers)
+ai = [
     "torch>=2.1.0",
     "transformers>=4.36.0",
     "scikit-learn>=1.3.0",
     "optuna>=3.5.0",
+]
 
-    # Task Queue
-    "celery[redis]>=5.3.0",
+# Full: Standard + AI 전체
+full = [
+    "kooai[standard,ai]",
+]
 
-    # Authentication
+# ============================================
+# 추가 기능 (Additional Features)
+# ============================================
+
+# LLM 통합
+llm = [
+    "openai>=1.6.0",
+    "anthropic>=0.8.0",
+    "jinja2>=3.1.0",
+    "tiktoken>=0.5.0",
+]
+
+# Authentication
+auth = [
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
+]
 
-    # Utilities
-    "aiofiles>=23.2.0",
-    "httpx>=0.25.0",
-    "orjson>=3.9.0",
-    "ijson>=3.2.0",
-    "structlog>=23.2.0",
+# Task Queue
+tasks = [
+    "celery[redis]>=5.3.0",
+    "flower>=2.0.0",
+]
 
-    # Monitoring
+# Cloud Storage (S3, MinIO)
+storage = [
+    "aioboto3>=12.0.0",
+    "types-aiobotocore[s3]>=2.9.0",
+]
+
+# Monitoring
+monitoring = [
     "prometheus-client>=0.19.0",
     "opentelemetry-api>=1.21.0",
     "opentelemetry-sdk>=1.21.0",
     "opentelemetry-instrumentation-fastapi>=0.42b0",
 ]
 
-[project.optional-dependencies]
+# Load Testing
+load = [
+    "locust>=2.15.0",
+]
+
+# Documentation
+docs = [
+    "sphinx>=7.2.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "myst-parser>=2.0.0",
+]
+
+# ============================================
+# 개발 환경 (Development)
+# ============================================
+
 dev = [
     # Testing
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.12.0",
-    "httpx>=0.25.0",
 
     # Code Quality
     "black>=23.12.0",
@@ -97,41 +160,14 @@ dev = [
     "pandas-stubs>=2.1.0",
 ]
 
-llm = [
-    "openai>=1.6.0",
-    "anthropic>=0.8.0",
-    "jinja2>=3.1.0",
-    "tiktoken>=0.5.0",
-]
+# ============================================
+# 조합 프로파일 (Combined Profiles)
+# ============================================
 
-docs = [
-    "sphinx>=7.2.0",
-    "sphinx-rtd-theme>=2.0.0",
-    "myst-parser>=2.0.0",
+# All extras (모든 추가 기능)
+all = [
+    "kooai[full,llm,auth,tasks,storage,monitoring,load,docs,dev]",
 ]
-
-parsers = [
-    "h5py>=3.9.0",
-]
-
-storage = [
-    "aioboto3>=12.0.0",
-    "types-aiobotocore[s3]>=2.9.0",
-]
-
-tasks = [
-    "flower>=2.0.0",
-]
-
-cache = [
-    "redis>=5.0.0",
-]
-
-load = [
-    "locust>=2.15.0",
-]
-
-all = ["kooai[dev,llm,docs,parsers,storage,tasks,cache,load]"]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/kooai"
