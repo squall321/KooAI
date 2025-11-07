@@ -26,6 +26,7 @@ dependencies = [
     "fastapi>=0.108.0",
     "uvicorn[standard]>=0.25.0",
     "python-multipart>=0.0.6",
+    "slowapi>=0.1.9",  # Rate limiting
 
     # Database (기본 - SQLite용)
     "sqlalchemy[asyncio]>=2.0.0",
