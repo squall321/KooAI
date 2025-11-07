@@ -2,6 +2,7 @@
 
 from .base import BaseParser, ParserRegistry
 from .csv_parser import CSVParser
+from .format_detector import AutoFormatParser, DetectionResult, FileFormat, FormatDetector
 from .streaming_base import AsyncStreamingParser, ProgressCallback, StreamingParser
 from .streaming_csv_parser import StreamingCSVParser
 from .streaming_json_parser import StreamingJSONParser
@@ -21,6 +22,11 @@ __all__ = [
     # Base
     "BaseParser",
     "ParserRegistry",
+    # Format detection
+    "FormatDetector",
+    "AutoFormatParser",
+    "FileFormat",
+    "DetectionResult",
     # Streaming
     "StreamingParser",
     "AsyncStreamingParser",
