@@ -1,0 +1,126 @@
+# Alertmanager configuration for KooAI
+
+global:
+  # Default time to wait before sending notification after alert fires
+  resolve_timeout: 5m
+
+  # SMTP settings for email notifications
+  smtp_smarthost: 'smtp.example.com:587'
+  smtp_from: 'alerts@example.com'
+  smtp_auth_username: 'alerts@example.com'
+  smtp_auth_password: '***PASSWORD***'
+  smtp_require_tls: true
+
+# Route tree for alert delivery
+route:
+  # Default receiver
+  receiver: 'team-email'
+
+  # Group alerts by these labels
+  group_by: ['alertname', 'cluster', 'service']
+
+  # Time to wait before sending initial notification
+  group_wait: 30s
+
+  # Time to wait before sending updated notification (same group)
+  group_interval: 5m
+
+  # Time to wait before re-sending resolved alert
+  repeat_interval: 4h
+
+  # Child routes for specific alert types
+  routes:
+    # Critical alerts go to PagerDuty
+    - match:
+        severity: critical
+      receiver: 'pagerduty'
+      continue: true  # Also send to email
+
+    # Database alerts
+    - match:
+        component: database
+      receiver: 'database-team'
+      group_by: ['alertname', 'component']
+
+    # Warning alerts go to Slack
+    - match:
+        severity: warning
+      receiver: 'slack-warnings'
+
+# Inhibition rules (suppress alerts based on other alerts)
+inhibit_rules:
+  # Suppress warning if critical alert is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  # Suppress specific alerts when application is down
+  - source_match:
+      alertname: 'ApplicationDown'
+    target_match_re:
+      alertname: '(HighLatency|HighErrorRate|.*)'
+    equal: ['cluster', 'service']
+
+# Receivers (notification endpoints)
+receivers:
+  # Email notifications
+  - name: 'team-email'
+    email_configs:
+      - to: 'team@example.com'
+        headers:
+          Subject: '[KooAI Alert] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Severity:</strong> {{ .CommonLabels.severity }}</p>
+          <p><strong>Component:</strong> {{ .CommonLabels.component }}</p>
+          <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Time:</strong> {{ .StartsAt }}</p>
+
+  # PagerDuty for critical alerts
+  - name: 'pagerduty'
+    pagerduty_configs:
+      - service_key: '***PAGERDUTY_SERVICE_KEY***'
+        description: '{{ .CommonAnnotations.summary }}'
+        details:
+          firing: '{{ template "pagerduty.default.instances" . }}'
+          severity: '{{ .CommonLabels.severity }}'
+          component: '{{ .CommonLabels.component }}'
+
+  # Slack for warnings
+  - name: 'slack-warnings'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/***SLACK_WEBHOOK_URL***'
+        channel: '#kooai-alerts'
+        title: ':warning: {{ .CommonLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          *Component:* {{ .Labels.component }}
+          {{ end }}
+        color: 'warning'
+
+  # Database team
+  - name: 'database-team'
+    email_configs:
+      - to: 'db-team@example.com'
+        headers:
+          Subject: '[Database Alert] {{ .GroupLabels.alertname }}'
+
+  # Webhook for custom integrations
+  - name: 'webhook'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook'
+        send_resolved: true
+        http_config:
+          basic_auth:
+            username: 'webhook-user'
+            password: '***WEBHOOK_PASSWORD***'
+
+# Templates for customizing alert messages
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

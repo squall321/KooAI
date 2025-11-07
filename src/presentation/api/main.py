@@ -13,7 +13,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from .exceptions import register_exception_handlers
-from .routes import simulation_routes, health_routes
+from .routes import simulation_routes, health_routes, metrics_routes
 from .middleware.security import SecurityHeadersMiddleware
 
 # Rate limiter 초기화
@@ -68,6 +68,9 @@ app.include_router(simulation_routes.router, prefix="/api/v1")
 
 # Health check routes (detailed with dependency checks)
 app.include_router(health_routes.router, prefix="/api/v1")
+
+# Prometheus metrics endpoint
+app.include_router(metrics_routes.router, prefix="/api/v1")
 
 
 # 헬스 체크 엔드포인트

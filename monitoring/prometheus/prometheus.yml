@@ -1,0 +1,85 @@
+# Prometheus configuration for KooAI monitoring
+
+global:
+  scrape_interval: 15s  # Default scrape interval
+  evaluation_interval: 15s  # How often to evaluate rules
+
+  # Labels to attach to all metrics
+  external_labels:
+    cluster: 'kooai-production'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'localhost:9093'
+
+# Load rules from files
+rule_files:
+  - 'alerts/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # KooAI Application
+  - job_name: 'kooai'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/api/v1/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:8000'
+        labels:
+          service: 'kooai-api'
+          instance: 'primary'
+
+    # Relabeling rules
+    metric_relabel_configs:
+      # Drop high cardinality metrics if needed
+      - source_labels: [__name__]
+        regex: 'kooai_http_request_duration_seconds_bucket'
+        action: keep
+
+  # PostgreSQL Exporter (optional)
+  - job_name: 'postgres'
+    scrape_interval: 30s
+    static_configs:
+      - targets:
+          - 'localhost:9187'
+        labels:
+          service: 'postgresql'
+
+  # Redis Exporter (optional)
+  - job_name: 'redis'
+    scrape_interval: 30s
+    static_configs:
+      - targets:
+          - 'localhost:9121'
+        labels:
+          service: 'redis'
+
+  # Node Exporter for system metrics (optional)
+  - job_name: 'node'
+    scrape_interval: 30s
+    static_configs:
+      - targets:
+          - 'localhost:9100'
+        labels:
+          service: 'node-exporter'
+
+  # Nginx Exporter (optional)
+  - job_name: 'nginx'
+    scrape_interval: 30s
+    static_configs:
+      - targets:
+          - 'localhost:9113'
+        labels:
+          service: 'nginx'
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /var/lib/prometheus/data
+    retention.time: 15d  # Keep data for 15 days
+    retention.size: 50GB  # Maximum storage size
