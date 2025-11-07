@@ -1,0 +1,226 @@
+Bootstrap: docker
+From: python:3.11-slim
+
+%labels
+    Author KooAI Team
+    Version 0.1.0
+    Description AI-powered simulation post-processing platform
+
+%help
+    KooAI - Simulation Post-Processing Platform
+
+    사용법:
+        # API 서버 실행
+        apptainer run kooai.sif
+
+        # CLI 명령어 실행
+        apptainer exec kooai.sif python kooai_cli.py parse data/sample.csv
+
+        # Shell 접근
+        apptainer shell kooai.sif
+
+    환경 변수:
+        DATABASE_URL - 데이터베이스 연결 URL
+                       예: postgresql://user:pass@host:5432/dbname
+        REDIS_URL    - Redis 연결 URL
+                       예: redis://host:6379/1
+        LOG_LEVEL    - 로그 레벨 (INFO, DEBUG, WARNING, ERROR)
+        KOOAI_ENV    - 환경 (development, production)
+
+    볼륨 바인딩 예시:
+        apptainer run --bind ./data:/opt/kooai/data kooai.sif
+
+    환경 변수 전달 예시:
+        apptainer run \
+            --env DATABASE_URL="postgresql://user:pass@host:5432/kooai" \
+            --env REDIS_URL="redis://host:6379/1" \
+            kooai.sif
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export PYTHONDONTWRITEBYTECODE=1
+    export PATH="/opt/kooai/venv/bin:$PATH"
+    export KOOAI_ENV=production
+
+%files
+    # 소스 코드 복사
+    src /opt/kooai/src
+    examples /opt/kooai/examples
+    scripts /opt/kooai/scripts
+    pyproject.toml /opt/kooai/
+    README.md /opt/kooai/
+    .env.example /opt/kooai/
+    kooai_cli.py /opt/kooai/
+    alembic /opt/kooai/alembic
+    alembic.ini /opt/kooai/
+
+%post
+    echo "================================================"
+    echo "KooAI Apptainer Image Build (Standard Profile)"
+    echo "================================================"
+
+    # 시스템 패키지 업데이트 및 필수 도구 설치
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        make \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender-dev \
+        git \
+        && rm -rf /var/lib/apt/lists/*
+
+    # 작업 디렉토리로 이동
+    cd /opt/kooai
+
+    # Python 가상환경 생성
+    echo "Creating Python virtual environment..."
+    python3 -m venv venv
+
+    # 가상환경 활성화
+    . venv/bin/activate
+
+    # pip 업그레이드
+    echo "Upgrading pip..."
+    pip install --upgrade pip setuptools wheel --quiet
+
+    # KooAI 설치 (standard 프로파일)
+    echo "Installing KooAI [standard] profile..."
+    echo "This may take 10-15 minutes..."
+    pip install -e ".[standard]" --quiet
+
+    # 디렉토리 생성
+    mkdir -p /opt/kooai/logs
+    mkdir -p /opt/kooai/data
+    mkdir -p /opt/kooai/data/uploads
+    mkdir -p /opt/kooai/data/samples
+
+    # 샘플 데이터 생성 (가능한 경우)
+    echo "Generating sample data..."
+    python scripts/generate_sample_data.py || echo "Sample data generation skipped"
+
+    # 실행 권한 설정
+    chmod +x kooai_cli.py
+    chmod +x scripts/*.py
+
+    # 정리
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+    echo "Build complete!"
+
+%runscript
+    # 기본 실행: API 서버 시작
+    cd /opt/kooai
+    . venv/bin/activate
+
+    # 환경 변수 확인 및 기본값 설정
+    if [ -z "$DATABASE_URL" ]; then
+        echo "⚠️  Warning: DATABASE_URL not set"
+        echo "   Using SQLite in-memory database for testing"
+        export USE_TEST_DB=true
+    fi
+
+    if [ -z "$LOG_LEVEL" ]; then
+        export LOG_LEVEL=INFO
+    fi
+
+    echo "======================================"
+    echo "Starting KooAI API Server"
+    echo "======================================"
+    echo "Environment: ${KOOAI_ENV:-production}"
+    echo "Log Level: $LOG_LEVEL"
+    echo "Database: ${DATABASE_URL:-SQLite (test mode)}"
+    echo "======================================"
+    echo ""
+    echo "API Documentation: http://localhost:8000/docs"
+    echo "Health Check: http://localhost:8000/health"
+    echo ""
+
+    # API 서버 시작
+    exec uvicorn src.presentation.api.main:app \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --log-level $(echo $LOG_LEVEL | tr '[:upper:]' '[:lower:]')
+
+%startscript
+    # 서비스 시작 (instance 모드용)
+    cd /opt/kooai
+    . venv/bin/activate
+
+    exec uvicorn src.presentation.api.main:app \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --workers 4
+
+%test
+    # 빌드 후 테스트
+    echo "======================================"
+    echo "Running post-build tests"
+    echo "======================================"
+
+    cd /opt/kooai
+    . venv/bin/activate
+
+    # Python 버전 확인
+    echo ""
+    echo "Testing Python version..."
+    python -c "import sys; print(f'Python {sys.version}')"
+
+    # 핵심 패키지 import 테스트
+    echo ""
+    echo "Testing core package imports..."
+    python -c "
+import numpy as np
+import pandas as pd
+import scipy
+import fastapi
+import pydantic
+import sqlalchemy
+print('✅ Core packages: OK')
+"
+
+    # 3D 패키지 테스트 (standard 프로파일)
+    echo ""
+    echo "Testing 3D packages (standard profile)..."
+    python -c "
+try:
+    import vtk
+    import pyvista
+    import trimesh
+    print('✅ 3D packages: OK')
+except ImportError as e:
+    print(f'⚠️  3D packages: {e}')
+"
+
+    # KooAI 모듈 import 테스트
+    echo ""
+    echo "Testing KooAI modules..."
+    python -c "
+from src.core.simulation.models import SimulationResult
+from src.application.batch.processor import BatchProcessor
+from src.presentation.api.main import app
+print('✅ KooAI modules: OK')
+"
+
+    # CLI 테스트
+    echo ""
+    echo "Testing CLI..."
+    python kooai_cli.py --help > /dev/null && echo "✅ CLI: OK"
+
+    # 샘플 데이터 확인
+    echo ""
+    echo "Checking sample data..."
+    if [ -f "data/samples/simple_temperature.csv" ]; then
+        echo "✅ Sample data: OK"
+    else
+        echo "⚠️  Sample data: Not found (will be generated on first run)"
+    fi
+
+    echo ""
+    echo "======================================"
+    echo "✅ All tests passed!"
+    echo "======================================"
