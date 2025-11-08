@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Apptainer
         uses: eWaterCycle/setup-apptainer@v2
@@ -57,7 +57,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Apptainer
         uses: eWaterCycle/setup-apptainer@v2
@@ -97,7 +97,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Apptainer
         uses: eWaterCycle/setup-apptainer@v2
@@ -136,7 +136,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Apptainer
         uses: eWaterCycle/setup-apptainer@v2
@@ -186,7 +186,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download all images
         uses: actions/download-artifact@v4
