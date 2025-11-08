@@ -42,7 +42,25 @@ from .config import (
     get_security_logger,
 )
 
+from .structured_logging import (
+    StructuredLogger,
+    RequestLogger as StructuredRequestLogger,
+    MetricsLogger,
+    AuditLogger,
+    get_app_logger,
+    get_metrics_logger,
+    get_audit_logger,
+)
+
+from .log_analyzer import (
+    LogAnalyzer,
+    MetricsAnalyzer,
+    AuditAnalyzer,
+    generate_dashboard_report,
+)
+
 __all__ = [
+    # Original loggers
     "LogConfig",
     "setup_logging",
     "get_logger",
@@ -51,4 +69,17 @@ __all__ = [
     "get_cache_logger",
     "get_task_logger",
     "get_security_logger",
+    # Structured loggers
+    "StructuredLogger",
+    "StructuredRequestLogger",
+    "MetricsLogger",
+    "AuditLogger",
+    "get_app_logger",
+    "get_metrics_logger",
+    "get_audit_logger",
+    # Analyzers
+    "LogAnalyzer",
+    "MetricsAnalyzer",
+    "AuditAnalyzer",
+    "generate_dashboard_report",
 ]
