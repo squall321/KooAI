@@ -9,7 +9,7 @@ import threading
 import time
 from collections import defaultdict
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import structlog
 

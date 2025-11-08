@@ -5,14 +5,36 @@ FastAPI 의존성 주입
 """
 
 from functools import lru_cache
+from typing import Generator
 
 from fastapi import Depends
+from sqlalchemy.orm import Session
 
 from src.application.services import SimulationService
 from src.core.repositories.interfaces import SimulationResultRepository
+from src.infrastructure.database.database import SessionLocal
 from src.infrastructure.repositories.memory_simulation_repository import (
     InMemorySimulationResultRepository,
 )
+
+
+# ============================================================================
+# Database Dependencies
+# ============================================================================
+
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    데이터베이스 세션 의존성
+
+    FastAPI 엔드포인트에서 SQLAlchemy Session을 제공하고,
+    요청 완료 후 자동으로 세션을 닫습니다.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 # ============================================================================
