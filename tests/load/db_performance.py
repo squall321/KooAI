@@ -21,7 +21,7 @@ import numpy as np
 
 class DatabasePerformanceTest:
     """Database performance testing"""
-    
+
     def __init__(self, db_url: str = "sqlite:///./test_performance.db"):
         self.db_url = db_url
         self.engine = create_engine(
@@ -32,14 +32,14 @@ class DatabasePerformanceTest:
         )
         Base.metadata.create_all(self.engine)
         self.SessionLocal = sessionmaker(bind=self.engine)
-    
+
     def run_all_tests(self):
         """Run all database performance tests"""
         print("=" * 60)
         print("DATABASE PERFORMANCE TESTS")
         print("=" * 60)
         print()
-        
+
         tests = [
             ("Single Insert", self.test_single_insert),
             ("Bulk Insert (100)", lambda: self.test_bulk_insert(100)),
@@ -52,7 +52,7 @@ class DatabasePerformanceTest:
             ("Connection Pool Test", self.test_connection_pool),
             ("Transaction Rollback", self.test_transaction_rollback),
         ]
-        
+
         for name, test_func in tests:
             print(f"\n{name}:")
             print("-" * 60)
@@ -61,20 +61,20 @@ class DatabasePerformanceTest:
                 self._print_result(result)
             except Exception as e:
                 print(f"❌ Error: {e}")
-        
+
         # Cleanup
         Base.metadata.drop_all(self.engine)
         self.engine.dispose()
-    
+
     def test_single_insert(self, iterations: int = 100) -> Dict:
         """Test single row insert performance"""
         times = []
-        
+
         for i in range(iterations):
             session = self.SessionLocal()
             try:
                 start = time.time()
-                
+
                 sim = Simulation(
                     name=f"Test Sim {i}",
                     file_format="CSV",
@@ -84,23 +84,23 @@ class DatabasePerformanceTest:
                 )
                 session.add(sim)
                 session.commit()
-                
+
                 elapsed = (time.time() - start) * 1000
                 times.append(elapsed)
             finally:
                 session.close()
-        
+
         return self._calculate_stats(times)
-    
+
     def test_bulk_insert(self, count: int = 100) -> Dict:
         """Test bulk insert performance"""
         times = []
-        
+
         for batch in range(5):  # 5 batches
             session = self.SessionLocal()
             try:
                 start = time.time()
-                
+
                 simulations = [
                     Simulation(
                         name=f"Bulk Sim {batch}_{i}",
@@ -111,28 +111,28 @@ class DatabasePerformanceTest:
                     )
                     for i in range(count)
                 ]
-                
+
                 session.bulk_save_objects(simulations)
                 session.commit()
-                
+
                 elapsed = (time.time() - start) * 1000
                 times.append(elapsed)
             finally:
                 session.close()
-        
+
         stats = self._calculate_stats(times)
         stats["records_per_batch"] = count
         stats["throughput"] = count / (stats["mean"] / 1000)  # records/sec
         return stats
-    
+
     def test_simple_query(self, iterations: int = 100) -> Dict:
         """Test simple query performance"""
         # Insert test data
         self._insert_test_data(100)
-        
+
         times = []
         session = self.SessionLocal()
-        
+
         try:
             for _ in range(iterations):
                 start = time.time()
@@ -141,78 +141,79 @@ class DatabasePerformanceTest:
                 times.append(elapsed)
         finally:
             session.close()
-        
+
         return self._calculate_stats(times)
-    
+
     def test_complex_query(self, iterations: int = 50) -> Dict:
         """Test complex query with filters"""
         self._insert_test_data(500)
-        
+
         times = []
         session = self.SessionLocal()
-        
+
         try:
             for i in range(iterations):
                 start = time.time()
-                results = session.query(Simulation).filter(
-                    Simulation.status == "completed",
-                    Simulation.name.like(f"%{i%10}%")
-                ).order_by(Simulation.created_at.desc()).limit(10).all()
+                results = (
+                    session.query(Simulation)
+                    .filter(Simulation.status == "completed", Simulation.name.like(f"%{i%10}%"))
+                    .order_by(Simulation.created_at.desc())
+                    .limit(10)
+                    .all()
+                )
                 elapsed = (time.time() - start) * 1000
                 times.append(elapsed)
         finally:
             session.close()
-        
+
         return self._calculate_stats(times)
-    
+
     def test_query_with_join(self, iterations: int = 50) -> Dict:
         """Test query with joins"""
         self._insert_test_data(200)
-        
+
         times = []
         session = self.SessionLocal()
-        
+
         try:
             for _ in range(iterations):
                 start = time.time()
                 # Simulate a join query
-                results = session.query(Simulation).filter(
-                    Simulation.status == "completed"
-                ).all()
+                results = session.query(Simulation).filter(Simulation.status == "completed").all()
                 elapsed = (time.time() - start) * 1000
                 times.append(elapsed)
         finally:
             session.close()
-        
+
         return self._calculate_stats(times)
-    
+
     def test_update_performance(self, iterations: int = 50) -> Dict:
         """Test update performance"""
         self._insert_test_data(100)
-        
+
         times = []
-        
+
         for i in range(iterations):
             session = self.SessionLocal()
             try:
                 start = time.time()
-                
+
                 sim = session.query(Simulation).first()
                 if sim:
                     sim.name = f"Updated {i}"
                     session.commit()
-                
+
                 elapsed = (time.time() - start) * 1000
                 times.append(elapsed)
             finally:
                 session.close()
-        
+
         return self._calculate_stats(times)
-    
+
     def test_delete_performance(self, iterations: int = 50) -> Dict:
         """Test delete performance"""
         times = []
-        
+
         for i in range(iterations):
             # Insert a record
             session = self.SessionLocal()
@@ -227,28 +228,28 @@ class DatabasePerformanceTest:
             session.commit()
             sim_id = sim.id
             session.close()
-            
+
             # Delete it
             session = self.SessionLocal()
             try:
                 start = time.time()
-                
+
                 sim = session.query(Simulation).filter(Simulation.id == sim_id).first()
                 if sim:
                     session.delete(sim)
                     session.commit()
-                
+
                 elapsed = (time.time() - start) * 1000
                 times.append(elapsed)
             finally:
                 session.close()
-        
+
         return self._calculate_stats(times)
-    
+
     def test_connection_pool(self, concurrent: int = 20) -> Dict:
         """Test connection pool performance"""
         import concurrent.futures
-        
+
         def make_query():
             start = time.time()
             session = self.SessionLocal()
@@ -258,33 +259,33 @@ class DatabasePerformanceTest:
                 return elapsed
             finally:
                 session.close()
-        
+
         self._insert_test_data(100)
-        
+
         times = []
         start_all = time.time()
-        
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent) as executor:
             futures = [executor.submit(make_query) for _ in range(concurrent)]
             for future in concurrent.futures.as_completed(futures):
                 times.append(future.result())
-        
+
         total_time = (time.time() - start_all) * 1000
-        
+
         stats = self._calculate_stats(times)
         stats["total_time"] = total_time
         stats["concurrent_connections"] = concurrent
         return stats
-    
+
     def test_transaction_rollback(self, iterations: int = 50) -> Dict:
         """Test transaction rollback performance"""
         times = []
-        
+
         for i in range(iterations):
             session = self.SessionLocal()
             try:
                 start = time.time()
-                
+
                 # Insert and rollback
                 sim = Simulation(
                     name=f"Rollback {i}",
@@ -296,14 +297,14 @@ class DatabasePerformanceTest:
                 session.add(sim)
                 session.flush()  # Flush but don't commit
                 session.rollback()  # Rollback
-                
+
                 elapsed = (time.time() - start) * 1000
                 times.append(elapsed)
             finally:
                 session.close()
-        
+
         return self._calculate_stats(times)
-    
+
     def _insert_test_data(self, count: int):
         """Insert test data"""
         session = self.SessionLocal()
@@ -312,7 +313,7 @@ class DatabasePerformanceTest:
             existing = session.query(Simulation).count()
             if existing >= count:
                 return
-            
+
             simulations = [
                 Simulation(
                     name=f"Test Data {i}",
@@ -327,12 +328,12 @@ class DatabasePerformanceTest:
             session.commit()
         finally:
             session.close()
-    
+
     def _calculate_stats(self, times: List[float]) -> Dict:
         """Calculate statistics"""
         if not times:
             return {}
-        
+
         return {
             "min": min(times),
             "max": max(times),
@@ -343,19 +344,19 @@ class DatabasePerformanceTest:
             "p99": self._percentile(times, 99),
             "total": len(times),
         }
-    
+
     def _percentile(self, data: List[float], percentile: int) -> float:
         """Calculate percentile"""
         sorted_data = sorted(data)
         index = int((percentile / 100) * len(sorted_data))
         return sorted_data[min(index, len(sorted_data) - 1)]
-    
+
     def _print_result(self, result: Dict):
         """Print test result"""
         if not result:
             print("  No data")
             return
-        
+
         print(f"  Iterations: {result['total']}")
         print(f"  Min: {result['min']:.2f}ms")
         print(f"  Max: {result['max']:.2f}ms")
@@ -364,20 +365,20 @@ class DatabasePerformanceTest:
         print(f"  StdDev: {result['stdev']:.2f}ms")
         print(f"  P95: {result['p95']:.2f}ms")
         print(f"  P99: {result['p99']:.2f}ms")
-        
+
         if "throughput" in result:
             print(f"  Throughput: {result['throughput']:.2f} records/sec")
-        
+
         if "concurrent_connections" in result:
             print(f"  Concurrent: {result['concurrent_connections']}")
 
 
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Run database performance tests")
     parser.add_argument("--db-url", default="sqlite:///./test_performance.db", help="Database URL")
     args = parser.parse_args()
-    
+
     tester = DatabasePerformanceTest(db_url=args.db_url)
     tester.run_all_tests()

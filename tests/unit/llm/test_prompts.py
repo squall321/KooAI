@@ -49,9 +49,7 @@ class TestPromptTemplate:
 
     def test_template_from_file(self):
         """파일에서 템플릿 로드 테스트"""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".j2", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".j2", delete=False) as f:
             f.write("Test template: {{ value }}")
             temp_path = Path(f.name)
 

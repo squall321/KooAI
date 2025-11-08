@@ -81,10 +81,7 @@ class TestPipeline:
     async def test_chaining_add_stage(self):
         """add_stage 체이닝 테스트"""
         pipeline = (
-            Pipeline()
-            .add_stage(DoubleStage())
-            .add_stage(AddStage(3))
-            .add_stage(DoubleStage())
+            Pipeline().add_stage(DoubleStage()).add_stage(AddStage(3)).add_stage(DoubleStage())
         )
 
         result = await pipeline.execute(5)

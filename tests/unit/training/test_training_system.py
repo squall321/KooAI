@@ -46,9 +46,7 @@ class TestPretrainedModelManager:
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = PretrainedModelManager(cache_dir=Path(tmpdir))
 
-            manager.register_model(
-                name="model1", source=ModelSource.LOCAL, model_id="id1"
-            )
+            manager.register_model(name="model1", source=ModelSource.LOCAL, model_id="id1")
 
             info = manager.get_model("model1")
             assert info is not None
@@ -96,9 +94,7 @@ class TestFinetuneConfig:
     def test_default_config(self):
         """기본 설정 생성 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
-            config = FinetuneConfig(
-                model_name="test_model", output_dir=Path(tmpdir) / "outputs"
-            )
+            config = FinetuneConfig(model_name="test_model", output_dir=Path(tmpdir) / "outputs")
 
             assert config.model_name == "test_model"
             assert config.optimizer.type == OptimizerType.ADAMW
@@ -108,9 +104,7 @@ class TestFinetuneConfig:
     def test_custom_config(self):
         """커스텀 설정 생성 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
-            optimizer = OptimizerConfig(
-                type=OptimizerType.SGD, learning_rate=0.01, momentum=0.9
-            )
+            optimizer = OptimizerConfig(type=OptimizerType.SGD, learning_rate=0.01, momentum=0.9)
 
             scheduler = SchedulerConfig(type=SchedulerType.COSINE, warmup_steps=100)
 
@@ -158,9 +152,7 @@ class TestFinetuneConfig:
     def test_to_from_dict(self):
         """딕셔너리 변환 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
-            config = FinetuneConfig(
-                model_name="test_model", output_dir=Path(tmpdir) / "outputs"
-            )
+            config = FinetuneConfig(model_name="test_model", output_dir=Path(tmpdir) / "outputs")
 
             # to_dict
             config_dict = config.to_dict()

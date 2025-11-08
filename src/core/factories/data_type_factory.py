@@ -4,7 +4,7 @@
 Factory 패턴을 사용하여 다양한 데이터 타입을 생성합니다.
 """
 
-from typing import Dict, Any, Type, Optional
+from typing import Dict, Any, Type
 from src.core.data_types.base import IDataType
 from src.core.data_types.contour import ContourData
 from src.core.data_types.mesh import MeshData

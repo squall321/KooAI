@@ -15,7 +15,6 @@ from .base import (
 
 if TYPE_CHECKING:
     import aioboto3
-    from types_aiobotocore_s3.client import S3Client
 else:
     try:
         import aioboto3
@@ -50,8 +49,7 @@ class S3StorageBackend(StorageBackend):
         """
         if aioboto3 is None:
             raise ImportError(
-                "aioboto3 is required for S3 storage. "
-                "Install it with: pip install aioboto3"
+                "aioboto3 is required for S3 storage. " "Install it with: pip install aioboto3"
             )
 
         self.bucket_name = bucket_name
@@ -191,9 +189,7 @@ class S3StorageBackend(StorageBackend):
         async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
             await s3.download_file(self.bucket_name, key, str(destination))
 
-    async def download_stream(
-        self, key: str, chunk_size: int = 8192
-    ) -> AsyncIterator[bytes]:
+    async def download_stream(self, key: str, chunk_size: int = 8192) -> AsyncIterator[bytes]:
         """파일을 스트림으로 다운로드"""
         async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
             response = await s3.get_object(Bucket=self.bucket_name, Key=key)
@@ -250,9 +246,7 @@ class S3StorageBackend(StorageBackend):
             custom_metadata=response.get("Metadata"),
         )
 
-    async def list_files(
-        self, prefix: str = "", max_results: int = 1000
-    ) -> list[FileMetadata]:
+    async def list_files(self, prefix: str = "", max_results: int = 1000) -> list[FileMetadata]:
         """파일 목록 조회"""
         files = []
 
@@ -330,11 +324,7 @@ class S3StorageBackend(StorageBackend):
         cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
 
         files = await self.list_files(prefix=prefix)
-        old_files = [
-            f.key
-            for f in files
-            if f.last_modified and f.last_modified < cutoff_time
-        ]
+        old_files = [f.key for f in files if f.last_modified and f.last_modified < cutoff_time]
 
         if old_files:
             await self.delete_many(old_files)

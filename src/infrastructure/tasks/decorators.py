@@ -117,9 +117,7 @@ def task(
                 if timeout is not None:
                     elapsed = time.time() - start_time
                     if elapsed >= timeout:
-                        raise TimeoutError(
-                            f"Task did not complete within {timeout} seconds"
-                        )
+                        raise TimeoutError(f"Task did not complete within {timeout} seconds")
 
                 time.sleep(0.1)
 

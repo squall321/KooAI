@@ -188,9 +188,7 @@ class LRUCache:
             정리된 엔트리 수
         """
         with self._lock:
-            expired_keys = [
-                key for key, entry in self._cache.items() if entry.is_expired()
-            ]
+            expired_keys = [key for key, entry in self._cache.items() if entry.is_expired()]
 
             for key in expired_keys:
                 del self._cache[key]

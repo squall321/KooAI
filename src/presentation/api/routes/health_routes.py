@@ -341,9 +341,7 @@ async def liveness_probe() -> HealthStatus:
 
 
 @router.get("/health/startup", response_model=DetailedHealthStatus)
-async def startup_probe(
-    response: Response, db: Session = Depends(get_db)
-) -> DetailedHealthStatus:
+async def startup_probe(response: Response, db: Session = Depends(get_db)) -> DetailedHealthStatus:
     """
     Kubernetes startup probe endpoint
 

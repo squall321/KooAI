@@ -48,9 +48,7 @@ class TestExampleScripts:
         assert example_path.exists(), f"Example {example_name} not found"
 
         # Try to load the module
-        spec = importlib.util.spec_from_file_location(
-            f"example_{example_name[:-3]}", example_path
-        )
+        spec = importlib.util.spec_from_file_location(f"example_{example_name[:-3]}", example_path)
         assert spec is not None, f"Could not load spec for {example_name}"
 
         module = importlib.util.module_from_spec(spec)
@@ -63,7 +61,7 @@ class TestExampleScripts:
         # Compile the file to check syntax
         with open(example_path) as f:
             code = f.read()
-            compile(code, example_path, 'exec')
+            compile(code, example_path, "exec")
 
     def test_02_batch_processing_syntax(self):
         """Test batch processing example has valid syntax"""
@@ -71,7 +69,7 @@ class TestExampleScripts:
 
         with open(example_path) as f:
             code = f.read()
-            compile(code, example_path, 'exec')
+            compile(code, example_path, "exec")
 
     def test_06_streaming_imports(self):
         """Test streaming example can import required modules"""
@@ -131,7 +129,7 @@ class TestStreamingExample:
 
         # Create test CSV
         csv_file = temp_data_dir / "test.csv"
-        with open(csv_file, 'w') as f:
+        with open(csv_file, "w") as f:
             f.write("x,y,z,temperature\n")
             for i in range(100):
                 f.write(f"{i},{i*2},{i*3},{300+i}\n")
@@ -151,8 +149,8 @@ class TestStreamingExample:
 
         # Create test JSON
         json_file = temp_data_dir / "test.json"
-        data = [{"id": i, "value": i*2} for i in range(100)]
-        with open(json_file, 'w') as f:
+        data = [{"id": i, "value": i * 2} for i in range(100)]
+        with open(json_file, "w") as f:
             json.dump(data, f)
 
         # Test streaming parser
@@ -171,7 +169,7 @@ class TestFormatDetectionExample:
 
         # Create CSV file
         csv_file = temp_data_dir / "test.csv"
-        with open(csv_file, 'w') as f:
+        with open(csv_file, "w") as f:
             f.write("x,y,z\n")
             f.write("1,2,3\n")
 
@@ -188,7 +186,7 @@ class TestFormatDetectionExample:
 
         # Create JSON file
         json_file = temp_data_dir / "test.json"
-        with open(json_file, 'w') as f:
+        with open(json_file, "w") as f:
             json.dump({"test": "data"}, f)
 
         detector = FormatDetector()
@@ -276,8 +274,8 @@ class TestTaskQueueExample:
         assert result == 10
 
         # Test has delay method
-        assert hasattr(example_task, 'delay')
-        assert hasattr(example_task, 'wait')
+        assert hasattr(example_task, "delay")
+        assert hasattr(example_task, "wait")
 
     def test_task_queue_basic(self):
         """Test basic task queue operations"""
@@ -329,8 +327,9 @@ class TestExampleDataRequirements:
                 ]
 
                 for suspicious in suspicious_paths:
-                    assert suspicious not in content, \
-                        f"{example_name} contains suspicious hardcoded path: {suspicious}"
+                    assert (
+                        suspicious not in content
+                    ), f"{example_name} contains suspicious hardcoded path: {suspicious}"
 
     def test_examples_have_main_guard(self):
         """Test that examples have if __name__ == '__main__' guard"""
@@ -347,9 +346,9 @@ class TestExampleDataRequirements:
             with open(example_path) as f:
                 content = f.read()
 
-                assert 'if __name__ == "__main__"' in content or \
-                       "if __name__ == '__main__'" in content, \
-                       f"{example_name} missing main guard"
+                assert (
+                    'if __name__ == "__main__"' in content or "if __name__ == '__main__'" in content
+                ), f"{example_name} missing main guard"
 
 
 class TestExampleDocumentation:
@@ -364,8 +363,9 @@ class TestExampleDocumentation:
                 content = f.read()
 
                 # Should have triple-quoted docstring at top
-                assert '"""' in content or "'''" in content, \
-                       f"{example_name} missing module docstring"
+                assert (
+                    '"""' in content or "'''" in content
+                ), f"{example_name} missing module docstring"
 
     def test_examples_have_function_comments(self):
         """Test that examples have descriptive comments"""
@@ -376,9 +376,8 @@ class TestExampleDocumentation:
                 content = f.read()
 
                 # Should have some comments (at least 3)
-                comment_count = content.count('#')
-                assert comment_count >= 3, \
-                       f"{example_name} has too few comments ({comment_count})"
+                comment_count = content.count("#")
+                assert comment_count >= 3, f"{example_name} has too few comments ({comment_count})"
 
 
 class TestNewExamples:
@@ -449,14 +448,15 @@ class TestExampleOutput:
                 content = f.read()
 
                 # Should have some form of progress indication
-                has_progress = any([
-                    "print" in content,
-                    "logger" in content,
-                    "logging" in content,
-                ])
+                has_progress = any(
+                    [
+                        "print" in content,
+                        "logger" in content,
+                        "logging" in content,
+                    ]
+                )
 
-                assert has_progress, \
-                       f"{example_name} lacks progress indicators"
+                assert has_progress, f"{example_name} lacks progress indicators"
 
     def test_examples_show_results(self):
         """Test that examples display results"""
@@ -467,13 +467,14 @@ class TestExampleOutput:
                 content = f.read()
 
                 # Should have output (print statements or logging)
-                has_output = any([
-                    "print(" in content,
-                    'print "' in content,
-                ])
+                has_output = any(
+                    [
+                        "print(" in content,
+                        'print "' in content,
+                    ]
+                )
 
-                assert has_output, \
-                       f"{example_name} doesn't show results"
+                assert has_output, f"{example_name} doesn't show results"
 
 
 @pytest.mark.slow
@@ -485,11 +486,14 @@ class TestExampleExecution:
     Run with: pytest -m slow
     """
 
-    @pytest.mark.parametrize("example_name", [
-        "06_streaming_large_files.py",
-        "07_auto_format_detection.py",
-        "08_caching_strategies.py",
-    ])
+    @pytest.mark.parametrize(
+        "example_name",
+        [
+            "06_streaming_large_files.py",
+            "07_auto_format_detection.py",
+            "08_caching_strategies.py",
+        ],
+    )
     def test_example_executes(self, example_name, temp_data_dir):
         """Test that example can be executed"""
         example_path = EXAMPLES_DIR / example_name
@@ -504,7 +508,11 @@ class TestExampleExecution:
         # Note: Some examples might fail due to missing data,
         # but they should at least import successfully
         result = subprocess.run(
-            [sys.executable, "-c", f"import sys; sys.path.insert(0, '{EXAMPLES_DIR.parent}'); import {example_name[:-3]}"],
+            [
+                sys.executable,
+                "-c",
+                f"import sys; sys.path.insert(0, '{EXAMPLES_DIR.parent}'); import {example_name[:-3]}",
+            ],
             capture_output=True,
             timeout=5,
         )
@@ -529,8 +537,7 @@ class TestExampleIntegrity:
 
         # Check all are in our list
         for name in example_names:
-            assert name in EXAMPLES, \
-                   f"Example {name} not in test list. Add it to EXAMPLES list."
+            assert name in EXAMPLES, f"Example {name} not in test list. Add it to EXAMPLES list."
 
     def test_examples_directory_exists(self):
         """Test that examples directory exists"""

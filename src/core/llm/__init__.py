@@ -24,6 +24,7 @@ def _register_clients():
     # OpenAI
     try:
         from .clients.openai_client import OpenAIClient
+
         LLMClientFactory.register(LLMProvider.OPENAI, OpenAIClient)
     except ImportError:
         pass
@@ -31,6 +32,7 @@ def _register_clients():
     # Anthropic
     try:
         from .clients.anthropic_client import AnthropicClient
+
         LLMClientFactory.register(LLMProvider.ANTHROPIC, AnthropicClient)
     except ImportError:
         pass
@@ -38,6 +40,7 @@ def _register_clients():
     # Local
     try:
         from .clients.local_client import LocalLLMClient
+
         LLMClientFactory.register(LLMProvider.LOCAL, LocalLLMClient)
     except ImportError:
         pass

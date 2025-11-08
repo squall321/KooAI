@@ -203,9 +203,7 @@ class FewShotExampleManager:
             data = json.load(f)
 
         for category, example_dicts in data.items():
-            self._examples[category] = [
-                Example.from_dict(ex_dict) for ex_dict in example_dicts
-            ]
+            self._examples[category] = [Example.from_dict(ex_dict) for ex_dict in example_dicts]
 
 
 # 기본 예시들

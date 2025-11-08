@@ -132,9 +132,7 @@ class StreamingJSONParser(BaseParser, StreamingParser[JSONChunk]):
         total_items = 0
 
         # 청크 단위로 읽기
-        for chunk in self.read_chunks(
-            file_path, json_path=json_path, progress_tracker=progress
-        ):
+        for chunk in self.read_chunks(file_path, json_path=json_path, progress_tracker=progress):
             # 청크 데이터 파싱
             chunk_vertices, chunk_fields = self._parse_chunk_items(chunk.items)
 
@@ -307,9 +305,7 @@ class StreamingJSONParser(BaseParser, StreamingParser[JSONChunk]):
 
         return vertices_array, fields_arrays
 
-    def _get_value(
-        self, item: Dict[str, Any], keys: List[str], default: Any
-    ) -> Any:
+    def _get_value(self, item: Dict[str, Any], keys: List[str], default: Any) -> Any:
         """딕셔너리에서 값 추출 (여러 키 후보)"""
         for key in keys:
             if key in item:

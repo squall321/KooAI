@@ -6,7 +6,6 @@
 
 import os
 from dataclasses import dataclass
-from typing import Optional
 from functools import lru_cache
 from urllib.parse import urlparse
 
@@ -15,62 +14,61 @@ from urllib.parse import urlparse
 class DatabaseConfig:
     """
     데이터베이스 설정
-    
+
     환경 변수로부터 설정값을 읽습니다.
     """
-    
+
     # PostgreSQL 설정
     host: str = "localhost"
     port: int = 5432
     database: str = "kooai"
     user: str = "kooai"
     password: str = "kooai"
-    
+
     # 연결 풀 설정
     pool_size: int = 20
     max_overflow: int = 10
     pool_pre_ping: bool = True
     pool_recycle: int = 3600  # 1 hour
-    
+
     # 일반 설정
     echo: bool = False
     echo_pool: bool = False
-    
+
     # 테스트 모드
     use_test_db: bool = False
-    
+
     @property
     def database_url(self) -> str:
         """
         데이터베이스 연결 URL 생성
-        
+
         Returns:
             str: SQLAlchemy 연결 URL
         """
         if self.use_test_db:
             return "sqlite+aiosqlite:///:memory:"
-        
+
         return (
             f"postgresql+asyncpg://{self.user}:{self.password}"
             f"@{self.host}:{self.port}/{self.database}"
         )
-    
+
     @property
     def sync_database_url(self) -> str:
         """
         동기 데이터베이스 연결 URL (Alembic용)
-        
+
         Returns:
             str: psycopg2 연결 URL
         """
         if self.use_test_db:
             return "sqlite:///:memory:"
-        
+
         return (
-            f"postgresql://{self.user}:{self.password}"
-            f"@{self.host}:{self.port}/{self.database}"
+            f"postgresql://{self.user}:{self.password}" f"@{self.host}:{self.port}/{self.database}"
         )
-    
+
     @classmethod
     def from_env(cls) -> "DatabaseConfig":
         """
@@ -153,7 +151,7 @@ class DatabaseConfig:
 def get_database_config() -> DatabaseConfig:
     """
     데이터베이스 설정 가져오기 (캐시됨)
-    
+
     Returns:
         DatabaseConfig: 설정 인스턴스
     """
@@ -164,7 +162,7 @@ def get_database_config() -> DatabaseConfig:
 def get_database_url() -> str:
     """
     데이터베이스 URL 가져오기
-    
+
     Returns:
         str: 데이터베이스 연결 URL
     """
@@ -175,7 +173,7 @@ def get_database_url() -> str:
 def get_sync_database_url() -> str:
     """
     동기 데이터베이스 URL 가져오기 (Alembic용)
-    
+
     Returns:
         str: 동기 데이터베이스 연결 URL
     """

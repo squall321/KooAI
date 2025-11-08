@@ -6,7 +6,7 @@
 """
 
 from dataclasses import dataclass
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional
 from datetime import datetime
 import math
 
@@ -314,9 +314,7 @@ class DataQuality:
 
     def overall_score(self) -> float:
         """전체 품질 점수 (평균)"""
-        return (
-            self.completeness + self.accuracy + self.consistency + self.validity
-        ) / 4
+        return (self.completeness + self.accuracy + self.consistency + self.validity) / 4
 
     def is_acceptable(self, threshold: float = 0.7) -> bool:
         """허용 가능한 품질인지 확인"""

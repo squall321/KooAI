@@ -204,9 +204,7 @@ class CacheMonitor:
             errors=self._errors,
         )
 
-    def get_tier_stats(
-        self, time_window_seconds: Optional[int] = None
-    ) -> Dict[str, int]:
+    def get_tier_stats(self, time_window_seconds: Optional[int] = None) -> Dict[str, int]:
         """
         계층별 히트 통계
 
@@ -244,9 +242,7 @@ class CacheMonitor:
         Returns:
             (키, 접근 횟수) 튜플 리스트
         """
-        sorted_keys = sorted(
-            self._key_access_counts.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_keys = sorted(self._key_access_counts.items(), key=lambda x: x[1], reverse=True)
 
         return sorted_keys[:top_n]
 
@@ -286,9 +282,7 @@ class CacheMonitor:
         ]
 
         for tier, count in sorted(tier_stats.items()):
-            percentage = (
-                count / stats.total_requests * 100 if stats.total_requests > 0 else 0
-            )
+            percentage = count / stats.total_requests * 100 if stats.total_requests > 0 else 0
             lines.append(f"  {tier.upper()}: {count:,} ({percentage:.1f}%)")
 
         if hot_keys:

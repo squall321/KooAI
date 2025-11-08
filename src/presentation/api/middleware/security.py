@@ -40,9 +40,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Strict-Transport-Security (HSTS)
         # HTTPS 강제 사용 (프로덕션 환경에서 HTTPS 사용 시)
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains"
-        )
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
         # Content-Security-Policy (CSP)
         # XSS 공격 방지를 위한 컨텐츠 보안 정책

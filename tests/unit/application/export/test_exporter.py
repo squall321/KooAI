@@ -109,7 +109,7 @@ def test_export_csv(exporter, mock_simulation_data, temp_dir):
     assert output_path.exists()
 
     # Verify content
-    with open(output_path, newline='') as f:
+    with open(output_path, newline="") as f:
         reader = csv.reader(f)
         rows = list(reader)
 

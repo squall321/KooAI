@@ -18,9 +18,7 @@ def runner():
 @pytest.fixture
 def sample_csv_file():
     """테스트용 CSV 파일"""
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".csv", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
         f.write("x,y,z,temperature\n")
         f.write("0.0,0.0,0.0,300.0\n")
         f.write("1.0,0.0,0.0,310.0\n")

@@ -124,7 +124,12 @@ def test_batch_result_to_dict():
     """Test BatchResult to_dict conversion"""
     jobs = [
         BatchJob(job_id="job1", file_path=Path("/test/file1.txt"), status=JobStatus.COMPLETED),
-        BatchJob(job_id="job2", file_path=Path("/test/file2.txt"), status=JobStatus.FAILED, error="Test error"),
+        BatchJob(
+            job_id="job2",
+            file_path=Path("/test/file2.txt"),
+            status=JobStatus.FAILED,
+            error="Test error",
+        ),
     ]
 
     result = BatchResult(
@@ -333,7 +338,7 @@ def test_batch_processor_metadata():
     job = BatchJob(
         job_id="job1",
         file_path=Path("/test/file.txt"),
-        metadata={"priority": "high", "user": "test_user"}
+        metadata={"priority": "high", "user": "test_user"},
     )
 
     assert job.metadata["priority"] == "high"

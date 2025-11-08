@@ -52,9 +52,7 @@ class FieldData:
                 raise ValueError(f"Scalar field must be 1D, got {self.data.ndim}D")
         elif self.field_type == FieldType.VECTOR:
             if self.data.ndim != 2 or self.data.shape[1] != 3:
-                raise ValueError(
-                    f"Vector field must be Nx3, got shape {self.data.shape}"
-                )
+                raise ValueError(f"Vector field must be Nx3, got shape {self.data.shape}")
         elif self.field_type == FieldType.TENSOR:
             if self.data.ndim != 3:
                 raise ValueError(f"Tensor field must be 3D, got {self.data.ndim}D")
@@ -97,9 +95,7 @@ class MeshData:
     def __post_init__(self):
         """데이터 검증"""
         if self.vertices.ndim != 2 or self.vertices.shape[1] != 3:
-            raise ValueError(
-                f"Vertices must be Nx3, got shape {self.vertices.shape}"
-            )
+            raise ValueError(f"Vertices must be Nx3, got shape {self.vertices.shape}")
 
     @property
     def num_vertices(self) -> int:

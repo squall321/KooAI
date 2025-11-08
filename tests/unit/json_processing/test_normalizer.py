@@ -131,9 +131,7 @@ class TestCoordinateTransformer:
 
     def test_cylindrical_to_cartesian(self):
         """Cylindrical → Cartesian 변환 테스트"""
-        x, y, z = CoordinateTransformer.cylindrical_to_cartesian(
-            math.sqrt(2.0), math.pi / 4, 2.0
-        )
+        x, y, z = CoordinateTransformer.cylindrical_to_cartesian(math.sqrt(2.0), math.pi / 4, 2.0)
 
         assert x == pytest.approx(1.0)
         assert y == pytest.approx(1.0)
@@ -214,9 +212,7 @@ class TestDataNormalizer:
         """커스텀 범위로 Min-Max 정규화"""
         data = np.array([0.0, 10.0, 20.0])
 
-        normalized, metadata = DataNormalizer.min_max_normalize(
-            data, feature_range=(-1.0, 1.0)
-        )
+        normalized, metadata = DataNormalizer.min_max_normalize(data, feature_range=(-1.0, 1.0))
 
         assert normalized.min() == pytest.approx(-1.0)
         assert normalized.max() == pytest.approx(1.0)

@@ -4,7 +4,7 @@
 메시 및 3D 데이터의 기하학적 속성 계산.
 """
 
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 
@@ -17,9 +17,7 @@ class GeometricAnalyzer:
     """
 
     @staticmethod
-    def calculate_triangle_area(
-        v1: np.ndarray, v2: np.ndarray, v3: np.ndarray
-    ) -> float:
+    def calculate_triangle_area(v1: np.ndarray, v2: np.ndarray, v3: np.ndarray) -> float:
         """
         삼각형 면적 계산
 
@@ -86,9 +84,7 @@ class GeometricAnalyzer:
         return abs(volume) / 6.0
 
     @staticmethod
-    def calculate_mesh_surface_area(
-        vertices: np.ndarray, faces: np.ndarray
-    ) -> float:
+    def calculate_mesh_surface_area(vertices: np.ndarray, faces: np.ndarray) -> float:
         """
         메시의 표면적 계산
 
@@ -218,8 +214,7 @@ class GeometricAnalyzer:
                     if i == j:
                         # 대각 성분
                         inertia[i, j] += tet_volume * (
-                            tet_center[(i + 1) % 3] ** 2
-                            + tet_center[(i + 2) % 3] ** 2
+                            tet_center[(i + 1) % 3] ** 2 + tet_center[(i + 2) % 3] ** 2
                         )
                     else:
                         # 비대각 성분
@@ -245,9 +240,7 @@ class GeometricAnalyzer:
         return float(np.linalg.norm(v2 - v1))
 
     @staticmethod
-    def calculate_average_edge_length(
-        vertices: np.ndarray, faces: np.ndarray
-    ) -> float:
+    def calculate_average_edge_length(vertices: np.ndarray, faces: np.ndarray) -> float:
         """
         평균 엣지 길이 계산
 
@@ -308,9 +301,7 @@ class MeshQualityAnalyzer:
     """
 
     @staticmethod
-    def calculate_triangle_quality(
-        v1: np.ndarray, v2: np.ndarray, v3: np.ndarray
-    ) -> float:
+    def calculate_triangle_quality(v1: np.ndarray, v2: np.ndarray, v3: np.ndarray) -> float:
         """
         삼각형 품질 메트릭 (0~1, 1이 최고)
 

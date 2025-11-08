@@ -27,45 +27,29 @@ class CeleryConfig(BaseSettings):
     # Task settings
     task_serializer: str = Field(default="json", description="Task serialization format")
     result_serializer: str = Field(default="json", description="Result serialization format")
-    accept_content: list[str] = Field(
-        default=["json"], description="Accepted content types"
-    )
+    accept_content: list[str] = Field(default=["json"], description="Accepted content types")
     timezone: str = Field(default="UTC", description="Timezone for scheduled tasks")
     enable_utc: bool = Field(default=True, description="Enable UTC timezone")
 
     # Task execution settings
-    task_track_started: bool = Field(
-        default=True, description="Track task start events"
-    )
-    task_time_limit: int = Field(
-        default=3600, description="Hard time limit for tasks (seconds)"
-    )
+    task_track_started: bool = Field(default=True, description="Track task start events")
+    task_time_limit: int = Field(default=3600, description="Hard time limit for tasks (seconds)")
     task_soft_time_limit: int = Field(
         default=3000, description="Soft time limit for tasks (seconds)"
     )
     task_max_retries: int = Field(default=3, description="Maximum task retries")
-    task_default_retry_delay: int = Field(
-        default=60, description="Default retry delay (seconds)"
-    )
+    task_default_retry_delay: int = Field(default=60, description="Default retry delay (seconds)")
 
     # Worker settings
-    worker_prefetch_multiplier: int = Field(
-        default=4, description="Worker prefetch multiplier"
-    )
-    worker_max_tasks_per_child: int = Field(
-        default=1000, description="Max tasks per worker child"
-    )
-    worker_disable_rate_limits: bool = Field(
-        default=False, description="Disable rate limits"
-    )
+    worker_prefetch_multiplier: int = Field(default=4, description="Worker prefetch multiplier")
+    worker_max_tasks_per_child: int = Field(default=1000, description="Max tasks per worker child")
+    worker_disable_rate_limits: bool = Field(default=False, description="Disable rate limits")
 
     # Result backend settings
     result_expires: int = Field(
         default=86400, description="Result expiration time (seconds, 24 hours)"
     )
-    result_persistent: bool = Field(
-        default=True, description="Persist results to backend"
-    )
+    result_persistent: bool = Field(default=True, description="Persist results to backend")
 
     # Beat scheduler settings
     beat_schedule_filename: str = Field(
@@ -73,12 +57,8 @@ class CeleryConfig(BaseSettings):
     )
 
     # Monitoring
-    task_send_sent_event: bool = Field(
-        default=True, description="Send task-sent events"
-    )
-    worker_send_task_events: bool = Field(
-        default=True, description="Send task events from workers"
-    )
+    task_send_sent_event: bool = Field(default=True, description="Send task-sent events")
+    worker_send_task_events: bool = Field(default=True, description="Send task events from workers")
 
     # Task routes (queue configuration)
     task_default_queue: str = Field(default="default", description="Default queue name")

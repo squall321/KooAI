@@ -73,13 +73,9 @@ class PODAnalyzer:
         if self.method == "svd":
             modes, temporal_coefficients, eigenvalues = self._svd_method(data_centered)
         elif self.method == "correlation":
-            modes, temporal_coefficients, eigenvalues = self._correlation_method(
-                data_centered
-            )
+            modes, temporal_coefficients, eigenvalues = self._correlation_method(data_centered)
         elif self.method == "snapshot":
-            modes, temporal_coefficients, eigenvalues = self._snapshot_method(
-                data_centered
-            )
+            modes, temporal_coefficients, eigenvalues = self._snapshot_method(data_centered)
         else:
             raise ValueError(f"Unknown method: {self.method}")
 
@@ -88,9 +84,7 @@ class PODAnalyzer:
 
         if self.n_modes is None:
             # Auto-select based on energy threshold
-            n_modes_selected = (
-                np.searchsorted(cumulative_energy, self.energy_threshold) + 1
-            )
+            n_modes_selected = np.searchsorted(cumulative_energy, self.energy_threshold) + 1
         else:
             n_modes_selected = min(self.n_modes, len(eigenvalues))
 
@@ -109,9 +103,7 @@ class PODAnalyzer:
             n_modes=n_modes_selected,
         )
 
-    def _svd_method(
-        self, data: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _svd_method(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         SVD-based POD (most accurate, slower for large data)
 
@@ -130,9 +122,7 @@ class PODAnalyzer:
 
         return modes, temporal_coefficients, eigenvalues
 
-    def _correlation_method(
-        self, data: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _correlation_method(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Correlation matrix method (better for n_points >> n_timesteps)
 
@@ -166,9 +156,7 @@ class PODAnalyzer:
 
         return modes, temporal_coefficients, eigenvalues
 
-    def _snapshot_method(
-        self, data: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _snapshot_method(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Snapshot method (better for n_timesteps >> n_points)
 
@@ -195,9 +183,7 @@ class PODAnalyzer:
 
         return modes, temporal_coefficients, eigenvalues
 
-    def reconstruct(
-        self, pod_result: PODResult, n_modes: Optional[int] = None
-    ) -> np.ndarray:
+    def reconstruct(self, pod_result: PODResult, n_modes: Optional[int] = None) -> np.ndarray:
         """
         Reconstruct field from POD modes
 
@@ -215,8 +201,7 @@ class PODAnalyzer:
 
         # Reconstruct: data ≈ mean + modes * coefficients^T
         reconstruction = (
-            pod_result.modes[:, :n_modes]
-            @ pod_result.temporal_coefficients[:, :n_modes].T
+            pod_result.modes[:, :n_modes] @ pod_result.temporal_coefficients[:, :n_modes].T
         )
         reconstruction += pod_result.mean_field[:, np.newaxis]
 
@@ -241,7 +226,5 @@ def compute_pod(
     Returns:
         PODResult
     """
-    analyzer = PODAnalyzer(
-        n_modes=n_modes, energy_threshold=energy_threshold, method=method
-    )
+    analyzer = PODAnalyzer(n_modes=n_modes, energy_threshold=energy_threshold, method=method)
     return analyzer.analyze(data)

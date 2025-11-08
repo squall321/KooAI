@@ -5,7 +5,6 @@ Hugging Face Transformers 모델을 로드하고 추론을 수행합니다.
 """
 
 import time
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from .base import BaseModelAdapter, InferenceResult, ModelConfig, ModelFramework
@@ -40,14 +39,11 @@ class HuggingFaceAdapter(BaseModelAdapter):
             from transformers import AutoModel, AutoTokenizer, AutoConfig
         except ImportError:
             raise ImportError(
-                "Transformers is not installed. "
-                "Install with: pip install transformers"
+                "Transformers is not installed. " "Install with: pip install transformers"
             )
 
         if config.framework != ModelFramework.HUGGINGFACE:
-            raise ValueError(
-                f"Expected HuggingFace framework, got {config.framework}"
-            )
+            raise ValueError(f"Expected HuggingFace framework, got {config.framework}")
 
         # 디바이스 설정
         self.device = config.device
@@ -144,8 +140,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
             elif isinstance(input_data, dict):
                 # 이미 토크나이징된 입력
                 inputs = {
-                    k: v.to(self.device) if hasattr(v, "to") else v
-                    for k, v in input_data.items()
+                    k: v.to(self.device) if hasattr(v, "to") else v for k, v in input_data.items()
                 }
             else:
                 raise ValueError(
@@ -189,9 +184,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
         except Exception as e:
             raise RuntimeError(f"Hugging Face inference failed: {str(e)}")
 
-    def batch_predict(
-        self, input_data_list: List[Any], **kwargs
-    ) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
         """
         배치 추론
 
@@ -223,10 +216,13 @@ class HuggingFaceAdapter(BaseModelAdapter):
             for i in range(len(input_data_list)):
                 results.append(
                     InferenceResult(
-                        output=batch_output[i] if hasattr(batch_output, "__getitem__") else batch_output,
+                        output=(
+                            batch_output[i]
+                            if hasattr(batch_output, "__getitem__")
+                            else batch_output
+                        ),
                         metadata=batch_result.metadata,
-                        inference_time_ms=batch_result.inference_time_ms
-                        / len(input_data_list),
+                        inference_time_ms=batch_result.inference_time_ms / len(input_data_list),
                     )
                 )
 
@@ -270,9 +266,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
                 outputs = self.model.generate(**inputs, **generation_kwargs)
 
             # 디코딩
-            generated_text = self.tokenizer.decode(
-                outputs[0], skip_special_tokens=True
-            )
+            generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
             return generated_text
 
@@ -307,9 +301,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
         # 토크나이저 정보
         if self.tokenizer is not None:
             info["vocab_size_tokenizer"] = len(self.tokenizer)
-            info["model_max_length"] = getattr(
-                self.tokenizer, "model_max_length", None
-            )
+            info["model_max_length"] = getattr(self.tokenizer, "model_max_length", None)
 
         return info
 

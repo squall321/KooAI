@@ -156,9 +156,7 @@ class TestSimulationRepository:
         repo = SimulationRepository(session)
 
         sim1 = SimulationResult(name="Sim1", type="CFD", status=SimulationStatus.PENDING)
-        sim2 = SimulationResult(
-            name="Sim2", type="CFD", status=SimulationStatus.COMPLETED
-        )
+        sim2 = SimulationResult(name="Sim2", type="CFD", status=SimulationStatus.COMPLETED)
         sim3 = SimulationResult(name="Sim3", type="CFD", status=SimulationStatus.PENDING)
 
         await repo.save(sim1)
@@ -189,9 +187,7 @@ class TestSimulationRepository:
         """태그를 포함한 복합 조건 조회 테스트"""
         repo = SimulationRepository(session)
 
-        sim1 = SimulationResult(
-            name="CFD Test", type="CFD", tags=["production", "validated"]
-        )
+        sim1 = SimulationResult(name="CFD Test", type="CFD", tags=["production", "validated"])
         sim2 = SimulationResult(name="FEA Test", type="FEA", tags=["test"])
         sim3 = SimulationResult(name="CFD Prod", type="CFD", tags=["production"])
 
@@ -201,9 +197,7 @@ class TestSimulationRepository:
         await session.commit()
 
         # 타입과 태그로 검색
-        results = await repo.find_by_criteria(
-            {"type": "CFD", "tags": ["production"]}, limit=10
-        )
+        results = await repo.find_by_criteria({"type": "CFD", "tags": ["production"]}, limit=10)
 
         assert len(results) == 2
 
@@ -212,9 +206,7 @@ class TestSimulationRepository:
         repo = SimulationRepository(session)
 
         sim1 = SimulationResult(name="Sim1", type="CFD", status=SimulationStatus.PENDING)
-        sim2 = SimulationResult(
-            name="Sim2", type="CFD", status=SimulationStatus.COMPLETED
-        )
+        sim2 = SimulationResult(name="Sim2", type="CFD", status=SimulationStatus.COMPLETED)
         sim3 = SimulationResult(name="Sim3", type="FEA", status=SimulationStatus.PENDING)
 
         await repo.save(sim1)

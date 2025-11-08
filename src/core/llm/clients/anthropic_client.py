@@ -10,7 +10,6 @@ import numpy as np
 
 from .base import (
     BaseLLMClient,
-    LLMConfig,
     LLMResponse,
     Message,
     MessageRole,
@@ -134,8 +133,7 @@ class AnthropicClient(BaseLLMClient):
             usage = TokenUsage(
                 prompt_tokens=response.usage.input_tokens,
                 completion_tokens=response.usage.output_tokens,
-                total_tokens=response.usage.input_tokens
-                + response.usage.output_tokens,
+                total_tokens=response.usage.input_tokens + response.usage.output_tokens,
             )
 
             return LLMResponse(
@@ -163,8 +161,7 @@ class AnthropicClient(BaseLLMClient):
             NotImplementedError: 항상 발생
         """
         raise NotImplementedError(
-            "Anthropic does not provide embedding API. "
-            "Use OpenAI or other embedding services."
+            "Anthropic does not provide embedding API. " "Use OpenAI or other embedding services."
         )
 
     async def stream_generate(

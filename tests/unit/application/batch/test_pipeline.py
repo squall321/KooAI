@@ -124,6 +124,7 @@ def test_pipeline_error_handling():
 
 def test_parse_stage():
     """Test ParseStage"""
+
     def mock_parser(file_path):
         return {"data": f"parsed_{file_path}"}
 
@@ -135,6 +136,7 @@ def test_parse_stage():
 
 def test_analyze_stage():
     """Test AnalyzeStage"""
+
     def mock_analyzer(sim_data, field):
         return {"field": field, "mean": 42.0}
 
@@ -221,7 +223,9 @@ def test_pipeline_method_chaining():
     pipeline = Pipeline()
 
     # Should be able to chain add_stage calls
-    result = pipeline.add_stage(TestStage("s1")).add_stage(TestStage("s2")).add_stage(TestStage("s3"))
+    result = (
+        pipeline.add_stage(TestStage("s1")).add_stage(TestStage("s2")).add_stage(TestStage("s3"))
+    )
 
     assert result is pipeline
     assert len(pipeline.stages) == 3
@@ -229,6 +233,7 @@ def test_pipeline_method_chaining():
 
 def test_pipeline_with_different_data_types():
     """Test pipeline with different data types"""
+
     class StringAppendStage(PipelineStage):
         def __init__(self, suffix):
             super().__init__(f"append_{suffix}")
@@ -249,6 +254,7 @@ def test_pipeline_with_different_data_types():
 
 def test_pipeline_state_isolation():
     """Test that pipeline stages don't share state between calls"""
+
     class CounterStage(PipelineStage):
         def __init__(self):
             super().__init__("counter")

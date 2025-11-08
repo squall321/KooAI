@@ -50,9 +50,7 @@ class TestPlugin(BasePlugin):
 class TestPluginWithDependency(BasePlugin):
     """의존성이 있는 테스트 플러그인"""
 
-    def __init__(
-        self, name: str, depends_on: str, min_version: str = "1.0.0"
-    ):
+    def __init__(self, name: str, depends_on: str, min_version: str = "1.0.0"):
         metadata = PluginMetadata(
             name=name,
             version=PluginVersion.from_string("1.0.0"),
@@ -123,9 +121,7 @@ class TestPluginDependency:
 
     def test_dependency_min_only(self):
         """최소 버전만 있는 의존성"""
-        dep = PluginDependency(
-            name="dep_plugin", min_version=PluginVersion(1, 0, 0)
-        )
+        dep = PluginDependency(name="dep_plugin", min_version=PluginVersion(1, 0, 0))
 
         assert dep.is_compatible(PluginVersion(1, 0, 0))
         assert dep.is_compatible(PluginVersion(2, 0, 0))
@@ -235,9 +231,7 @@ class TestPluginRegistry:
         """의존하는 플러그인이 있을 때 등록 해제 실패"""
         registry = PluginRegistry()
         base_plugin = TestPlugin(name="base")
-        dependent = TestPluginWithDependency(
-            name="dependent", depends_on="base"
-        )
+        dependent = TestPluginWithDependency(name="dependent", depends_on="base")
 
         registry.register(base_plugin)
         registry.register(dependent)
@@ -408,11 +402,6 @@ class TestConfigBuilder:
         """설정 병합"""
         base_config = {"host": "localhost", "port": 8080}
 
-        config = (
-            ConfigBuilder("test_plugin")
-            .merge(base_config)
-            .set("debug", True)
-            .build()
-        )
+        config = ConfigBuilder("test_plugin").merge(base_config).set("debug", True).build()
 
         assert config == {"host": "localhost", "port": 8080, "debug": True}

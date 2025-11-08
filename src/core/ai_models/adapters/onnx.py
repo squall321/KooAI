@@ -6,7 +6,6 @@ ONNX Runtime을 사용하여 ONNX 모델을 로드하고 추론을 수행합니�
 
 import time
 import numpy as np
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from .base import BaseModelAdapter, InferenceResult, ModelConfig, ModelFramework
@@ -50,9 +49,7 @@ class ONNXAdapter(BaseModelAdapter):
             raise ValueError(f"Expected ONNX framework, got {config.framework}")
 
         if not config.model_path.suffix == ".onnx":
-            raise ValueError(
-                f"Expected .onnx file, got {config.model_path.suffix}"
-            )
+            raise ValueError(f"Expected .onnx file, got {config.model_path.suffix}")
 
         try:
             # Execution providers 설정
@@ -61,7 +58,10 @@ class ONNXAdapter(BaseModelAdapter):
             else:
                 # 기본 providers
                 available_providers = ort.get_available_providers()
-                if config.device.startswith("cuda") and "CUDAExecutionProvider" in available_providers:
+                if (
+                    config.device.startswith("cuda")
+                    and "CUDAExecutionProvider" in available_providers
+                ):
                     self.providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
                 else:
                     self.providers = ["CPUExecutionProvider"]
@@ -125,12 +125,9 @@ class ONNXAdapter(BaseModelAdapter):
                 # 리스트 -> 순서대로 매핑
                 if len(input_data) != len(self.input_names):
                     raise ValueError(
-                        f"Expected {len(self.input_names)} inputs, "
-                        f"got {len(input_data)}"
+                        f"Expected {len(self.input_names)} inputs, " f"got {len(input_data)}"
                     )
-                input_feed = {
-                    name: data for name, data in zip(self.input_names, input_data)
-                }
+                input_feed = {name: data for name, data in zip(self.input_names, input_data)}
             else:
                 raise ValueError(
                     f"Unsupported input type: {type(input_data)}. "
@@ -167,9 +164,7 @@ class ONNXAdapter(BaseModelAdapter):
         except Exception as e:
             raise RuntimeError(f"ONNX inference failed: {str(e)}")
 
-    def batch_predict(
-        self, input_data_list: List[Any], **kwargs
-    ) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
         """
         배치 추론
 
@@ -202,8 +197,7 @@ class ONNXAdapter(BaseModelAdapter):
                         InferenceResult(
                             output=batch_output[j],
                             metadata=batch_result.metadata,
-                            inference_time_ms=batch_result.inference_time_ms
-                            / len(batch),
+                            inference_time_ms=batch_result.inference_time_ms / len(batch),
                         )
                     )
             else:

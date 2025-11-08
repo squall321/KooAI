@@ -10,27 +10,24 @@ from typing import (
     Dict,
     Any,
     Iterator,
-    Callable,
     List,
     Union,
     TextIO,
-    BinaryIO,
 )
 from pathlib import Path
-from io import IOBase
 
 try:
     import ijson
+
     IJSON_AVAILABLE = True
 except ImportError:
     IJSON_AVAILABLE = False
     import warnings
+
     warnings.warn("ijson not installed. Large file streaming will be limited.")
 
-from pydantic import ValidationError
 
 from src.core.json_processing.schema import (
-    SimulationResult,
     schema_registry,
     BaseModel,
 )
@@ -186,9 +183,7 @@ class StreamingJSONParser:
             for key, value in parser:
                 yield key, value
 
-    def extract_field(
-        self, file_path: Union[str, Path], field_path: str
-    ) -> Optional[Any]:
+    def extract_field(self, file_path: Union[str, Path], field_path: str) -> Optional[Any]:
         """
         특정 필드 값 추출
 
@@ -296,9 +291,7 @@ class HierarchicalExtractor:
         return current
 
     @staticmethod
-    def extract_multiple(
-        data: Dict[str, Any], paths: List[str]
-    ) -> Dict[str, Any]:
+    def extract_multiple(data: Dict[str, Any], paths: List[str]) -> Dict[str, Any]:
         """
         여러 경로의 데이터를 한 번에 추출
 
@@ -320,9 +313,7 @@ class HierarchicalExtractor:
         return result
 
     @staticmethod
-    def set_by_path(
-        data: Dict[str, Any], path: str, value: Any, separator: str = "."
-    ) -> None:
+    def set_by_path(data: Dict[str, Any], path: str, value: Any, separator: str = ".") -> None:
         """
         경로로 값 설정 (in-place)
 
@@ -351,9 +342,7 @@ class HierarchicalExtractor:
         current[keys[-1]] = value
 
     @staticmethod
-    def flatten(
-        data: Dict[str, Any], parent_key: str = "", separator: str = "."
-    ) -> Dict[str, Any]:
+    def flatten(data: Dict[str, Any], parent_key: str = "", separator: str = ".") -> Dict[str, Any]:
         """
         중첩된 딕셔너리를 평탄화
 
@@ -376,9 +365,7 @@ class HierarchicalExtractor:
             new_key = f"{parent_key}{separator}{key}" if parent_key else key
 
             if isinstance(value, dict):
-                items.extend(
-                    HierarchicalExtractor.flatten(value, new_key, separator).items()
-                )
+                items.extend(HierarchicalExtractor.flatten(value, new_key, separator).items())
             else:
                 items.append((new_key, value))
 

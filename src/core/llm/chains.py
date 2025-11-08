@@ -7,10 +7,9 @@ LLM 체인
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 
-from .clients.base import BaseLLMClient, LLMResponse, Message
+from .clients.base import BaseLLMClient
 from .prompts.template import (
     PromptTemplate,
-    PromptTemplateManager,
     SIMULATION_SUMMARY_TEMPLATE,
     SIMULATION_COMPARISON_TEMPLATE,
     INSIGHT_GENERATION_TEMPLATE,
@@ -150,9 +149,7 @@ class SummaryChain(BaseChain):
         intermediate_steps.append(
             {
                 "step": "llm_response",
-                "token_usage": (
-                    response.token_usage.__dict__ if response.token_usage else None
-                ),
+                "token_usage": (response.token_usage.__dict__ if response.token_usage else None),
             }
         )
 
@@ -186,9 +183,7 @@ class ComparisonChain(BaseChain):
             few_shot_examples: Few-shot 예시 관리자
         """
         if template is None:
-            template = PromptTemplate(
-                SIMULATION_COMPARISON_TEMPLATE, name="comparison"
-            )
+            template = PromptTemplate(SIMULATION_COMPARISON_TEMPLATE, name="comparison")
 
         super().__init__(llm_client, template)
         self.few_shot_examples = few_shot_examples
@@ -227,9 +222,7 @@ class ComparisonChain(BaseChain):
         # Few-shot 예시
         examples_text = ""
         if self.few_shot_examples:
-            examples_text = self.few_shot_examples.format_examples(
-                category="comparison", n=2
-            )
+            examples_text = self.few_shot_examples.format_examples(category="comparison", n=2)
 
         # 프롬프트 구성
         prompt = self.template.format(
@@ -244,9 +237,7 @@ class ComparisonChain(BaseChain):
         )
 
         if examples_text:
-            prompt = (
-                f"Here are some example comparisons:\n\n{examples_text}\n\n{prompt}"
-            )
+            prompt = f"Here are some example comparisons:\n\n{examples_text}\n\n{prompt}"
 
         intermediate_steps.append({"step": "prompt_formatted", "prompt": prompt})
 
@@ -256,9 +247,7 @@ class ComparisonChain(BaseChain):
         intermediate_steps.append(
             {
                 "step": "llm_response",
-                "token_usage": (
-                    response.token_usage.__dict__ if response.token_usage else None
-                ),
+                "token_usage": (response.token_usage.__dict__ if response.token_usage else None),
             }
         )
 
@@ -330,9 +319,7 @@ class InsightChain(BaseChain):
         intermediate_steps.append(
             {
                 "step": "llm_response",
-                "token_usage": (
-                    response.token_usage.__dict__ if response.token_usage else None
-                ),
+                "token_usage": (response.token_usage.__dict__ if response.token_usage else None),
             }
         )
 

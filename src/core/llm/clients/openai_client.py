@@ -4,14 +4,12 @@ OpenAI 클라이언트
 OpenAI API를 사용한 LLM 클라이언트 구현.
 """
 
-import asyncio
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 import numpy as np
 
 from .base import (
     BaseLLMClient,
-    LLMConfig,
     LLMResponse,
     Message,
     TokenUsage,
@@ -26,9 +24,7 @@ class OpenAIClient(BaseLLMClient):
         try:
             import openai
         except ImportError:
-            raise ImportError(
-                "OpenAI package not installed. Install with: pip install openai"
-            )
+            raise ImportError("OpenAI package not installed. Install with: pip install openai")
 
         # API 키 설정
         if not self.config.api_key:
@@ -148,9 +144,7 @@ class OpenAIClient(BaseLLMClient):
         self._ensure_initialized()
 
         # 임베딩 모델 결정
-        embedding_model = kwargs.get(
-            "embedding_model", "text-embedding-3-small"
-        )
+        embedding_model = kwargs.get("embedding_model", "text-embedding-3-small")
 
         try:
             # API 호출

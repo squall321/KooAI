@@ -12,7 +12,6 @@ import httpx
 
 from .base import (
     BaseLLMClient,
-    LLMConfig,
     LLMResponse,
     Message,
     TokenUsage,
@@ -34,9 +33,7 @@ class LocalLLMClient(BaseLLMClient):
         """로컬 LLM 클라이언트 초기화"""
         # API 베이스 URL 확인
         if not self.config.api_base:
-            raise ValueError(
-                "Local LLM requires api_base URL (e.g., http://localhost:11434)"
-            )
+            raise ValueError("Local LLM requires api_base URL (e.g., http://localhost:11434)")
 
         # HTTP 클라이언트 생성
         self._client = httpx.AsyncClient(
@@ -141,9 +138,7 @@ class LocalLLMClient(BaseLLMClient):
             )
 
         except httpx.HTTPStatusError as e:
-            raise RuntimeError(
-                f"Local LLM API error: {e.response.status_code} - {e.response.text}"
-            )
+            raise RuntimeError(f"Local LLM API error: {e.response.status_code} - {e.response.text}")
         except Exception as e:
             raise RuntimeError(f"Local LLM API call failed: {str(e)}")
 
@@ -263,9 +258,7 @@ class LocalLLMClient(BaseLLMClient):
                             continue
 
         except httpx.HTTPStatusError as e:
-            raise RuntimeError(
-                f"Local LLM streaming error: {e.response.status_code}"
-            )
+            raise RuntimeError(f"Local LLM streaming error: {e.response.status_code}")
         except Exception as e:
             raise RuntimeError(f"Local LLM streaming failed: {str(e)}")
 

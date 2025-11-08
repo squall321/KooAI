@@ -76,9 +76,7 @@ class Task:
             "priority": self.priority.value,
             "created_at": self.created_at.isoformat(),
             "started_at": self.started_at.isoformat() if self.started_at else None,
-            "completed_at": (
-                self.completed_at.isoformat() if self.completed_at else None
-            ),
+            "completed_at": (self.completed_at.isoformat() if self.completed_at else None),
             "retry_count": self.retry_count,
             "max_retries": self.max_retries,
             "error": self.error,
@@ -96,10 +94,7 @@ class Task:
     @property
     def can_retry(self) -> bool:
         """재시도 가능 여부"""
-        return (
-            self.status == TaskStatus.FAILED
-            and self.retry_count < self.max_retries
-        )
+        return self.status == TaskStatus.FAILED and self.retry_count < self.max_retries
 
     def duration_seconds(self) -> Optional[float]:
         """실행 시간 (초)"""

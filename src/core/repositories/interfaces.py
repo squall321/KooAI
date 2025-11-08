@@ -6,7 +6,6 @@ Repository 인터페이스
 
 from typing import Protocol, Optional, List, Dict, Any
 from uuid import UUID
-from datetime import datetime
 
 from src.core.domain.entities import (
     SimulationResult as DomainSimulationResult,
@@ -241,9 +240,7 @@ class IAIModelRepository(Protocol):
         """이름으로 모델 조회"""
         ...
 
-    async def find_by_name_and_version(
-        self, name: str, version: str
-    ) -> Optional[AIModel]:
+    async def find_by_name_and_version(self, name: str, version: str) -> Optional[AIModel]:
         """이름과 버전으로 모델 조회"""
         ...
 
@@ -267,99 +264,99 @@ class IAIModelRepository(Protocol):
 class SimulationResultRepository(Protocol):
     """
     시뮬레이션 결과 리포지토리 인터페이스
-    
+
     시뮬레이션 파싱 결과(Phase 13)의 영속성을 관리합니다.
     """
-    
+
     def add(self, result: "SimulationResult") -> "SimulationResult":
         """
         시뮬레이션 결과 저장
-        
+
         Args:
             result: 저장할 시뮬레이션 결과
-            
+
         Returns:
             SimulationResult: 저장된 결과 (ID 포함)
         """
         ...
-    
+
     def get_by_id(self, result_id: str) -> Optional["SimulationResult"]:
         """
         ID로 시뮬레이션 결과 조회
-        
+
         Args:
             result_id: 시뮬레이션 결과 ID
-            
+
         Returns:
             Optional[SimulationResult]: 시뮬레이션 결과 또는 None
         """
         ...
-    
+
     def get_by_name(self, name: str) -> Optional["SimulationResult"]:
         """
         이름으로 시뮬레이션 결과 조회
-        
+
         Args:
             name: 시뮬레이션 이름
-            
+
         Returns:
             Optional[SimulationResult]: 시뮬레이션 결과 또는 None
         """
         ...
-    
+
     def list_all(self, skip: int = 0, limit: int = 100) -> List["SimulationResult"]:
         """
         모든 시뮬레이션 결과 조회
-        
+
         Args:
             skip: 건너뛸 개수
             limit: 최대 결과 수
-            
+
         Returns:
             List[SimulationResult]: 시뮬레이션 결과 목록
         """
         ...
-    
+
     def update(self, result: "SimulationResult") -> "SimulationResult":
         """
         시뮬레이션 결과 업데이트
-        
+
         Args:
             result: 업데이트할 시뮬레이션 결과
-            
+
         Returns:
             SimulationResult: 업데이트된 결과
         """
         ...
-    
+
     def delete(self, result_id: str) -> bool:
         """
         시뮬레이션 결과 삭제
-        
+
         Args:
             result_id: 삭제할 시뮬레이션 결과 ID
-            
+
         Returns:
             bool: 삭제 성공 여부
         """
         ...
-    
+
     def exists(self, result_id: str) -> bool:
         """
         시뮬레이션 결과 존재 여부 확인
-        
+
         Args:
             result_id: 시뮬레이션 결과 ID
-            
+
         Returns:
             bool: 존재하면 True
         """
         ...
-    
+
     def count(self) -> int:
         """
         저장된 시뮬레이션 결과 개수
-        
+
         Returns:
             int: 시뮬레이션 결과 개수
         """

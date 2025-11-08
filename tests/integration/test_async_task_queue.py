@@ -102,22 +102,22 @@ class TestTaskDecorator:
 
     def test_task_has_delay_method(self):
         """Test that decorated function has delay method"""
-        assert hasattr(simple_task, 'delay')
+        assert hasattr(simple_task, "delay")
         assert callable(simple_task.delay)
 
     def test_task_has_wait_method(self):
         """Test that decorated function has wait method"""
-        assert hasattr(simple_task, 'wait')
+        assert hasattr(simple_task, "wait")
         assert callable(simple_task.wait)
 
     def test_task_has_apply_async_method(self):
         """Test that decorated function has apply_async method"""
-        assert hasattr(simple_task, 'apply_async')
+        assert hasattr(simple_task, "apply_async")
         assert callable(simple_task.apply_async)
 
     def test_task_has_name(self):
         """Test that decorated function has task_name"""
-        assert hasattr(simple_task, 'task_name')
+        assert hasattr(simple_task, "task_name")
         assert simple_task.task_name == "test.simple_task"
 
     def test_task_still_callable_directly(self):
@@ -137,11 +137,7 @@ class TestTaskQueue:
 
     def test_enqueue_task(self, task_queue):
         """Test enqueueing task"""
-        task_obj = Task(
-            name="test_task",
-            args=(1, 2),
-            kwargs={"key": "value"}
-        )
+        task_obj = Task(name="test_task", args=(1, 2), kwargs={"key": "value"})
 
         task_id = task_queue.enqueue(task_obj)
 
@@ -264,6 +260,7 @@ class TestWorkerExecution:
 
     def test_worker_handles_error(self, task_queue):
         """Test that worker handles task errors"""
+
         def error_task():
             raise ValueError("Test error")
 
@@ -539,7 +536,8 @@ class TestConcurrentExecution:
         # Check completion
         queue = get_task_queue()
         completed = sum(
-            1 for tid in task_ids
+            1
+            for tid in task_ids
             if queue.get_result(tid) and queue.get_result(tid).status == TaskStatus.COMPLETED
         )
 
@@ -591,6 +589,7 @@ class TestEdgeCases:
 
     def test_task_with_kwargs_only(self):
         """Test task with keyword arguments only"""
+
         @task(name="test.kwargs_task")
         def kwargs_task(a=1, b=2):
             return a + b
@@ -609,6 +608,7 @@ class TestEdgeCases:
 
     def test_task_returns_none(self):
         """Test task that returns None"""
+
         @task(name="test.none_task")
         def none_task():
             return None

@@ -12,12 +12,9 @@ import numpy as np
 
 from src.core.repositories.interfaces import SimulationResultRepository
 from src.core.simulation import (
-    FieldData,
     ParserRegistry,
     ResultAnalyzer,
-    SimulationResult,
     SpatialAnalyzer,
-    TimeStepData,
 )
 
 from .base import NotFoundError, UseCase, UseCaseError, ValidationError
@@ -237,12 +234,10 @@ class AnalyzeFieldUseCase(UseCase[AnalyzeFieldRequest, AnalyzeFieldResponse]):
             else:
                 # 벡터/텐서는 크기 반환
                 max_values = [
-                    (int(idx), float(np.linalg.norm(field.data[idx])))
-                    for idx in max_indices
+                    (int(idx), float(np.linalg.norm(field.data[idx]))) for idx in max_indices
                 ]
                 min_values = [
-                    (int(idx), float(np.linalg.norm(field.data[idx])))
-                    for idx in min_indices
+                    (int(idx), float(np.linalg.norm(field.data[idx]))) for idx in min_indices
                 ]
 
             extremes = {"max": max_values, "min": min_values}
@@ -258,9 +253,7 @@ class AnalyzeFieldUseCase(UseCase[AnalyzeFieldRequest, AnalyzeFieldResponse]):
         # 히스토그램
         histogram = None
         if request.compute_histogram:
-            hist, edges = ResultAnalyzer.compute_field_histogram(
-                field, bins=request.histogram_bins
-            )
+            hist, edges = ResultAnalyzer.compute_field_histogram(field, bins=request.histogram_bins)
             histogram = {
                 "counts": hist.tolist(),
                 "edges": edges.tolist(),
@@ -303,9 +296,7 @@ class CompareTimestepsResponse:
     comparison_metrics: Dict[str, float]
 
 
-class CompareTimestepsUseCase(
-    UseCase[CompareTimestepsRequest, CompareTimestepsResponse]
-):
+class CompareTimestepsUseCase(UseCase[CompareTimestepsRequest, CompareTimestepsResponse]):
     """
     타임스텝 간 비교
 
@@ -368,9 +359,7 @@ class ComputeConvergenceResponse:
     convergence_data: List[Dict[str, float]]
 
 
-class ComputeConvergenceUseCase(
-    UseCase[ComputeConvergenceRequest, ComputeConvergenceResponse]
-):
+class ComputeConvergenceUseCase(UseCase[ComputeConvergenceRequest, ComputeConvergenceResponse]):
     """
     수렴성 분석
 
@@ -388,9 +377,7 @@ class ComputeConvergenceUseCase(
             raise NotFoundError(f"Simulation not found: {request.simulation_id}")
 
         # 수렴성 계산
-        convergence = ResultAnalyzer.compute_convergence_metrics(
-            result, request.field_name
-        )
+        convergence = ResultAnalyzer.compute_convergence_metrics(result, request.field_name)
 
         return ComputeConvergenceResponse(
             field_name=request.field_name, convergence_data=convergence
@@ -455,9 +442,7 @@ class SpatialAnalysisUseCase(UseCase[SpatialAnalysisRequest, SpatialAnalysisResp
         )
 
         # 영역 통계
-        stats = SpatialAnalyzer.compute_region_statistics(
-            field, result.mesh.vertices, region_mask
-        )
+        stats = SpatialAnalyzer.compute_region_statistics(field, result.mesh.vertices, region_mask)
 
         return SpatialAnalysisResponse(
             field_name=field.name,

@@ -22,7 +22,7 @@ def test_database_config_creation():
         password="testpass",
         echo=True,
         pool_size=10,
-        max_overflow=20
+        max_overflow=20,
     )
 
     assert config.host == "testhost"
@@ -64,7 +64,7 @@ def test_database_config_postgresql_url():
         database="mydb",
         user="myuser",
         password="mypass",
-        use_test_db=False
+        use_test_db=False,
     )
 
     url = config.database_url
@@ -82,7 +82,7 @@ def test_simulation_model_creation():
         description="A test simulation",
         status=SimulationStatus.PENDING,
         parameters={"timestep": 0.01},
-        meta_data={"vertices": 1000}
+        meta_data={"vertices": 1000},
     )
 
     assert model.name == "Test Simulation"
@@ -107,11 +107,7 @@ def test_simulation_model_in_memory():
 
 def test_simulation_model_repr():
     """Test SimulationModel string representation"""
-    model = SimulationModel(
-        name="Test",
-        type="FEA",
-        status=SimulationStatus.PENDING
-    )
+    model = SimulationModel(name="Test", type="FEA", status=SimulationStatus.PENDING)
 
     repr_str = repr(model)
     # repr should contain SimulationModel and the name

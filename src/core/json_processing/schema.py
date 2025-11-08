@@ -62,9 +62,7 @@ class SimulationMetadata(BaseModel):
     description: Optional[str] = Field(None, description="설명")
     tags: List[str] = Field(default_factory=list, description="태그")
 
-    coordinate_system: CoordinateSystem = Field(
-        CoordinateSystem.CARTESIAN, description="좌표계"
-    )
+    coordinate_system: CoordinateSystem = Field(CoordinateSystem.CARTESIAN, description="좌표계")
     unit_system: UnitSystem = Field(UnitSystem.SI, description="단위계")
 
     # 사용자 정의 메타데이터
@@ -91,9 +89,7 @@ class MeshInfo(BaseModel):
     dimensions: int = Field(..., ge=2, le=3, description="차원 (2D or 3D)")
 
     # 경계 조건
-    boundary_conditions: Dict[str, Any] = Field(
-        default_factory=dict, description="경계 조건"
-    )
+    boundary_conditions: Dict[str, Any] = Field(default_factory=dict, description="경계 조건")
 
     @field_validator("num_vertices", "num_cells")
     @classmethod
@@ -111,17 +107,13 @@ class MeshData(BaseModel):
     info: MeshInfo = Field(..., description="메시 정보")
 
     # 정점 좌표 (flatten array or nested)
-    vertices: Union[List[float], List[List[float]]] = Field(
-        ..., description="정점 좌표 배열"
-    )
+    vertices: Union[List[float], List[List[float]]] = Field(..., description="정점 좌표 배열")
 
     # 셀 연결성 (각 셀의 정점 인덱스)
     cells: Union[List[int], List[List[int]]] = Field(..., description="셀 연결성")
 
     # 면 정보 (선택적)
-    faces: Optional[Union[List[int], List[List[int]]]] = Field(
-        None, description="면 정보"
-    )
+    faces: Optional[Union[List[int], List[List[int]]]] = Field(None, description="면 정보")
 
 
 # ============================================================================
@@ -145,9 +137,7 @@ class FieldMetadata(BaseModel):
     max_value: Optional[float] = Field(None, description="최대값")
     mean_value: Optional[float] = Field(None, description="평균값")
 
-    location: Literal["vertex", "cell", "face"] = Field(
-        "vertex", description="데이터 위치"
-    )
+    location: Literal["vertex", "cell", "face"] = Field("vertex", description="데이터 위치")
 
 
 class FieldData(BaseModel):
@@ -161,9 +151,7 @@ class FieldData(BaseModel):
     # 데이터 압축 정보 (VAE로 압축된 경우)
     compressed: bool = Field(False, description="압축 여부")
     compression_method: Optional[str] = Field(None, description="압축 방법")
-    compression_params: Optional[Dict[str, Any]] = Field(
-        None, description="압축 파라미터"
-    )
+    compression_params: Optional[Dict[str, Any]] = Field(None, description="압축 파라미터")
 
 
 # ============================================================================
@@ -193,9 +181,7 @@ class ContourData(BaseModel):
 
     # VAE 압축 정보
     compressed: bool = Field(False, description="압축 여부")
-    latent_representation: Optional[List[float]] = Field(
-        None, description="VAE 잠재 벡터"
-    )
+    latent_representation: Optional[List[float]] = Field(None, description="VAE 잠재 벡터")
 
 
 # ============================================================================

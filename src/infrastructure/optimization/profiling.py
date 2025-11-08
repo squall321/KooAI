@@ -5,7 +5,7 @@ Performance profiling utilities
 import time
 import functools
 from contextlib import contextmanager
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 import structlog
 
 logger = structlog.get_logger(__name__)

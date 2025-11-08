@@ -158,9 +158,7 @@ class TimeSeriesAnalyzer:
         window = np.ones(window_size) / window_size
         return np.convolve(data, window, mode=mode)
 
-    def compute_exponential_smoothing(
-        self, data: np.ndarray, alpha: float = 0.3
-    ) -> np.ndarray:
+    def compute_exponential_smoothing(self, data: np.ndarray, alpha: float = 0.3) -> np.ndarray:
         """
         Compute exponential smoothing
 
@@ -214,9 +212,7 @@ class TimeSeriesAnalyzer:
             raise ValueError(f"Unknown method: {method}")
 
 
-def compute_autocorrelation(
-    data: np.ndarray, max_lag: Optional[int] = None
-) -> np.ndarray:
+def compute_autocorrelation(data: np.ndarray, max_lag: Optional[int] = None) -> np.ndarray:
     """
     Convenience function for autocorrelation
 

@@ -8,7 +8,7 @@ import functools
 import hashlib
 import json
 import time
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 
 import structlog
 
@@ -109,9 +109,7 @@ def cache_result(
 
                 # Record metric
                 if cache_monitor:
-                    cache_monitor.record_get(
-                        key=cache_key, hit=True, duration_ms=duration_ms
-                    )
+                    cache_monitor.record_get(key=cache_key, hit=True, duration_ms=duration_ms)
 
                 return cached_value
 
@@ -124,9 +122,7 @@ def cache_result(
 
             # Record miss metric
             if cache_monitor:
-                cache_monitor.record_get(
-                    key=cache_key, hit=False, duration_ms=duration_ms
-                )
+                cache_monitor.record_get(key=cache_key, hit=False, duration_ms=duration_ms)
 
             # Execute function
             result = func(*args, **kwargs)

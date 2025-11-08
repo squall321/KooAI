@@ -43,9 +43,7 @@ class TestSimulationAPI:
     def test_upload_simulation(self, sample_csv_content):
         """시뮬레이션 업로드"""
         # 임시 CSV 파일 생성
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(sample_csv_content)
             csv_path = Path(f.name)
 
@@ -71,9 +69,7 @@ class TestSimulationAPI:
     def test_get_simulation(self, sample_csv_content):
         """시뮬레이션 조회"""
         # 먼저 업로드
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(sample_csv_content)
             csv_path = Path(f.name)
 
@@ -105,9 +101,7 @@ class TestSimulationAPI:
     def test_list_simulations(self, sample_csv_content):
         """시뮬레이션 목록 조회"""
         # 업로드
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(sample_csv_content)
             csv_path = Path(f.name)
 
@@ -132,9 +126,7 @@ class TestSimulationAPI:
     def test_analyze_field(self, sample_csv_content):
         """필드 분석"""
         # 업로드
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(sample_csv_content)
             csv_path = Path(f.name)
 
@@ -172,9 +164,7 @@ class TestSimulationAPI:
     def test_delete_simulation(self, sample_csv_content):
         """시뮬레이션 삭제"""
         # 업로드
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(sample_csv_content)
             csv_path = Path(f.name)
 
@@ -206,9 +196,7 @@ class TestConvergenceAPI:
     def test_compute_convergence_single_timestep(self, sample_csv_content):
         """단일 타임스텝 - 수렴성 계산 불가"""
         # 업로드
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(sample_csv_content)
             csv_path = Path(f.name)
 
@@ -242,9 +230,7 @@ class TestSpatialAnalysisAPI:
     def test_spatial_analysis(self, sample_csv_content):
         """공간 영역 분석"""
         # 업로드
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write(sample_csv_content)
             csv_path = Path(f.name)
 

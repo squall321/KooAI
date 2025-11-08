@@ -308,7 +308,7 @@ class FormatDetector:
 
         # 여러 줄이 일관된 구분자 개수를 가지는지 확인
         delimiter_counts = []
-        for line in lines[:min(10, len(lines))]:  # 최대 10줄 확인
+        for line in lines[: min(10, len(lines))]:  # 최대 10줄 확인
             comma_count = line.count(",")
             tab_count = line.count("\t")
             delimiter_counts.append(max(comma_count, tab_count))
@@ -378,17 +378,14 @@ class AutoFormatParser:
 
         if detection.format == FileFormat.UNKNOWN:
             raise ValueError(
-                f"Unknown file format: {file_path}. "
-                "Please specify the format explicitly."
+                f"Unknown file format: {file_path}. " "Please specify the format explicitly."
             )
 
         # 파서 선택
         parser = self._get_parser(detection.format)
 
         if not parser:
-            raise ValueError(
-                f"No parser available for format: {detection.format.value}"
-            )
+            raise ValueError(f"No parser available for format: {detection.format.value}")
 
         # 파싱 실행
         return parser.parse(file_path, **options)

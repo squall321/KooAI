@@ -468,11 +468,7 @@ class TestEdgeCases:
         """Test caching complex objects"""
         cache = LRUCache(max_size=10, default_ttl=60)
 
-        complex_obj = {
-            "list": [1, 2, 3],
-            "dict": {"nested": "value"},
-            "set": {1, 2, 3}
-        }
+        complex_obj = {"list": [1, 2, 3], "dict": {"nested": "value"}, "set": {1, 2, 3}}
 
         cache.set("complex", complex_obj)
         retrieved = cache.get("complex")

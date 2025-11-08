@@ -68,7 +68,7 @@ def test_cors_headers(client):
         headers={
             "Origin": "http://localhost:3000",
             "Access-Control-Request-Method": "GET",
-        }
+        },
     )
 
     # CORS middleware should add these headers

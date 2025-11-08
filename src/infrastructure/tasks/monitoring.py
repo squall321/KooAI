@@ -3,10 +3,9 @@ Monitoring and health check tasks
 """
 
 from datetime import datetime, timezone
-from typing import Any, Optional
 import structlog
 
-from .base import celery_app, BaseTask
+from .base import BaseTask
 from .celery_app import celery_app as app
 
 
@@ -119,23 +118,17 @@ def get_task_stats(self: BaseTask, limit: int = 100) -> dict:
         # Active tasks
         active = inspect.active()
         if active:
-            stats["active"] = {
-                worker: tasks[:limit] for worker, tasks in active.items()
-            }
+            stats["active"] = {worker: tasks[:limit] for worker, tasks in active.items()}
 
         # Scheduled tasks
         scheduled = inspect.scheduled()
         if scheduled:
-            stats["scheduled"] = {
-                worker: tasks[:limit] for worker, tasks in scheduled.items()
-            }
+            stats["scheduled"] = {worker: tasks[:limit] for worker, tasks in scheduled.items()}
 
         # Reserved tasks
         reserved = inspect.reserved()
         if reserved:
-            stats["reserved"] = {
-                worker: tasks[:limit] for worker, tasks in reserved.items()
-            }
+            stats["reserved"] = {worker: tasks[:limit] for worker, tasks in reserved.items()}
 
         # Worker stats
         worker_stats = inspect.stats()

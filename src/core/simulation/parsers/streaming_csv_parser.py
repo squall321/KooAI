@@ -148,9 +148,7 @@ class StreamingCSVParser(BaseParser, StreamingParser[CSVChunk]):
         total_rows = 0
 
         # 청크 단위로 읽기
-        for chunk in self.read_chunks(
-            file_path, delimiter=delimiter, progress_tracker=progress
-        ):
+        for chunk in self.read_chunks(file_path, delimiter=delimiter, progress_tracker=progress):
             if headers is None:
                 # 첫 청크에서 헤더 추출
                 if chunk.rows:
@@ -265,9 +263,7 @@ class StreamingCSVParser(BaseParser, StreamingParser[CSVChunk]):
             if chunk_rows:
                 yield CSVChunk(chunk_rows, row_offset)
 
-    def _parse_chunk_rows(
-        self, rows: List[Dict[str, str]]
-    ) -> Dict[str, List[float]]:
+    def _parse_chunk_rows(self, rows: List[Dict[str, str]]) -> Dict[str, List[float]]:
         """청크 행 데이터 파싱"""
         data: Dict[str, List[float]] = {}
 
@@ -354,18 +350,14 @@ class StreamingCSVParser(BaseParser, StreamingParser[CSVChunk]):
 
         return fields_data
 
-    def _find_column(
-        self, columns: List[str], candidates: List[str]
-    ) -> Optional[str]:
+    def _find_column(self, columns: List[str], candidates: List[str]) -> Optional[str]:
         """컬럼 이름 찾기"""
         for candidate in candidates:
             if candidate in columns:
                 return candidate
         return None
 
-    def _find_vector_fields(
-        self, columns: List[str], exclude: set
-    ) -> Dict[str, Dict[str, str]]:
+    def _find_vector_fields(self, columns: List[str], exclude: set) -> Dict[str, Dict[str, str]]:
         """벡터 필드 찾기 (name_x, name_y, name_z 패턴)"""
         vector_fields = {}
 

@@ -35,8 +35,7 @@ def create_storage(config: Optional[StorageConfig] = None) -> StorageBackend:
             from .s3 import S3StorageBackend
         except ImportError as e:
             raise ImportError(
-                "S3 storage requires aioboto3. "
-                "Install it with: pip install 'kooai[storage]'"
+                "S3 storage requires aioboto3. " "Install it with: pip install 'kooai[storage]'"
             ) from e
 
         return S3StorageBackend(
@@ -53,8 +52,7 @@ def create_storage(config: Optional[StorageConfig] = None) -> StorageBackend:
             from .s3 import MinIOStorageBackend
         except ImportError as e:
             raise ImportError(
-                "MinIO storage requires aioboto3. "
-                "Install it with: pip install 'kooai[storage]'"
+                "MinIO storage requires aioboto3. " "Install it with: pip install 'kooai[storage]'"
             ) from e
 
         # MinIO는 S3 호환이지만 endpoint_url이 필수
@@ -72,14 +70,12 @@ def create_storage(config: Optional[StorageConfig] = None) -> StorageBackend:
 
     elif config.storage_type == StorageType.GCS:
         raise NotImplementedError(
-            "Google Cloud Storage support is not yet implemented. "
-            "Contributions welcome!"
+            "Google Cloud Storage support is not yet implemented. " "Contributions welcome!"
         )
 
     elif config.storage_type == StorageType.AZURE:
         raise NotImplementedError(
-            "Azure Blob Storage support is not yet implemented. "
-            "Contributions welcome!"
+            "Azure Blob Storage support is not yet implemented. " "Contributions welcome!"
         )
 
     else:

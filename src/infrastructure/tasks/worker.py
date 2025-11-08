@@ -4,14 +4,13 @@ Task worker implementation
 백그라운드에서 작업을 실행하는 워커.
 """
 
-import signal
 import threading
 import time
 from typing import Callable, Dict, Optional
 
 import structlog
 
-from .models import Task, TaskStatus
+from .models import Task
 from .queue import TaskQueue, get_task_queue
 
 logger = structlog.get_logger(__name__)
@@ -207,9 +206,7 @@ class TaskWorker:
                 result = future.result(timeout=task.timeout)
                 return result
             except concurrent.futures.TimeoutError:
-                raise TimeoutError(
-                    f"Task timed out after {task.timeout} seconds"
-                )
+                raise TimeoutError(f"Task timed out after {task.timeout} seconds")
 
     @property
     def is_running(self) -> bool:

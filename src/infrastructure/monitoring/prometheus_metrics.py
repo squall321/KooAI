@@ -12,7 +12,7 @@ Metrics Categories:
 6. Application Metrics - Uptime, version info, active users
 """
 
-from typing import Dict, Any, Optional
+from typing import Optional
 import time
 import psutil
 from prometheus_client import (
@@ -427,9 +427,9 @@ def track_cache_operation(
     else:
         cache_misses_total.labels(cache_tier=cache_tier).inc()
 
-    cache_operation_duration_seconds.labels(
-        operation=operation, cache_tier=cache_tier
-    ).observe(duration)
+    cache_operation_duration_seconds.labels(operation=operation, cache_tier=cache_tier).observe(
+        duration
+    )
 
 
 def track_task_execution(

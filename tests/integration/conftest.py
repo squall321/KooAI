@@ -81,7 +81,7 @@ def test_cache():
     """Create test cache (mock or real Redis)"""
     # Use mock cache for testing
     from unittest.mock import MagicMock
-    
+
     cache = MagicMock(spec=RedisCache)
     cache.config = CacheConfig(cache_enabled=False)  # Disable for tests
     return cache
@@ -91,29 +91,30 @@ def test_cache():
 def api_client(db_session, storage_backend, test_cache):
     """Create FastAPI test client with dependencies"""
     app = fastapi_app
-    
+
     # Override dependencies
     def get_test_db():
         try:
             yield db_session
         finally:
             pass
-    
+
     def get_test_storage():
         return storage_backend
-    
+
     def get_test_cache_instance():
         return test_cache
-    
+
     # Override dependency injections
     from src.presentation.api.dependencies import get_db, get_storage
+
     app.dependency_overrides[get_db] = get_test_db
     # app.dependency_overrides[get_storage] = get_test_storage
     # app.dependency_overrides[get_cache] = get_test_cache_instance
-    
+
     with TestClient(app) as client:
         yield client
-    
+
     # Clear overrides
     app.dependency_overrides.clear()
 
@@ -170,19 +171,19 @@ def simulation_factory(simulation_repository):
     from src.core.simulation.models import SimulationData, SimulationMesh
     import numpy as np
     from datetime import datetime
-    
+
     def create_simulation(name: str = "Test Simulation", num_points: int = 100):
         """Create a test simulation"""
         # Create mesh
         vertices = np.random.rand(num_points, 3).astype(np.float32)
         mesh = SimulationMesh(vertices=vertices)
-        
+
         # Create fields
         fields = {
             "temperature": np.random.uniform(300, 500, num_points).astype(np.float32),
             "pressure": np.random.uniform(100000, 102000, num_points).astype(np.float32),
         }
-        
+
         # Create simulation data
         sim_data = SimulationData(
             name=name,
@@ -190,7 +191,7 @@ def simulation_factory(simulation_repository):
             fields=fields,
             metadata={"source": "test", "created_at": datetime.now().isoformat()},
         )
-        
+
         # Create simulation result
         result = SimulationResult(
             simulation_id=None,  # Will be assigned by repository
@@ -205,11 +206,11 @@ def simulation_factory(simulation_repository):
                 created_at=datetime.now(),
             ),
         )
-        
+
         # Save to repository
         saved_id = simulation_repository.save(result)
         result.simulation_id = saved_id
-        
+
         return result
-    
+
     return create_simulation

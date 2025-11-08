@@ -85,10 +85,7 @@ def mock_redis_cache():
 def multi_tier_cache(mock_redis_cache):
     """Create multi-tier cache instance"""
     cache = MultiTierCache(
-        l2_cache=mock_redis_cache,
-        l1_max_size=100,
-        l1_default_ttl=300,
-        promote_to_l1=True
+        l2_cache=mock_redis_cache, l1_max_size=100, l1_default_ttl=300, promote_to_l1=True
     )
     yield cache
     cache.clear_l1()
@@ -192,10 +189,7 @@ class TestL2Promotion:
 
     def test_promotion_disabled(self, mock_redis_cache):
         """Test cache with promotion disabled"""
-        cache = MultiTierCache(
-            l2_cache=mock_redis_cache,
-            promote_to_l1=False
-        )
+        cache = MultiTierCache(l2_cache=mock_redis_cache, promote_to_l1=False)
 
         # Put value only in L2
         cache.l2._storage["key1"] = "value1"
@@ -353,7 +347,7 @@ class TestStatistics:
         stats = multi_tier_cache.get_stats()
         assert stats["overall"]["l2_hits"] == 2
         assert stats["overall"]["total_misses"] == 1
-        assert stats["overall"]["hit_rate"] == 2/3  # 2 hits out of 3 requests
+        assert stats["overall"]["hit_rate"] == 2 / 3  # 2 hits out of 3 requests
 
     def test_l1_statistics(self, multi_tier_cache):
         """Test L1-specific statistics"""
@@ -387,10 +381,7 @@ class TestL1Eviction:
 
     def test_l1_eviction_keeps_l2(self, mock_redis_cache):
         """Test that L1 eviction doesn't affect L2"""
-        cache = MultiTierCache(
-            l2_cache=mock_redis_cache,
-            l1_max_size=3  # Small L1
-        )
+        cache = MultiTierCache(l2_cache=mock_redis_cache, l1_max_size=3)  # Small L1
 
         # Fill L1 beyond capacity
         for i in range(5):
@@ -408,10 +399,7 @@ class TestL1Eviction:
 
     def test_evicted_items_repromoted(self, mock_redis_cache):
         """Test that evicted items are re-promoted on access"""
-        cache = MultiTierCache(
-            l2_cache=mock_redis_cache,
-            l1_max_size=2
-        )
+        cache = MultiTierCache(l2_cache=mock_redis_cache, l1_max_size=2)
 
         cache.set("key1", "value1")
         cache.set("key2", "value2")

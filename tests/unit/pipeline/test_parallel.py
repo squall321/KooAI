@@ -87,6 +87,7 @@ class TestParallelStage:
     @pytest.mark.asyncio
     async def test_parallel_stage(self):
         """병렬 스테이지 테스트"""
+
         async def double_async(x):
             await asyncio.sleep(0.01)
             return x * 2
@@ -103,8 +104,9 @@ class TestParallelStage:
     @pytest.mark.asyncio
     async def test_parallel_stage_with_single_concurrency(self):
         """단일 동시 실행 테스트"""
+
         async def square_async(x):
-            return x ** 2
+            return x**2
 
         stage = ParallelStage(square_async, max_concurrency=1)
         context = PipelineContext()
@@ -117,6 +119,7 @@ class TestParallelStage:
     @pytest.mark.asyncio
     async def test_parallel_stage_with_non_list_raises_error(self):
         """리스트가 아닌 입력 시 에러 테스트"""
+
         async def dummy(x):
             return x
 
@@ -133,6 +136,7 @@ class TestBatchStage:
     @pytest.mark.asyncio
     async def test_batch_processing(self):
         """배치 처리 테스트"""
+
         async def sum_batch(batch):
             """배치를 합산"""
             return sum(batch)
@@ -151,6 +155,7 @@ class TestBatchStage:
     @pytest.mark.asyncio
     async def test_batch_with_list_results(self):
         """배치 결과가 리스트인 경우 테스트"""
+
         async def double_batch(batch):
             """배치의 각 항목을 2배로"""
             return [x * 2 for x in batch]
@@ -168,6 +173,7 @@ class TestBatchStage:
     @pytest.mark.asyncio
     async def test_batch_with_single_batch(self):
         """단일 배치 테스트"""
+
         async def process_batch(batch):
             return len(batch)
 
@@ -183,6 +189,7 @@ class TestBatchStage:
     @pytest.mark.asyncio
     async def test_batch_with_non_list_raises_error(self):
         """리스트가 아닌 입력 시 에러 테스트"""
+
         async def dummy(batch):
             return batch
 
@@ -199,6 +206,7 @@ class TestConditionalStage:
     @pytest.mark.asyncio
     async def test_conditional_true_path(self):
         """True 경로 테스트"""
+
         def is_positive(x):
             return x > 0
 
@@ -218,6 +226,7 @@ class TestConditionalStage:
     @pytest.mark.asyncio
     async def test_conditional_false_path_with_stage(self):
         """False 경로 (단계 있음) 테스트"""
+
         def is_even(x):
             return x % 2 == 0
 
@@ -250,6 +259,7 @@ class TestConditionalStage:
     @pytest.mark.asyncio
     async def test_conditional_false_path_without_stage(self):
         """False 경로 (단계 없음) 테스트"""
+
         def is_large(x):
             return x > 100
 

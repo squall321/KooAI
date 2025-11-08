@@ -7,13 +7,12 @@ Thread-safe 작업 큐 구현.
 import heapq
 import threading
 import time
-from collections import defaultdict
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import structlog
 
-from .models import Task, TaskPriority, TaskResult, TaskStatus
+from .models import Task, TaskResult, TaskStatus
 
 logger = structlog.get_logger(__name__)
 
@@ -150,9 +149,7 @@ class TaskQueue:
         with self._lock:
             return self._results.get(task_id)
 
-    def complete_task(
-        self, task_id: str, result: Any = None, error: Optional[str] = None
-    ) -> None:
+    def complete_task(self, task_id: str, result: Any = None, error: Optional[str] = None) -> None:
         """
         작업 완료 처리
 
@@ -228,11 +225,7 @@ class TaskQueue:
                 self._stats["total_cancelled"] += 1
 
                 # 큐에서 제거 (재구성)
-                self._queue = [
-                    (p, t, tk)
-                    for p, t, tk in self._queue
-                    if tk.task_id != task_id
-                ]
+                self._queue = [(p, t, tk) for p, t, tk in self._queue if tk.task_id != task_id]
                 heapq.heapify(self._queue)
 
                 logger.info("task_cancelled", task_id=task_id)
@@ -248,11 +241,7 @@ class TaskQueue:
     def get_running_tasks(self) -> List[Task]:
         """실행 중인 작업 목록"""
         with self._lock:
-            return [
-                task
-                for task in self._tasks.values()
-                if task.status == TaskStatus.RUNNING
-            ]
+            return [task for task in self._tasks.values() if task.status == TaskStatus.RUNNING]
 
     def get_stats(self) -> Dict[str, any]:
         """큐 통계"""

@@ -134,9 +134,7 @@ class ContourSampler:
     """
 
     @staticmethod
-    def uniform_sample(
-        contour: np.ndarray, num_points: int, closed: bool = True
-    ) -> np.ndarray:
+    def uniform_sample(contour: np.ndarray, num_points: int, closed: bool = True) -> np.ndarray:
         """
         균등 간격으로 샘플링
 
@@ -186,9 +184,7 @@ class ContourSampler:
         return sampled
 
     @staticmethod
-    def random_sample(
-        contour: np.ndarray, num_points: int, replace: bool = False
-    ) -> np.ndarray:
+    def random_sample(contour: np.ndarray, num_points: int, replace: bool = False) -> np.ndarray:
         """
         랜덤 샘플링
 
@@ -384,12 +380,7 @@ class ContourDataset(torch.utils.data.Dataset):
         if normalize:
             self.normalizer = ContourNormalizer()
             # 모든 컨투어를 샘플링하여 정규화 파라미터 학습
-            sampled_all = np.array(
-                [
-                    self.sampler.uniform_sample(c, num_points)
-                    for c in contours
-                ]
-            )
+            sampled_all = np.array([self.sampler.uniform_sample(c, num_points) for c in contours])
             self.normalizer.fit(sampled_all)
         else:
             self.normalizer = None

@@ -39,9 +39,7 @@ class TurbulenceAnalyzer:
     Computes Reynolds-averaged statistics for turbulent flows.
     """
 
-    def compute_reynolds_stresses(
-        self, velocity_snapshots: np.ndarray
-    ) -> ReynoldsStresses:
+    def compute_reynolds_stresses(self, velocity_snapshots: np.ndarray) -> ReynoldsStresses:
         """
         Compute Reynolds stress tensor
 
@@ -75,9 +73,7 @@ class TurbulenceAnalyzer:
 
         return ReynoldsStresses(uu=uu, vv=vv, ww=ww, uv=uv, uw=uw, vw=vw)
 
-    def compute_turbulent_kinetic_energy(
-        self, reynolds_stresses: ReynoldsStresses
-    ) -> np.ndarray:
+    def compute_turbulent_kinetic_energy(self, reynolds_stresses: ReynoldsStresses) -> np.ndarray:
         """
         Compute turbulent kinetic energy: TKE = 0.5 * (uu + vv + ww)
 
@@ -87,9 +83,7 @@ class TurbulenceAnalyzer:
         Returns:
             Turbulent kinetic energy field
         """
-        tke = 0.5 * (
-            reynolds_stresses.uu + reynolds_stresses.vv + reynolds_stresses.ww
-        )
+        tke = 0.5 * (reynolds_stresses.uu + reynolds_stresses.vv + reynolds_stresses.ww)
         return tke
 
     def compute_turbulent_intensity(
@@ -181,16 +175,12 @@ class TurbulenceAnalyzer:
         tke = self.compute_turbulent_kinetic_energy(reynolds_stresses)
 
         # Compute turbulence intensity
-        turbulent_intensity = self.compute_turbulent_intensity(
-            reynolds_stresses, mean_velocity
-        )
+        turbulent_intensity = self.compute_turbulent_intensity(reynolds_stresses, mean_velocity)
 
         # Compute dissipation rate if viscosity provided
         dissipation_rate = None
         if viscosity is not None:
-            dissipation_rate = self.compute_dissipation_rate(
-                velocity_snapshots, viscosity
-            )
+            dissipation_rate = self.compute_dissipation_rate(velocity_snapshots, viscosity)
 
         return TurbulenceStats(
             mean_velocity=mean_velocity,
@@ -200,9 +190,7 @@ class TurbulenceAnalyzer:
             dissipation_rate=dissipation_rate,
         )
 
-    def compute_anisotropy_tensor(
-        self, reynolds_stresses: ReynoldsStresses
-    ) -> np.ndarray:
+    def compute_anisotropy_tensor(self, reynolds_stresses: ReynoldsStresses) -> np.ndarray:
         """
         Compute Reynolds stress anisotropy tensor
 

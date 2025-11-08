@@ -71,8 +71,7 @@ def test_add_section(generator):
 
 def test_add_section_chaining(generator):
     """Test method chaining"""
-    result = generator.add_section("Section 1", "Content 1") \
-                     .add_section("Section 2", "Content 2")
+    result = generator.add_section("Section 1", "Content 1").add_section("Section 2", "Content 2")
 
     assert result is generator
     assert len(generator.sections) == 2
@@ -166,8 +165,9 @@ def test_add_batch_results(generator):
 
 def test_generate_markdown(generator):
     """Test markdown generation"""
-    generator.add_section("Introduction", "This is a test report") \
-             .add_section("Results", "Test results here")
+    generator.add_section("Introduction", "This is a test report").add_section(
+        "Results", "Test results here"
+    )
 
     markdown = generator.generate_markdown()
 
@@ -320,9 +320,9 @@ def test_empty_report(generator):
 
 def test_multiple_sections_different_levels(generator):
     """Test multiple sections with different heading levels"""
-    generator.add_section("Level 1", "Content 1", level=1) \
-             .add_section("Level 2", "Content 2", level=2) \
-             .add_section("Level 3", "Content 3", level=3)
+    generator.add_section("Level 1", "Content 1", level=1).add_section(
+        "Level 2", "Content 2", level=2
+    ).add_section("Level 3", "Content 3", level=3)
 
     markdown = generator.generate_markdown()
 
@@ -355,22 +355,27 @@ def test_comprehensive_report(generator, temp_dir):
         field_names=["velocity_x", "velocity_y", "pressure", "temperature", "density"],
     )
 
-    generator.add_statistics_table("velocity_x", {
-        "mean": 12.5,
-        "min": 0.1,
-        "max": 25.0,
-        "std": 5.2,
-    })
+    generator.add_statistics_table(
+        "velocity_x",
+        {
+            "mean": 12.5,
+            "min": 0.1,
+            "max": 25.0,
+            "std": 5.2,
+        },
+    )
 
-    generator.add_batch_results({
-        "total_jobs": 20,
-        "completed": 18,
-        "failed": 2,
-        "success_rate": 90.0,
-        "total_duration": 120.5,
-        "avg_duration": 6.03,
-        "failed_jobs": [],
-    })
+    generator.add_batch_results(
+        {
+            "total_jobs": 20,
+            "completed": 18,
+            "failed": 2,
+            "success_rate": 90.0,
+            "total_duration": 120.5,
+            "avg_duration": 6.03,
+            "failed_jobs": [],
+        }
+    )
 
     # Save in all formats
     generator.save(temp_dir / "report.md", format="markdown")

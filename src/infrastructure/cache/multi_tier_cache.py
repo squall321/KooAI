@@ -172,9 +172,7 @@ class MultiTierCache:
         # L2에서 확인
         return self.l2.exists(key, prefix=prefix)
 
-    def get_many(
-        self, keys: List[str], prefix: Optional[str] = None
-    ) -> Dict[str, Any]:
+    def get_many(self, keys: List[str], prefix: Optional[str] = None) -> Dict[str, Any]:
         """
         여러 키 가져오기
 
@@ -287,9 +285,7 @@ class MultiTierCache:
 
         total_requests = self._l1_hits + self._l2_hits + self._total_misses
         overall_hit_rate = (
-            (self._l1_hits + self._l2_hits) / total_requests
-            if total_requests > 0
-            else 0.0
+            (self._l1_hits + self._l2_hits) / total_requests if total_requests > 0 else 0.0
         )
 
         return {

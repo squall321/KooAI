@@ -6,7 +6,7 @@ VTK XML Unstructured Grid 형식 파일을 파싱합니다.
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import numpy as np
 
 from .base import BaseParser
@@ -23,7 +23,7 @@ from ..models import (
 class VTUParser(BaseParser):
     """
     VTU (VTK XML Unstructured Grid) 파서
-    
+
     VTK XML Unstructured Grid 형식의 파일을 파싱합니다.
     """
 
@@ -36,10 +36,7 @@ class VTUParser(BaseParser):
             # XML 헤더 확인
             with open(file_path, "r", encoding="utf-8") as f:
                 first_lines = "".join([f.readline() for _ in range(5)])
-                return (
-                    "VTKFile" in first_lines
-                    and 'type="UnstructuredGrid"' in first_lines
-                )
+                return "VTKFile" in first_lines and 'type="UnstructuredGrid"' in first_lines
         except Exception:
             return False
 
@@ -50,12 +47,12 @@ class VTUParser(BaseParser):
     def parse(self, file_path: Path, **options) -> SimulationResult:
         """
         VTU 파일 파싱
-        
+
         Args:
             file_path: VTU 파일 경로
             **options: 파싱 옵션
                 - name: 시뮬레이션 이름 (기본: 파일명)
-        
+
         Returns:
             SimulationResult
         """
@@ -194,9 +191,7 @@ class VTUParser(BaseParser):
             # binary, appended 형식은 지원하지 않음
             raise ValueError(f"Unsupported data format: {data_format}")
 
-    def _parse_field_data_array(
-        self, data_array: ET.Element, location: DataLocation
-    ) -> FieldData:
+    def _parse_field_data_array(self, data_array: ET.Element, location: DataLocation) -> FieldData:
         """필드 DataArray 파싱"""
         field_name = data_array.get("Name", "unnamed")
         num_components = int(data_array.get("NumberOfComponents", "1"))
@@ -222,9 +217,7 @@ class VTUParser(BaseParser):
             data=data,
         )
 
-    def _reconstruct_cells(
-        self, connectivity: np.ndarray, offsets: np.ndarray
-    ) -> np.ndarray:
+    def _reconstruct_cells(self, connectivity: np.ndarray, offsets: np.ndarray) -> np.ndarray:
         """connectivity와 offsets로부터 cells 재구성"""
         num_cells = len(offsets)
         cells = []

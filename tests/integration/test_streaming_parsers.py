@@ -133,7 +133,7 @@ class TestStreamingCSVParser:
 
         # All columns should be numeric
         for col in first_chunk.columns:
-            assert first_chunk[col].dtype.kind in ['i', 'f']  # int or float
+            assert first_chunk[col].dtype.kind in ["i", "f"]  # int or float
 
     def test_parse_with_missing_values(self, tmp_path, csv_parser):
         """Test parsing CSV with missing values"""
@@ -189,10 +189,7 @@ class TestStreamingJSONParser:
         json_file = tmp_path / "small.json"
         data = {
             "metadata": {"name": "test", "version": "1.0"},
-            "points": [
-                {"x": i, "y": i*2, "z": i*3, "temperature": 300+i}
-                for i in range(50)
-            ]
+            "points": [{"x": i, "y": i * 2, "z": i * 3, "temperature": 300 + i} for i in range(50)],
         }
         json_file.write_text(json.dumps(data))
         return json_file
@@ -205,11 +202,11 @@ class TestStreamingJSONParser:
         data = [
             {
                 "id": i,
-                "x": i*0.1,
-                "y": i*0.2,
-                "z": i*0.3,
+                "x": i * 0.1,
+                "y": i * 0.2,
+                "z": i * 0.3,
                 "temperature": 300 + (i % 500),
-                "pressure": 101325 + (i % 1000)
+                "pressure": 101325 + (i % 1000),
             }
             for i in range(5000)
         ]
@@ -228,13 +225,13 @@ class TestStreamingJSONParser:
                         {
                             "time": i,
                             "fields": {
-                                "temperature": [300+j for j in range(100)],
-                                "pressure": [101325+j for j in range(100)]
-                            }
+                                "temperature": [300 + j for j in range(100)],
+                                "pressure": [101325 + j for j in range(100)],
+                            },
                         }
                         for i in range(10)
                     ]
-                }
+                },
             }
         }
         json_file.write_text(json.dumps(data))
@@ -344,11 +341,7 @@ class TestStreamingJSONParser:
     def test_unicode_handling(self, tmp_path, json_parser):
         """Test handling Unicode characters"""
         json_file = tmp_path / "unicode.json"
-        data = {
-            "name": "테스트",
-            "description": "한글 설명",
-            "values": [1, 2, 3]
-        }
+        data = {"name": "테스트", "description": "한글 설명", "values": [1, 2, 3]}
         json_file.write_text(json.dumps(data, ensure_ascii=False))
 
         result = json_parser.parse(json_file)
@@ -363,7 +356,7 @@ class TestParserPerformance:
     def very_large_csv_file(self, tmp_path):
         """Create very large CSV file (50,000 rows)"""
         csv_file = tmp_path / "very_large.csv"
-        with open(csv_file, 'w') as f:
+        with open(csv_file, "w") as f:
             f.write("x,y,z,temperature,pressure\n")
             for i in range(50000):
                 f.write(f"{i*0.1},{i*0.2},{i*0.3},{300+i%500},{101325+i%1000}\n")
@@ -385,7 +378,9 @@ class TestParserPerformance:
         # Should complete in reasonable time (< 5 seconds)
         assert elapsed < 5.0
 
-        print(f"\n  CSV Streaming: {total_rows} rows in {elapsed:.2f}s ({total_rows/elapsed:.0f} rows/s)")
+        print(
+            f"\n  CSV Streaming: {total_rows} rows in {elapsed:.2f}s ({total_rows/elapsed:.0f} rows/s)"
+        )
 
     def test_chunk_size_impact(self, very_large_csv_file):
         """Test impact of different chunk sizes on performance"""
@@ -399,17 +394,16 @@ class TestParserPerformance:
             total_rows = sum(len(chunk) for chunk in parser.parse(very_large_csv_file))
             elapsed = time.time() - start_time
 
-            results[chunk_size] = {
-                'elapsed': elapsed,
-                'rows': total_rows
-            }
+            results[chunk_size] = {"elapsed": elapsed, "rows": total_rows}
 
         print("\n  Chunk Size Performance:")
         for size, data in results.items():
-            print(f"    {size:5d}: {data['elapsed']:.3f}s ({data['rows']/data['elapsed']:.0f} rows/s)")
+            print(
+                f"    {size:5d}: {data['elapsed']:.3f}s ({data['rows']/data['elapsed']:.0f} rows/s)"
+            )
 
         # All should process same number of rows
-        assert all(r['rows'] == 50000 for r in results.values())
+        assert all(r["rows"] == 50000 for r in results.values())
 
 
 class TestParserEdgeCases:
@@ -419,7 +413,7 @@ class TestParserEdgeCases:
         """Test CSV with quoted fields containing commas"""
         parser = StreamingCSVParser()
         csv_file = tmp_path / "quoted.csv"
-        content = 'name,description,value\n'
+        content = "name,description,value\n"
         content += '"John Doe","A description, with commas",100\n'
         content += '"Jane Smith","Another, description",200\n'
         csv_file.write_text(content)
@@ -443,12 +437,7 @@ class TestParserEdgeCases:
         """Test JSON with large nested arrays"""
         parser = StreamingJSONParser()
         json_file = tmp_path / "large_nested.json"
-        data = {
-            "results": [
-                {"values": list(range(1000))}
-                for _ in range(100)
-            ]
-        }
+        data = {"results": [{"values": list(range(1000))} for _ in range(100)]}
         json_file.write_text(json.dumps(data))
 
         result = parser.parse(json_file)

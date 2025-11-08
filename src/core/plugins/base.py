@@ -70,9 +70,7 @@ class PluginVersion:
             raise ValueError(f"Invalid version format: {version_str}")
 
         try:
-            return cls(
-                major=int(parts[0]), minor=int(parts[1]), patch=int(parts[2])
-            )
+            return cls(major=int(parts[0]), minor=int(parts[1]), patch=int(parts[2]))
         except ValueError as e:
             raise ValueError(f"Invalid version format: {version_str}") from e
 
@@ -151,24 +149,32 @@ class PluginMetadata:
             dependencies=[
                 PluginDependency(
                     name=dep["name"],
-                    min_version=PluginVersion.from_string(dep["min_version"])
-                    if dep.get("min_version")
-                    else None,
-                    max_version=PluginVersion.from_string(dep["max_version"])
-                    if dep.get("max_version")
-                    else None,
+                    min_version=(
+                        PluginVersion.from_string(dep["min_version"])
+                        if dep.get("min_version")
+                        else None
+                    ),
+                    max_version=(
+                        PluginVersion.from_string(dep["max_version"])
+                        if dep.get("max_version")
+                        else None
+                    ),
                     optional=dep.get("optional", False),
                 )
                 for dep in data.get("dependencies", [])
             ],
             tags=set(data.get("tags", [])),
             config_schema=data.get("config_schema"),
-            created_at=datetime.fromisoformat(data["created_at"])
-            if "created_at" in data
-            else datetime.utcnow(),
-            updated_at=datetime.fromisoformat(data["updated_at"])
-            if "updated_at" in data
-            else datetime.utcnow(),
+            created_at=(
+                datetime.fromisoformat(data["created_at"])
+                if "created_at" in data
+                else datetime.utcnow()
+            ),
+            updated_at=(
+                datetime.fromisoformat(data["updated_at"])
+                if "updated_at" in data
+                else datetime.utcnow()
+            ),
         )
 
 
@@ -273,9 +279,7 @@ class BasePlugin(IPlugin):
     async def activate(self) -> None:
         """플러그인 활성화"""
         if self._status != PluginStatus.LOADED:
-            raise RuntimeError(
-                f"Cannot activate plugin in {self._status} status"
-            )
+            raise RuntimeError(f"Cannot activate plugin in {self._status} status")
 
         try:
             await self._on_activate()
@@ -288,9 +292,7 @@ class BasePlugin(IPlugin):
     async def deactivate(self) -> None:
         """플러그인 비활성화"""
         if self._status != PluginStatus.ACTIVE:
-            raise RuntimeError(
-                f"Cannot deactivate plugin in {self._status} status"
-            )
+            raise RuntimeError(f"Cannot deactivate plugin in {self._status} status")
 
         try:
             await self._on_deactivate()

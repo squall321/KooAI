@@ -7,7 +7,7 @@ Supports multiple environments (development, production) and output formats (con
 
 import logging
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import structlog
 from structlog.types import EventDict, Processor

@@ -59,9 +59,7 @@ def test_compute_power_spectrum():
     t = np.linspace(0, 10.0, 1000, endpoint=False)
     signal = np.sin(2 * np.pi * 5.0 * t) + 0.5 * np.sin(2 * np.pi * 10.0 * t)
 
-    frequencies, psd = compute_power_spectrum(
-        signal, sampling_rate=sampling_rate, method="welch"
-    )
+    frequencies, psd = compute_power_spectrum(signal, sampling_rate=sampling_rate, method="welch")
 
     assert len(frequencies) > 0
     assert len(psd) == len(frequencies)

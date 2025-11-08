@@ -4,7 +4,7 @@
 모든 데이터 타입이 구현해야 하는 프로토콜과 기본 클래스를 정의합니다.
 """
 
-from typing import Protocol, Self, Dict, Any, Optional
+from typing import Protocol, Self, Dict, Any
 from abc import abstractmethod
 import numpy as np
 
@@ -314,8 +314,7 @@ def get_compression_strategy(method: str) -> CompressionStrategy:
 
     if method not in strategies:
         raise ValueError(
-            f"Unsupported compression method: {method}. "
-            f"Available: {list(strategies.keys())}"
+            f"Unsupported compression method: {method}. " f"Available: {list(strategies.keys())}"
         )
 
     return strategies[method]

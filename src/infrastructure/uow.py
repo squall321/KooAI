@@ -4,7 +4,6 @@ Unit of Work 패턴
 트랜잭션을 관리하고 여러 Repository를 조율합니다.
 """
 
-from typing import Optional
 from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession

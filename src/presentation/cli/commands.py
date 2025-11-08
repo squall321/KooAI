@@ -16,10 +16,8 @@ from src.application.use_cases import (
     CompareTimestepsRequest,
     ComputeConvergenceRequest,
     GetSimulationRequest,
-    ListSimulationsRequest,
     NotFoundError,
     SpatialAnalysisRequest,
-    UploadSimulationRequest,
     UseCaseError,
 )
 from src.infrastructure.repositories.memory_simulation_repository import (
@@ -145,8 +143,7 @@ def list(page: int, size: int):
         )
 
         console.print(
-            f"\n[dim]Page {page} of {result.total // size + 1} "
-            f"(Total: {result.total})[/dim]"
+            f"\n[dim]Page {page} of {result.total // size + 1} " f"(Total: {result.total})[/dim]"
         )
 
     except UseCaseError as e:
@@ -166,9 +163,7 @@ def info(simulation_id: str):
     try:
         service = get_service()
 
-        result = service.get_use_case.execute(
-            GetSimulationRequest(simulation_id=simulation_id)
-        )
+        result = service.get_use_case.execute(GetSimulationRequest(simulation_id=simulation_id))
 
         print_simulation_info(
             {
@@ -243,9 +238,7 @@ def analyze(
             console.print(f"\n[bold]Outliers:[/bold] {len(result.outliers)} detected")
 
         if result.histogram:
-            console.print(
-                f"\n[bold]Histogram:[/bold] {len(result.histogram['counts'])} bins"
-            )
+            console.print(f"\n[bold]Histogram:[/bold] {len(result.histogram['counts'])} bins")
 
     except NotFoundError as e:
         print_error(str(e))
@@ -270,9 +263,7 @@ def compare(simulation_id: str, field_name: str, timestep1: int, timestep2: int)
     try:
         service = get_service()
 
-        print_info(
-            f"Comparing '{field_name}' between timesteps {timestep1} and {timestep2}..."
-        )
+        print_info(f"Comparing '{field_name}' between timesteps {timestep1} and {timestep2}...")
 
         result = service.compare_timesteps_use_case.execute(
             CompareTimestepsRequest(
@@ -388,9 +379,7 @@ def spatial(
         if max_value is not None:
             console.print(f"  Max value filter: <= {max_value}")
 
-        print_field_statistics(
-            f"{result.field_name} (Region)", result.region_statistics
-        )
+        print_field_statistics(f"{result.field_name} (Region)", result.region_statistics)
 
     except NotFoundError as e:
         print_error(str(e))

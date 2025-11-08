@@ -5,7 +5,7 @@
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional
 import numpy as np
 
 from src.core.data_types.base import BaseDataType, get_compression_strategy
@@ -59,9 +59,7 @@ class ContourData(BaseDataType):
             raise ValueError(f"Contour must have at least 2 points, got {self.points.shape[0]}")
 
         if self.points.shape[1] not in [2, 3]:
-            raise ValueError(
-                f"Points must be (N, 2) or (N, 3), got shape {self.points.shape}"
-            )
+            raise ValueError(f"Points must be (N, 2) or (N, 3), got shape {self.points.shape}")
 
         # NaN, Inf 체크
         if np.any(np.isnan(self.points)) or np.any(np.isinf(self.points)):
@@ -265,12 +263,8 @@ class ContourData(BaseDataType):
             x = self.points[:, 0]
             y = self.points[:, 1]
 
-            cx = np.sum((x[:-1] + x[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1])) / (
-                6 * area
-            )
-            cy = np.sum((y[:-1] + y[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1])) / (
-                6 * area
-            )
+            cx = np.sum((x[:-1] + x[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1])) / (6 * area)
+            cy = np.sum((y[:-1] + y[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1])) / (6 * area)
 
             return np.array([cx, cy])
 
@@ -417,12 +411,8 @@ class ContourData(BaseDataType):
 
         if max_dist > epsilon:
             # 재귀적으로 분할
-            left_simplified = ContourData._douglas_peucker(
-                points[: max_dist_idx + 1], epsilon
-            )
-            right_simplified = ContourData._douglas_peucker(
-                points[max_dist_idx:], epsilon
-            )
+            left_simplified = ContourData._douglas_peucker(points[: max_dist_idx + 1], epsilon)
+            right_simplified = ContourData._douglas_peucker(points[max_dist_idx:], epsilon)
 
             # 중복 제거하고 합침
             return np.vstack([left_simplified[:-1], right_simplified])

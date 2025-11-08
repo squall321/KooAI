@@ -118,9 +118,7 @@ class TestModelStorage:
             version="1.0",
         )
 
-        loaded_path = storage.load(
-            model_name="model", version="1.0", filename=temp_model_file.name
-        )
+        loaded_path = storage.load(model_name="model", version="1.0", filename=temp_model_file.name)
 
         assert loaded_path.exists()
         assert loaded_path.read_bytes() == temp_model_file.read_bytes()
@@ -161,15 +159,9 @@ class TestModelStorage:
 
     def test_list_versions(self, storage, temp_model_file):
         """버전 목록 조회 테스트"""
-        storage.save(
-            model_file=temp_model_file, model_name="model", version="1.0"
-        )
-        storage.save(
-            model_file=temp_model_file, model_name="model", version="2.0"
-        )
-        storage.save(
-            model_file=temp_model_file, model_name="model", version="1.5"
-        )
+        storage.save(model_file=temp_model_file, model_name="model", version="1.0")
+        storage.save(model_file=temp_model_file, model_name="model", version="2.0")
+        storage.save(model_file=temp_model_file, model_name="model", version="1.5")
 
         versions = storage.list_versions("model")
 

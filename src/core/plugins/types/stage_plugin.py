@@ -6,7 +6,7 @@ Processing Stage 플러그인
 
 from typing import Any, Dict
 
-from ...pipeline import ProcessingStage, PipelineContext
+from ...pipeline import ProcessingStage
 from ..base import BasePlugin, PluginMetadata, PluginType
 
 
@@ -24,8 +24,7 @@ class StagePlugin(BasePlugin):
         """
         if metadata.plugin_type != PluginType.STAGE:
             raise ValueError(
-                f"StagePlugin requires PluginType.STAGE, "
-                f"got {metadata.plugin_type}"
+                f"StagePlugin requires PluginType.STAGE, " f"got {metadata.plugin_type}"
             )
 
         super().__init__(metadata)
@@ -35,9 +34,7 @@ class StagePlugin(BasePlugin):
         """초기화: 단계 클래스 생성"""
         # 서브클래스에서 self._stage_class를 설정해야 함
         if self._stage_class is None:
-            raise NotImplementedError(
-                "Subclass must set self._stage_class in _on_initialize"
-            )
+            raise NotImplementedError("Subclass must set self._stage_class in _on_initialize")
 
     def get_stage_class(self) -> type[ProcessingStage]:
         """
@@ -51,8 +48,7 @@ class StagePlugin(BasePlugin):
         """
         if self._stage_class is None:
             raise RuntimeError(
-                f"Plugin '{self.name}' not initialized. "
-                f"Call initialize() first."
+                f"Plugin '{self.name}' not initialized. " f"Call initialize() first."
             )
 
         return self._stage_class

@@ -238,9 +238,7 @@ class TestMeshOperations:
     def test_laplacian_smoothing(self):
         """Laplacian 스무딩 테스트"""
         # 간단한 메시
-        vertices = np.array(
-            [[0, 0, 0], [1, 0, 0], [0.5, 1, 0], [0.5, 0.5, 1]], dtype=float
-        )
+        vertices = np.array([[0, 0, 0], [1, 0, 0], [0.5, 1, 0], [0.5, 0.5, 1]], dtype=float)
 
         faces = np.array([[0, 1, 2], [0, 1, 3]])
 
@@ -267,15 +265,11 @@ class TestMeshOperations:
     def test_remove_duplicates(self):
         """중복 꼭짓점 제거 테스트"""
         # 중복 포함 꼭짓점
-        vertices = np.array(
-            [[0, 0, 0], [1, 0, 0], [0, 0, 0], [1, 1, 0]], dtype=float  # 중복
-        )
+        vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0], [1, 1, 0]], dtype=float)  # 중복
 
         faces = np.array([[0, 1, 3], [2, 1, 3]])  # 0과 2는 같은 점
 
-        unique_vertices, new_faces = MeshOperations.remove_duplicates(
-            vertices, faces
-        )
+        unique_vertices, new_faces = MeshOperations.remove_duplicates(vertices, faces)
 
         # 3개로 축소
         assert len(unique_vertices) == 3
