@@ -110,9 +110,7 @@ class CorrelationAnalyzer:
 
         return frequencies, cross_spectrum
 
-    def compute_pearson_correlation(
-        self, x: np.ndarray, y: np.ndarray
-    ) -> Tuple[float, float]:
+    def compute_pearson_correlation(self, x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
         """
         Compute Pearson correlation coefficient
 
@@ -126,9 +124,7 @@ class CorrelationAnalyzer:
         corr, p_value = stats.pearsonr(x, y)
         return float(corr), float(p_value)
 
-    def compute_spearman_correlation(
-        self, x: np.ndarray, y: np.ndarray
-    ) -> Tuple[float, float]:
+    def compute_spearman_correlation(self, x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
         """
         Compute Spearman rank correlation coefficient
 
@@ -142,9 +138,7 @@ class CorrelationAnalyzer:
         corr, p_value = stats.spearmanr(x, y)
         return float(corr), float(p_value)
 
-    def compute_mutual_information(
-        self, x: np.ndarray, y: np.ndarray, bins: int = 50
-    ) -> float:
+    def compute_mutual_information(self, x: np.ndarray, y: np.ndarray, bins: int = 50) -> float:
         """
         Compute mutual information between signals
 
@@ -195,7 +189,7 @@ class CorrelationAnalyzer:
             if lag < 0:
                 # Negative lag: shift x backward (or y forward)
                 overlap_x = x[: lag if lag != 0 else None]
-                overlap_y = y[-lag :]
+                overlap_y = y[-lag:]
             elif lag > 0:
                 # Positive lag: shift x forward (or y backward)
                 overlap_x = x[lag:]
@@ -206,9 +200,7 @@ class CorrelationAnalyzer:
                 overlap_y = y
 
             if len(overlap_x) > 0:
-                correlations[i], _ = self.compute_pearson_correlation(
-                    overlap_x, overlap_y
-                )
+                correlations[i], _ = self.compute_pearson_correlation(overlap_x, overlap_y)
 
         return lags, correlations
 
@@ -225,9 +217,7 @@ class CorrelationAnalyzer:
         return np.corrcoef(data.T)
 
 
-def compute_cross_correlation(
-    x: np.ndarray, y: np.ndarray, normalize: bool = True
-) -> np.ndarray:
+def compute_cross_correlation(x: np.ndarray, y: np.ndarray, normalize: bool = True) -> np.ndarray:
     """
     Convenience function for cross-correlation
 

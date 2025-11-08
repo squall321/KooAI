@@ -28,9 +28,7 @@ def service(repository):
 @pytest.fixture
 def sample_csv_file():
     """테스트용 CSV 파일"""
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".csv", delete=False
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
         f.write("x,y,z,temperature\n")
         f.write("0.0,0.0,0.0,300.0\n")
         f.write("1.0,0.0,0.0,310.0\n")
@@ -60,12 +58,8 @@ class TestSimulationService:
     def test_list_simulations(self, service, sample_csv_file):
         """시뮬레이션 목록 조회"""
         # 2개 업로드
-        service.upload_and_analyze(
-            sample_csv_file, name="sim1", analyze_all_fields=False
-        )
-        service.upload_and_analyze(
-            sample_csv_file, name="sim2", analyze_all_fields=False
-        )
+        service.upload_and_analyze(sample_csv_file, name="sim1", analyze_all_fields=False)
+        service.upload_and_analyze(sample_csv_file, name="sim2", analyze_all_fields=False)
 
         # 목록 조회
         list_response = service.list_simulations(page=1, page_size=10)
@@ -81,9 +75,7 @@ class TestSimulationService:
         )
 
         # 요약 조회
-        summary = service.get_simulation_summary(
-            upload_result.simulation_info.simulation_id
-        )
+        summary = service.get_simulation_summary(upload_result.simulation_info.simulation_id)
 
         assert summary["name"] == "test"
         assert summary["num_vertices"] == 3

@@ -271,9 +271,7 @@ class FinetuneConfig:
         training = TrainingConfig(
             num_epochs=training_data.get("num_epochs", 10),
             max_steps=training_data.get("max_steps"),
-            gradient_accumulation_steps=training_data.get(
-                "gradient_accumulation_steps", 1
-            ),
+            gradient_accumulation_steps=training_data.get("gradient_accumulation_steps", 1),
             max_grad_norm=training_data.get("max_grad_norm", 1.0),
             eval_strategy=training_data.get("eval_strategy", "epoch"),
             eval_steps=training_data.get("eval_steps", 500),

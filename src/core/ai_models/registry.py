@@ -5,13 +5,11 @@ AI 모델의 등록, 조회, 버전 관리를 담당하는 중앙 레지스트�
 """
 
 import json
-from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from uuid import UUID, uuid4
 
-from ..domain.entities import AIModel
 from .adapters.base import (
     BaseModelAdapter,
     ModelConfig,
@@ -68,9 +66,7 @@ class ModelMetadata:
             "tags": self.tags,
             "config": self.config,
             "registered_at": self.registered_at.isoformat(),
-            "last_used_at": (
-                self.last_used_at.isoformat() if self.last_used_at else None
-            ),
+            "last_used_at": (self.last_used_at.isoformat() if self.last_used_at else None),
             "usage_count": self.usage_count,
         }
 
@@ -158,8 +154,7 @@ class AIModelRegistry:
         # 중복 확인
         if full_name in self._models and not overwrite:
             raise ValueError(
-                f"Model {full_name} already registered. "
-                f"Use overwrite=True to replace."
+                f"Model {full_name} already registered. " f"Use overwrite=True to replace."
             )
 
         # 메타데이터 생성
@@ -341,11 +336,7 @@ class AIModelRegistry:
         Returns:
             List[str]: 버전 리스트 (최신순)
         """
-        versions = [
-            metadata.version
-            for metadata in self._models.values()
-            if metadata.name == name
-        ]
+        versions = [metadata.version for metadata in self._models.values() if metadata.name == name]
 
         # 버전 정렬 (최신순)
         versions.sort(reverse=True)

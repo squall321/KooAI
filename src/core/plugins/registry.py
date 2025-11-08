@@ -6,19 +6,16 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Type
+from typing import Dict, List, Optional, Set
 
 from .base import (
-    BasePlugin,
     IPlugin,
     PluginDependency,
     PluginDependencyError,
-    PluginError,
     PluginMetadata,
     PluginNotFoundError,
     PluginStatus,
     PluginType,
-    PluginVersion,
     PluginVersionConflictError,
 )
 
@@ -100,8 +97,7 @@ class PluginRegistry:
         dependent_plugins = self._find_dependent_plugins(name)
         if dependent_plugins:
             raise PluginDependencyError(
-                f"Cannot unregister '{name}': "
-                f"Plugins {dependent_plugins} depend on it"
+                f"Cannot unregister '{name}': " f"Plugins {dependent_plugins} depend on it"
             )
 
         # 등록 해제
@@ -154,9 +150,7 @@ class PluginRegistry:
 
         # 타입 필터
         if plugin_type:
-            plugins = [
-                p for p in plugins if p.get_metadata().plugin_type == plugin_type
-            ]
+            plugins = [p for p in plugins if p.get_metadata().plugin_type == plugin_type]
 
         # 상태 필터
         if status:
@@ -164,11 +158,7 @@ class PluginRegistry:
 
         # 태그 필터
         if tags:
-            plugins = [
-                p
-                for p in plugins
-                if tags.issubset(p.get_metadata().tags)
-            ]
+            plugins = [p for p in plugins if tags.issubset(p.get_metadata().tags)]
 
         return [p.get_metadata() for p in plugins]
 
@@ -239,23 +229,17 @@ class PluginRegistry:
         plugins = self._plugins.values()
 
         if plugin_type:
-            plugins = [
-                p for p in plugins if p.get_metadata().plugin_type == plugin_type
-            ]
+            plugins = [p for p in plugins if p.get_metadata().plugin_type == plugin_type]
 
         # 의존성 순서대로 활성화
-        activation_order = self._resolve_activation_order(
-            [p.get_metadata().name for p in plugins]
-        )
+        activation_order = self._resolve_activation_order([p.get_metadata().name for p in plugins])
 
         for name in activation_order:
             plugin = self._plugins[name]
             if plugin.get_status() == PluginStatus.LOADED:
                 await plugin.activate()
 
-    async def deactivate_all(
-        self, plugin_type: Optional[PluginType] = None
-    ) -> None:
+    async def deactivate_all(self, plugin_type: Optional[PluginType] = None) -> None:
         """
         모든 플러그인 비활성화 (또는 특정 타입만)
 
@@ -265,14 +249,10 @@ class PluginRegistry:
         plugins = self._plugins.values()
 
         if plugin_type:
-            plugins = [
-                p for p in plugins if p.get_metadata().plugin_type == plugin_type
-            ]
+            plugins = [p for p in plugins if p.get_metadata().plugin_type == plugin_type]
 
         # 의존성 역순으로 비활성화
-        activation_order = self._resolve_activation_order(
-            [p.get_metadata().name for p in plugins]
-        )
+        activation_order = self._resolve_activation_order([p.get_metadata().name for p in plugins])
 
         for name in reversed(activation_order):
             plugin = self._plugins[name]

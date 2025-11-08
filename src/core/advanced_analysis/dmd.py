@@ -137,9 +137,7 @@ class DMDAnalyzer:
 
         return modes, eigenvalues, amplitudes
 
-    def _exact_dmd(
-        self, X: np.ndarray, Y: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _exact_dmd(self, X: np.ndarray, Y: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Exact DMD algorithm (more accurate modes)
 
@@ -200,17 +198,13 @@ class DMDAnalyzer:
         reconstruction = np.zeros((n_points, n_times), dtype=complex)
 
         for i in range(dmd_result.n_modes):
-            time_dynamics = dmd_result.amplitudes[i] * np.exp(
-                dmd_result.omega[i] * timesteps
-            )
+            time_dynamics = dmd_result.amplitudes[i] * np.exp(dmd_result.omega[i] * timesteps)
             reconstruction += dmd_result.modes[:, i : i + 1] @ time_dynamics[np.newaxis, :]
 
         # Return real part for real-valued data
         return np.real(reconstruction)
 
-    def forecast(
-        self, dmd_result: DMDResult, n_future_steps: int
-    ) -> np.ndarray:
+    def forecast(self, dmd_result: DMDResult, n_future_steps: int) -> np.ndarray:
         """
         Forecast future states using DMD
 

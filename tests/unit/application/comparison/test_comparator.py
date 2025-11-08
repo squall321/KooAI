@@ -23,12 +23,15 @@ from src.core.simulation.models import (
 @pytest.fixture
 def sample_mesh():
     """Create sample mesh"""
-    vertices = np.array([
-        [0, 0, 0],
-        [1, 0, 0],
-        [0, 1, 0],
-        [1, 1, 0],
-    ], dtype=np.float32)
+    vertices = np.array(
+        [
+            [0, 0, 0],
+            [1, 0, 0],
+            [0, 1, 0],
+            [1, 1, 0],
+        ],
+        dtype=np.float32,
+    )
     return MeshData(vertices=vertices)
 
 
@@ -308,9 +311,7 @@ def test_identify_differences(comparator, simulation1, simulation2):
 def test_identify_differences_high_threshold(comparator, simulation1, simulation2):
     """Test identifying differences with high threshold"""
     # With high threshold, should find no significant differences
-    result = comparator.identify_differences(
-        simulation1, simulation2, "temperature", threshold=0.5
-    )
+    result = comparator.identify_differences(simulation1, simulation2, "temperature", threshold=0.5)
 
     # Temperature difference is about 1.6%, so no points should exceed 50%
     assert result["num_significant_differences"] == 0

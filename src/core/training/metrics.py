@@ -5,8 +5,7 @@
 """
 
 import json
-from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -136,9 +135,7 @@ class MetricsTracker:
         Returns:
             메트릭 딕셔너리 또는 None
         """
-        filtered_records = [
-            r for r in self._records if phase is None or r.phase == phase
-        ]
+        filtered_records = [r for r in self._records if phase is None or r.phase == phase]
 
         if not filtered_records:
             return None
@@ -163,9 +160,7 @@ class MetricsTracker:
             self._best_steps[metric_name],
         )
 
-    def get_metric_summary(
-        self, metric_name: str, phase: Optional[str] = None
-    ) -> Dict[str, float]:
+    def get_metric_summary(self, metric_name: str, phase: Optional[str] = None) -> Dict[str, float]:
         """
         메트릭 요약 통계
 
@@ -194,9 +189,7 @@ class MetricsTracker:
             "count": len(values),
         }
 
-    def get_all_metrics_summary(
-        self, phase: Optional[str] = None
-    ) -> Dict[str, Dict[str, float]]:
+    def get_all_metrics_summary(self, phase: Optional[str] = None) -> Dict[str, Dict[str, float]]:
         """
         모든 메트릭 요약
 
@@ -219,9 +212,7 @@ class MetricsTracker:
 
         return summary
 
-    def get_epoch_metrics(
-        self, epoch: int, phase: Optional[str] = None
-    ) -> List[Dict[str, float]]:
+    def get_epoch_metrics(self, epoch: int, phase: Optional[str] = None) -> List[Dict[str, float]]:
         """
         특정 에포크의 메트릭
 
@@ -233,9 +224,7 @@ class MetricsTracker:
             메트릭 리스트
         """
         epoch_records = [
-            r
-            for r in self._records
-            if r.epoch == epoch and (phase is None or r.phase == phase)
+            r for r in self._records if r.epoch == epoch and (phase is None or r.phase == phase)
         ]
 
         return [r.metrics for r in epoch_records]
@@ -251,9 +240,7 @@ class MetricsTracker:
         import csv
 
         # 필터링된 레코드
-        filtered_records = [
-            r for r in self._records if phase is None or r.phase == phase
-        ]
+        filtered_records = [r for r in self._records if phase is None or r.phase == phase]
 
         if not filtered_records:
             return
@@ -299,13 +286,9 @@ class MetricsTracker:
         try:
             import matplotlib.pyplot as plt
         except ImportError:
-            raise RuntimeError(
-                "matplotlib not installed. Install with: pip install matplotlib"
-            )
+            raise RuntimeError("matplotlib not installed. Install with: pip install matplotlib")
 
-        fig, axes = plt.subplots(
-            len(metric_names), 1, figsize=(10, 4 * len(metric_names))
-        )
+        fig, axes = plt.subplots(len(metric_names), 1, figsize=(10, 4 * len(metric_names)))
 
         if len(metric_names) == 1:
             axes = [axes]
@@ -338,14 +321,9 @@ class MetricsTracker:
         if self._metrics_file.exists():
             self._metrics_file.unlink()
 
-    def _update_best_metric(
-        self, metric_name: str, value: float, step: int
-    ) -> None:
+    def _update_best_metric(self, metric_name: str, value: float, step: int) -> None:
         """최적 메트릭 업데이트 (낮을수록 좋음으로 가정)"""
-        if (
-            metric_name not in self._best_metrics
-            or value < self._best_metrics[metric_name]
-        ):
+        if metric_name not in self._best_metrics or value < self._best_metrics[metric_name]:
             self._best_metrics[metric_name] = value
             self._best_steps[metric_name] = step
 

@@ -5,7 +5,6 @@ Base task classes with common functionality
 import time
 from typing import Any, Optional
 from celery import Task
-from celery.exceptions import Retry
 import structlog
 
 from .celery_app import celery_app

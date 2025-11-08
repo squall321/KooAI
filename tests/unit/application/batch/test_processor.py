@@ -124,7 +124,12 @@ def test_batch_result_to_dict():
     """Test BatchResult to_dict conversion"""
     jobs = [
         BatchJob(job_id="job1", file_path=Path("/test/file1.txt"), status=JobStatus.COMPLETED),
-        BatchJob(job_id="job2", file_path=Path("/test/file2.txt"), status=JobStatus.FAILED, error="Test error"),
+        BatchJob(
+            job_id="job2",
+            file_path=Path("/test/file2.txt"),
+            status=JobStatus.FAILED,
+            error="Test error",
+        ),
     ]
 
     result = BatchResult(
@@ -182,11 +187,17 @@ def test_batch_processor_add_directory(temp_dir):
     assert len(processor.jobs) == 3
 
 
-def test_batch_processor_process():
+def test_batch_processor_process(temp_dir):
     """Test sequential processing"""
     processor = BatchProcessor(max_workers=1)
 
-    files = [Path(f"/tmp/file{i}.txt") for i in range(3)]
+    # Create test files
+    files = []
+    for i in range(3):
+        file_path = temp_dir / f"process_file{i}.txt"
+        file_path.write_text(f"content{i}")
+        files.append(file_path)
+
     processor.add_files(files)
 
     call_count = 0
@@ -204,15 +215,21 @@ def test_batch_processor_process():
     assert result.failed == 0
 
 
-def test_batch_processor_process_with_error():
+def test_batch_processor_process_with_error(temp_dir):
     """Test processing with errors"""
     processor = BatchProcessor(stop_on_error=False)
 
-    files = [Path(f"/tmp/file{i}.txt") for i in range(3)]
+    # Create test files
+    files = []
+    for i in range(3):
+        file_path = temp_dir / f"error_file{i}.txt"
+        file_path.write_text(f"content{i}")
+        files.append(file_path)
+
     processor.add_files(files)
 
     def processor_func(file_path):
-        if "file1" in str(file_path):
+        if "error_file1" in str(file_path):
             raise ValueError("Test error")
         return f"processed_{file_path.name}"
 
@@ -223,15 +240,21 @@ def test_batch_processor_process_with_error():
     assert result.failed == 1
 
 
-def test_batch_processor_stop_on_error():
+def test_batch_processor_stop_on_error(temp_dir):
     """Test stop_on_error behavior"""
     processor = BatchProcessor(stop_on_error=True)
 
-    files = [Path(f"/tmp/file{i}.txt") for i in range(3)]
+    # Create test files
+    files = []
+    for i in range(3):
+        file_path = temp_dir / f"stop_file{i}.txt"
+        file_path.write_text(f"content{i}")
+        files.append(file_path)
+
     processor.add_files(files)
 
     def processor_func(file_path):
-        if "file1" in str(file_path):
+        if "stop_file1" in str(file_path):
             raise ValueError("Test error")
         return f"processed_{file_path.name}"
 
@@ -241,11 +264,17 @@ def test_batch_processor_stop_on_error():
     assert result.failed > 0
 
 
-def test_batch_processor_parallel():
+def test_batch_processor_parallel(temp_dir):
     """Test parallel processing"""
     processor = BatchProcessor(max_workers=2)
 
-    files = [Path(f"/tmp/file{i}.txt") for i in range(5)]
+    # Create test files
+    files = []
+    for i in range(5):
+        file_path = temp_dir / f"parallel_file{i}.txt"
+        file_path.write_text(f"content{i}")
+        files.append(file_path)
+
     processor.add_files(files)
 
     def processor_func(file_path):
@@ -260,11 +289,17 @@ def test_batch_processor_parallel():
     assert result.failed == 0
 
 
-def test_batch_processor_progress_callback():
+def test_batch_processor_progress_callback(temp_dir):
     """Test progress callback"""
     processor = BatchProcessor()
 
-    files = [Path(f"/tmp/file{i}.txt") for i in range(3)]
+    # Create test files
+    files = []
+    for i in range(3):
+        file_path = temp_dir / f"callback_file{i}.txt"
+        file_path.write_text(f"content{i}")
+        files.append(file_path)
+
     processor.add_files(files)
 
     progress_updates = []
@@ -303,7 +338,7 @@ def test_batch_processor_metadata():
     job = BatchJob(
         job_id="job1",
         file_path=Path("/test/file.txt"),
-        metadata={"priority": "high", "user": "test_user"}
+        metadata={"priority": "high", "user": "test_user"},
     )
 
     assert job.metadata["priority"] == "high"

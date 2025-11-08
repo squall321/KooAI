@@ -14,7 +14,11 @@ from .pod import PODAnalyzer, compute_pod
 from .dmd import DMDAnalyzer, compute_dmd
 from .timeseries import TimeSeriesAnalyzer, compute_autocorrelation, compute_statistics
 from .correlation import CorrelationAnalyzer, compute_cross_correlation, compute_coherence
-from .turbulence import TurbulenceAnalyzer, compute_reynolds_stresses, compute_turbulent_kinetic_energy
+from .turbulence import (
+    TurbulenceAnalyzer,
+    compute_reynolds_stresses,
+    compute_turbulent_kinetic_energy,
+)
 
 __all__ = [
     # FFT

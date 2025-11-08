@@ -1,0 +1,273 @@
+name: Apptainer Images
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-minimal:
+    name: Build Minimal Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Apptainer
+        uses: eWaterCycle/setup-apptainer@v2
+        with:
+          apptainer-version: 1.2.5
+
+      - name: Build minimal image
+        run: |
+          sudo apptainer build \
+            --fakeroot \
+            kooai-minimal.sif \
+            containers/kooai-minimal.def
+
+      - name: Test minimal image
+        run: |
+          apptainer exec kooai-minimal.sif python --version
+          apptainer exec kooai-minimal.sif python -c "import sys; print(sys.version)"
+
+      - name: Get image info
+        run: |
+          ls -lh kooai-minimal.sif
+          apptainer inspect kooai-minimal.sif
+
+      - name: Upload minimal image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kooai-minimal-sif
+          path: kooai-minimal.sif
+          retention-days: 7
+
+  build-standard:
+    name: Build Standard Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Apptainer
+        uses: eWaterCycle/setup-apptainer@v2
+        with:
+          apptainer-version: 1.2.5
+
+      - name: Build standard image
+        run: |
+          sudo apptainer build \
+            --fakeroot \
+            kooai-standard.sif \
+            containers/kooai.def
+
+      - name: Test standard image
+        run: |
+          apptainer exec kooai-standard.sif python --version
+          apptainer exec kooai-standard.sif python -c "import vtk; print('VTK:', vtk.vtkVersion.GetVTKVersion())"
+          apptainer exec kooai-standard.sif python -c "import pyvista; print('PyVista OK')"
+          apptainer exec kooai-standard.sif python -c "import fastapi; print('FastAPI OK')"
+          apptainer exec kooai-standard.sif python -c "import src.presentation.api.main; print('KooAI app import OK')"
+
+      - name: Get image info
+        run: |
+          ls -lh kooai-standard.sif
+          apptainer inspect kooai-standard.sif
+
+      - name: Upload standard image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kooai-standard-sif
+          path: kooai-standard.sif
+          retention-days: 7
+
+  build-full:
+    name: Build Full Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Apptainer
+        uses: eWaterCycle/setup-apptainer@v2
+        with:
+          apptainer-version: 1.2.5
+
+      - name: Build full image
+        run: |
+          sudo apptainer build \
+            --fakeroot \
+            kooai-full.sif \
+            containers/kooai-full.def
+
+      - name: Test full image
+        run: |
+          apptainer exec kooai-full.sif python --version
+          apptainer exec kooai-full.sif python -c "import torch; print('PyTorch:', torch.__version__)"
+          apptainer exec kooai-full.sif python -c "import tensorflow as tf; print('TensorFlow:', tf.__version__)"
+
+      - name: Get image info
+        run: |
+          ls -lh kooai-full.sif
+          apptainer inspect kooai-full.sif
+
+      - name: Upload full image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kooai-full-sif
+          path: kooai-full.sif
+          retention-days: 7
+
+  test-hpc-compatibility:
+    name: Test HPC Compatibility
+    runs-on: ubuntu-latest
+    needs: [build-standard]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Apptainer
+        uses: eWaterCycle/setup-apptainer@v2
+        with:
+          apptainer-version: 1.2.5
+
+      - name: Download standard image
+        uses: actions/download-artifact@v4
+        with:
+          name: kooai-standard-sif
+
+      - name: Test fakeroot execution
+        run: |
+          apptainer exec --fakeroot kooai-standard.sif whoami
+          apptainer exec --fakeroot kooai-standard.sif python --version
+
+      - name: Test bind mounts
+        run: |
+          mkdir -p test_data
+          echo "test" > test_data/test.txt
+          apptainer exec \
+            --bind test_data:/data \
+            kooai-standard.sif \
+            cat /data/test.txt
+
+      - name: Test environment variables
+        run: |
+          apptainer exec \
+            --env LOG_LEVEL=DEBUG \
+            --env USE_TEST_DB=true \
+            kooai-standard.sif \
+            python -c "import os; print('LOG_LEVEL:', os.getenv('LOG_LEVEL'))"
+
+      - name: Test overlay
+        run: |
+          mkdir -p overlay
+          apptainer exec \
+            --overlay overlay \
+            kooai-standard.sif \
+            python -c "print('Overlay test OK')"
+
+  publish-release:
+    name: Publish Release Images
+    runs-on: ubuntu-latest
+    needs: [build-minimal, build-standard, build-full, test-hpc-compatibility]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all images
+        uses: actions/download-artifact@v4
+
+      - name: List downloaded files
+        run: |
+          ls -lh kooai-*-sif/
+
+      - name: Create release info
+        run: |
+          echo "# Apptainer Images" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "## Available Images" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "### kooai-minimal.sif (~500MB)" >> RELEASE_NOTES.md
+          echo "- Basic functionality only" >> RELEASE_NOTES.md
+          echo "- No 3D file support" >> RELEASE_NOTES.md
+          echo "- Fastest startup" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "### kooai-standard.sif (~1.5GB)" >> RELEASE_NOTES.md
+          echo "- Recommended for most users" >> RELEASE_NOTES.md
+          echo "- Includes VTK, PyVista for 3D file processing" >> RELEASE_NOTES.md
+          echo "- HDF5 support" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "### kooai-full.sif (~4GB)" >> RELEASE_NOTES.md
+          echo "- Complete installation" >> RELEASE_NOTES.md
+          echo "- AI/ML packages (PyTorch, TensorFlow)" >> RELEASE_NOTES.md
+          echo "- For advanced analysis" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "## Usage" >> RELEASE_NOTES.md
+          echo "\`\`\`bash" >> RELEASE_NOTES.md
+          echo "# Download image" >> RELEASE_NOTES.md
+          echo "wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/kooai-standard.sif" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "# Run API server" >> RELEASE_NOTES.md
+          echo "apptainer run kooai-standard.sif" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "# Or execute commands" >> RELEASE_NOTES.md
+          echo "apptainer exec kooai-standard.sif python your_script.py" >> RELEASE_NOTES.md
+          echo "\`\`\`" >> RELEASE_NOTES.md
+
+      - name: Calculate checksums
+        run: |
+          cd kooai-minimal-sif && sha256sum kooai-minimal.sif > kooai-minimal.sif.sha256 && cd ..
+          cd kooai-standard-sif && sha256sum kooai-standard.sif > kooai-standard.sif.sha256 && cd ..
+          cd kooai-full-sif && sha256sum kooai-full.sif > kooai-full.sif.sha256 && cd ..
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            kooai-minimal-sif/kooai-minimal.sif
+            kooai-minimal-sif/kooai-minimal.sif.sha256
+            kooai-standard-sif/kooai-standard.sif
+            kooai-standard-sif/kooai-standard.sif.sha256
+            kooai-full-sif/kooai-full.sif
+            kooai-full-sif/kooai-full.sif.sha256
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [build-minimal, build-standard, build-full, test-hpc-compatibility]
+    if: always()
+
+    steps:
+      - name: Print build summary
+        run: |
+          echo "Apptainer Build Summary:"
+          echo "  Minimal Image: ${{ needs.build-minimal.result }}"
+          echo "  Standard Image: ${{ needs.build-standard.result }}"
+          echo "  Full Image: ${{ needs.build-full.result }}"
+          echo "  HPC Tests: ${{ needs.test-hpc-compatibility.result }}"
+
+          if [ "${{ needs.build-standard.result }}" != "success" ]; then
+            echo "❌ Standard image build failed!"
+            exit 1
+          fi
+
+          echo "✅ Apptainer images built successfully!"

@@ -4,13 +4,12 @@ VAE Trainer
 VAE 모델 학습을 위한 Trainer 클래스
 """
 
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict
 from pathlib import Path
 import json
 from datetime import datetime
 
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -72,9 +71,7 @@ class VAETrainer:
             "val_kl_loss": [],
         }
 
-    def train_epoch(
-        self, train_loader: DataLoader, epoch: int
-    ) -> Dict[str, float]:
+    def train_epoch(self, train_loader: DataLoader, epoch: int) -> Dict[str, float]:
         """
         한 에폭 학습
 
@@ -136,9 +133,7 @@ class VAETrainer:
                 self.writer.add_scalar(
                     "train/kl_loss", loss_dict["kl_loss"].item(), self.global_step
                 )
-                self.writer.add_scalar(
-                    "train/beta", loss_dict["beta"].item(), self.global_step
-                )
+                self.writer.add_scalar("train/beta", loss_dict["beta"].item(), self.global_step)
 
             self.global_step += 1
 

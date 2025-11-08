@@ -209,9 +209,7 @@ class TestCSVParser:
         parser = CSVParser()
 
         # 테스트 CSV 파일 생성
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write("x,y,z,temperature\n")
             f.write("0.0,0.0,0.0,300.0\n")
             f.write("1.0,0.0,0.0,310.0\n")
@@ -242,9 +240,7 @@ class TestCSVParser:
         parser = CSVParser()
 
         # 벡터 필드가 있는 CSV
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
             f.write("x,y,z,velocity_x,velocity_y,velocity_z\n")
             f.write("0.0,0.0,0.0,1.0,0.0,0.0\n")
             f.write("1.0,0.0,0.0,2.0,1.0,0.0\n")
@@ -273,9 +269,7 @@ class TestVTKParser:
         parser = VTKParser()
 
         # VTK 파일 생성
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".vtk", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".vtk", delete=False) as f:
             f.write("# vtk DataFile Version 3.0\n")
             f.write("Test VTK\n")
             f.write("ASCII\n")
@@ -291,9 +285,7 @@ class TestVTKParser:
         parser = VTKParser()
 
         # POLYDATA VTK 파일
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".vtk", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".vtk", delete=False) as f:
             f.write("# vtk DataFile Version 3.0\n")
             f.write("Test Polydata\n")
             f.write("ASCII\n")
@@ -348,9 +340,7 @@ class TestParserRegistry:
         assert isinstance(parser, CSVParser)
 
         # VTK 파일용 파서 (헤더 확인이 필요하므로 실제 파일 필요)
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".vtk", delete=False
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".vtk", delete=False) as f:
             f.write("# vtk DataFile Version 3.0\n")
             vtk_path = Path(f.name)
 

@@ -8,14 +8,13 @@ import importlib
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional
 
 from .base import (
     BasePlugin,
     IPlugin,
     PluginError,
     PluginLoadError,
-    PluginMetadata,
 )
 from .registry import PluginRegistry
 
@@ -59,9 +58,7 @@ class PluginLoader:
             raise PluginLoadError(f"Plugin file not found: {plugin_path}")
 
         if not plugin_path.suffix == ".py":
-            raise PluginLoadError(
-                f"Plugin file must be .py file: {plugin_path}"
-            )
+            raise PluginLoadError(f"Plugin file must be .py file: {plugin_path}")
 
         try:
             # 모듈 이름 생성
@@ -72,13 +69,9 @@ class PluginLoader:
                 module = self._loaded_modules[module_name]
             else:
                 # 모듈 스펙 생성
-                spec = importlib.util.spec_from_file_location(
-                    module_name, plugin_path
-                )
+                spec = importlib.util.spec_from_file_location(module_name, plugin_path)
                 if spec is None or spec.loader is None:
-                    raise PluginLoadError(
-                        f"Failed to create module spec for {plugin_path}"
-                    )
+                    raise PluginLoadError(f"Failed to create module spec for {plugin_path}")
 
                 # 모듈 로드
                 module = importlib.util.module_from_spec(spec)
@@ -90,17 +83,13 @@ class PluginLoader:
 
             # 클래스 가져오기
             if not hasattr(module, class_name):
-                raise PluginLoadError(
-                    f"Class '{class_name}' not found in {plugin_path}"
-                )
+                raise PluginLoadError(f"Class '{class_name}' not found in {plugin_path}")
 
             plugin_class = getattr(module, class_name)
 
             # IPlugin 인터페이스 확인
             if not issubclass(plugin_class, BasePlugin):
-                raise PluginLoadError(
-                    f"Class '{class_name}' must inherit from BasePlugin"
-                )
+                raise PluginLoadError(f"Class '{class_name}' must inherit from BasePlugin")
 
             # 플러그인 인스턴스 생성
             plugin = plugin_class()
@@ -149,17 +138,13 @@ class PluginLoader:
 
             # 클래스 가져오기
             if not hasattr(module, class_name):
-                raise PluginLoadError(
-                    f"Class '{class_name}' not found in module '{module_path}'"
-                )
+                raise PluginLoadError(f"Class '{class_name}' not found in module '{module_path}'")
 
             plugin_class = getattr(module, class_name)
 
             # IPlugin 인터페이스 확인
             if not issubclass(plugin_class, BasePlugin):
-                raise PluginLoadError(
-                    f"Class '{class_name}' must inherit from BasePlugin"
-                )
+                raise PluginLoadError(f"Class '{class_name}' must inherit from BasePlugin")
 
             # 플러그인 인스턴스 생성
             plugin = plugin_class()
@@ -176,13 +161,9 @@ class PluginLoader:
             return plugin
 
         except ImportError as e:
-            raise PluginLoadError(
-                f"Failed to import module '{module_path}': {e}"
-            ) from e
+            raise PluginLoadError(f"Failed to import module '{module_path}': {e}") from e
         except Exception as e:
-            raise PluginLoadError(
-                f"Failed to load plugin from module '{module_path}': {e}"
-            ) from e
+            raise PluginLoadError(f"Failed to load plugin from module '{module_path}': {e}") from e
 
     def load_from_directory(
         self,
@@ -233,9 +214,9 @@ class PluginLoader:
                 plugin_file = plugin_dir / "plugin.py"
                 if plugin_file.exists():
                     # 클래스 이름 추측 (CamelCase 변환)
-                    class_name = "".join(
-                        word.capitalize() for word in plugin_name.split("_")
-                    ) + "Plugin"
+                    class_name = (
+                        "".join(word.capitalize() for word in plugin_name.split("_")) + "Plugin"
+                    )
 
                     config = config_map.get(plugin_name, {})
                     plugin = self.load_from_file(plugin_file, class_name, config)
@@ -267,15 +248,11 @@ class PluginLoader:
             old_plugin = self._registry.get(plugin_name)
             metadata = old_plugin.get_metadata()
         except Exception as e:
-            raise PluginLoadError(
-                f"Cannot reload plugin '{plugin_name}': {e}"
-            ) from e
+            raise PluginLoadError(f"Cannot reload plugin '{plugin_name}': {e}") from e
 
         # 모듈 캐시에서 제거
         module_names_to_remove = [
-            name
-            for name in self._loaded_modules.keys()
-            if plugin_name in name
+            name for name in self._loaded_modules.keys() if plugin_name in name
         ]
         for module_name in module_names_to_remove:
             del self._loaded_modules[module_name]
@@ -314,9 +291,7 @@ class PluginLoader:
 
             # 모듈 캐시에서 제거
             module_names_to_remove = [
-                name
-                for name in self._loaded_modules.keys()
-                if plugin_name in name
+                name for name in self._loaded_modules.keys() if plugin_name in name
             ]
             for module_name in module_names_to_remove:
                 del self._loaded_modules[module_name]

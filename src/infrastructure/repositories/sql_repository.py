@@ -7,9 +7,8 @@ SQLAlchemy를 사용한 Repository 패턴 구체 구현입니다.
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 
-from sqlalchemy import select, and_, or_, func, String
+from sqlalchemy import select, and_, func, String
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from src.core.domain.entities import (
     SimulationResult,
@@ -180,8 +179,10 @@ class SimulationRepository:
 
     async def exists(self, simulation_id: UUID) -> bool:
         """시뮬레이션 존재 여부 확인"""
-        stmt = select(func.count()).select_from(SimulationModel).where(
-            SimulationModel.id == simulation_id
+        stmt = (
+            select(func.count())
+            .select_from(SimulationModel)
+            .where(SimulationModel.id == simulation_id)
         )
         result = await self.session.execute(stmt)
         count = result.scalar_one()
@@ -259,9 +260,7 @@ class DatasetRepository:
 
     async def find_by_simulation_id(self, simulation_id: UUID) -> List[Dataset]:
         """시뮬레이션 ID로 데이터셋 조회"""
-        stmt = select(DatasetModel).where(
-            DatasetModel.simulation_id == simulation_id
-        )
+        stmt = select(DatasetModel).where(DatasetModel.simulation_id == simulation_id)
         result = await self.session.execute(stmt)
         db_datasets = result.scalars().all()
 
@@ -358,9 +357,7 @@ class AnalysisRepository:
 
     async def find_by_simulation_id(self, simulation_id: UUID) -> List[Analysis]:
         """시뮬레이션 ID로 분석 조회"""
-        stmt = select(AnalysisModel).where(
-            AnalysisModel.simulation_id == simulation_id
-        )
+        stmt = select(AnalysisModel).where(AnalysisModel.simulation_id == simulation_id)
         result = await self.session.execute(stmt)
         db_analyses = result.scalars().all()
 
@@ -471,17 +468,17 @@ class AIModelRepository:
 
     async def find_by_name(self, name: str) -> List[AIModel]:
         """이름으로 모델 조회"""
-        stmt = select(AIModelModel).where(AIModelModel.name == name).order_by(
-            AIModelModel.created_at.desc()
+        stmt = (
+            select(AIModelModel)
+            .where(AIModelModel.name == name)
+            .order_by(AIModelModel.created_at.desc())
         )
         result = await self.session.execute(stmt)
         db_models = result.scalars().all()
 
         return [self._to_domain(db_m) for db_m in db_models]
 
-    async def find_by_name_and_version(
-        self, name: str, version: str
-    ) -> Optional[AIModel]:
+    async def find_by_name_and_version(self, name: str, version: str) -> Optional[AIModel]:
         """이름과 버전으로 모델 조회"""
         stmt = select(AIModelModel).where(
             and_(AIModelModel.name == name, AIModelModel.version == version)

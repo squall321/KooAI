@@ -113,9 +113,7 @@ class IModelAdapter(Protocol):
         """
         ...
 
-    def batch_predict(
-        self, input_data_list: List[Any], **kwargs
-    ) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
         """
         배치 추론
 
@@ -164,9 +162,7 @@ class BaseModelAdapter(ABC):
         """추론 수행 (서브클래스에서 구현)"""
         pass
 
-    def batch_predict(
-        self, input_data_list: List[Any], **kwargs
-    ) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
         """
         배치 추론 기본 구현
 
@@ -206,9 +202,7 @@ class ModelAdapterFactory:
     _adapters: Dict[ModelFramework, type[BaseModelAdapter]] = {}
 
     @classmethod
-    def register(
-        cls, framework: ModelFramework, adapter_class: type[BaseModelAdapter]
-    ) -> None:
+    def register(cls, framework: ModelFramework, adapter_class: type[BaseModelAdapter]) -> None:
         """
         어댑터 등록
 
@@ -234,8 +228,7 @@ class ModelAdapterFactory:
         """
         if framework not in cls._adapters:
             raise ValueError(
-                f"Unsupported framework: {framework}. "
-                f"Available: {list(cls._adapters.keys())}"
+                f"Unsupported framework: {framework}. " f"Available: {list(cls._adapters.keys())}"
             )
 
         return cls._adapters[framework]()

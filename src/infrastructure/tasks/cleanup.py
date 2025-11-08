@@ -7,6 +7,7 @@ from pathlib import Path
 import structlog
 
 from .base import cleanup_task, BaseTask
+
 # from src.infrastructure.storage import get_storage  # TODO: async integration
 
 
@@ -140,9 +141,7 @@ def cleanup_temp_files(self: BaseTask, hours: int = 24) -> dict:
 
             for file_path in temp_dir.rglob("*"):
                 if file_path.is_file():
-                    mtime = datetime.fromtimestamp(
-                        file_path.stat().st_mtime, tz=timezone.utc
-                    )
+                    mtime = datetime.fromtimestamp(file_path.stat().st_mtime, tz=timezone.utc)
 
                     if mtime < cutoff_time:
                         try:

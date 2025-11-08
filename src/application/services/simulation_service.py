@@ -31,7 +31,6 @@ from ..use_cases import (
     SpatialAnalysisResponse,
     SpatialAnalysisUseCase,
     UploadSimulationRequest,
-    UploadSimulationResponse,
     UploadSimulationUseCase,
 )
 
@@ -60,9 +59,7 @@ class SimulationService:
         self.parser_registry.register(VTKParser())
 
         # Use Cases 초기화
-        self.upload_use_case = UploadSimulationUseCase(
-            self.parser_registry, repository
-        )
+        self.upload_use_case = UploadSimulationUseCase(self.parser_registry, repository)
         self.get_use_case = GetSimulationUseCase(repository)
         self.analyze_field_use_case = AnalyzeFieldUseCase(repository)
         self.compare_timesteps_use_case = CompareTimestepsUseCase(repository)
@@ -117,9 +114,7 @@ class SimulationService:
                 )
                 field_analyses[field_name] = analysis
 
-        return FullAnalysisResult(
-            simulation_info=sim_info, field_analyses=field_analyses
-        )
+        return FullAnalysisResult(simulation_info=sim_info, field_analyses=field_analyses)
 
     def compare_all_timesteps(
         self, simulation_id: str, field_name: str
@@ -135,9 +130,7 @@ class SimulationService:
             List[CompareTimestepsResponse]: 타임스텝 비교 결과 목록
         """
         # 시뮬레이션 정보 조회
-        sim_info = self.get_use_case.execute(
-            GetSimulationRequest(simulation_id=simulation_id)
-        )
+        sim_info = self.get_use_case.execute(GetSimulationRequest(simulation_id=simulation_id))
 
         if sim_info.num_timesteps < 2:
             return []
@@ -172,9 +165,7 @@ class SimulationService:
             Dict[str, ComputeConvergenceResponse]: 필드별 수렴성 분석 결과
         """
         # 시뮬레이션 정보 조회
-        sim_info = self.get_use_case.execute(
-            GetSimulationRequest(simulation_id=simulation_id)
-        )
+        sim_info = self.get_use_case.execute(GetSimulationRequest(simulation_id=simulation_id))
 
         # 필드 목록 결정
         if field_names is None:
@@ -186,9 +177,7 @@ class SimulationService:
         for field_name in field_names:
             try:
                 result = self.compute_convergence_use_case.execute(
-                    ComputeConvergenceRequest(
-                        simulation_id=simulation_id, field_name=field_name
-                    )
+                    ComputeConvergenceRequest(simulation_id=simulation_id, field_name=field_name)
                 )
                 convergence_results[field_name] = result
             except Exception:
@@ -254,9 +243,7 @@ class SimulationService:
 
         return high_region, low_region
 
-    def list_simulations(
-        self, page: int = 1, page_size: int = 20
-    ) -> ListSimulationsResponse:
+    def list_simulations(self, page: int = 1, page_size: int = 20) -> ListSimulationsResponse:
         """
         시뮬레이션 목록 조회 (페이지네이션)
 
@@ -269,9 +256,7 @@ class SimulationService:
         """
         skip = (page - 1) * page_size
 
-        return self.list_use_case.execute(
-            ListSimulationsRequest(skip=skip, limit=page_size)
-        )
+        return self.list_use_case.execute(ListSimulationsRequest(skip=skip, limit=page_size))
 
     def get_simulation_summary(self, simulation_id: str) -> Dict:
         """
@@ -283,9 +268,7 @@ class SimulationService:
         Returns:
             Dict: 요약 정보
         """
-        sim_info = self.get_use_case.execute(
-            GetSimulationRequest(simulation_id=simulation_id)
-        )
+        sim_info = self.get_use_case.execute(GetSimulationRequest(simulation_id=simulation_id))
 
         # 첫 번째 타임스텝의 각 필드에 대한 기본 통계
         field_summaries = {}

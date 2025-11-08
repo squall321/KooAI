@@ -142,9 +142,7 @@ class TestContourData:
             value=310.0, num_points=8, points=[0.5, 0.5, 1.5, 0.5], is_closed=False
         )
 
-        contour = ContourData(
-            field_name="temperature", unit="K", levels=[level1, level2]
-        )
+        contour = ContourData(field_name="temperature", unit="K", levels=[level1, level2])
 
         assert len(contour.levels) == 2
         assert contour.levels[0].value == 300.0
@@ -240,9 +238,7 @@ class TestSimulationResult:
         mesh = MeshData(info=mesh_info, vertices=[0.0] * 30, cells=[0] * 15)
 
         with pytest.raises(ValidationError):
-            SimulationResult(
-                metadata=metadata, mesh=mesh, steady_state=False, time_steps=None
-            )
+            SimulationResult(metadata=metadata, mesh=mesh, steady_state=False, time_steps=None)
 
 
 class TestSchemaRegistry:

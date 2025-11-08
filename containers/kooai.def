@@ -1,0 +1,77 @@
+Bootstrap: docker
+From: python:3.11-slim
+
+%labels
+    Author KooAI Team
+    Version 1.0.0
+    Profile standard
+
+%files
+    . /opt/kooai/
+
+%post
+    # Install system dependencies
+    apt-get update && apt-get install -y \
+        build-essential \
+        git \
+        cmake \
+        libhdf5-dev \
+        libvtk9-dev \
+        python3-vtk9 \
+        libgl1-mesa-glx \
+        libglu1-mesa \
+        libxrender1 \
+        libsm6 \
+        libxext6 \
+        && apt-get clean && rm -rf /var/lib/apt/lists/*
+    
+    # Create application directory
+    mkdir -p /opt/kooai && cd /opt/kooai
+    
+    # Create virtual environment
+    python3 -m venv venv
+    . venv/bin/activate
+    
+    # Upgrade pip
+    pip install --upgrade pip setuptools wheel
+
+    # Install KooAI with standard dependencies
+    pip install -e ".[standard]"
+
+    # Install testing tools
+    pip install pytest pytest-cov pytest-asyncio pytest-xdist
+
+%environment
+    export PATH=/opt/kooai/venv/bin:$PATH
+    export PYTHONPATH=/opt/kooai:$PYTHONPATH
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+
+%runscript
+    cd /opt/kooai
+    exec venv/bin/python -m uvicorn src.presentation.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
+
+%test
+    . /opt/kooai/venv/bin/activate
+    python3 --version
+    python3 -c "import vtk; print(f'VTK version: {vtk.vtkVersion.GetVTKVersion()}')"
+    python3 -c "import pyvista; print(f'PyVista version: {pyvista.__version__}')"
+    python3 -c "import fastapi; print(f'FastAPI version: {fastapi.__version__}')"
+
+%help
+    KooAI Standard Image - Recommended for most HPC users
+    
+    Includes:
+    - FastAPI web framework
+    - Database support (PostgreSQL, SQLAlchemy)
+    - Redis caching
+    - 3D file processing (VTK, PyVista, meshio)
+    - Scientific computing (NumPy, SciPy, pandas)
+    - HDF5 support
+    
+    Usage:
+        apptainer run kooai-standard.sif
+        apptainer exec kooai-standard.sif python script.py
+        apptainer shell kooai-standard.sif
+    
+    For more information: https://github.com/your-org/KooAI

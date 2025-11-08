@@ -4,7 +4,7 @@ Transformation stages
 데이터 변환을 위한 처리 단계들.
 """
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, List, Optional
 
 from ..base import ProcessingStage, PipelineContext
 
@@ -42,9 +42,7 @@ class FilterStage(ProcessingStage):
         """
         if isinstance(data, list):
             filtered = [item for item in data if self.filter_func(item)]
-            context.metadata[f"{self.name}_filtered_count"] = len(data) - len(
-                filtered
-            )
+            context.metadata[f"{self.name}_filtered_count"] = len(data) - len(filtered)
             return filtered
         else:
             # 단일 항목

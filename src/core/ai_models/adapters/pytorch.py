@@ -5,7 +5,6 @@ PyTorch 모델을 로드하고 추론을 수행합니다.
 """
 
 import time
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .base import BaseModelAdapter, InferenceResult, ModelConfig, ModelFramework
@@ -33,9 +32,7 @@ class PyTorchAdapter(BaseModelAdapter):
         try:
             import torch
         except ImportError:
-            raise ImportError(
-                "PyTorch is not installed. Install with: pip install torch"
-            )
+            raise ImportError("PyTorch is not installed. Install with: pip install torch")
 
         if config.framework != ModelFramework.PYTORCH:
             raise ValueError(f"Expected PyTorch framework, got {config.framework}")
@@ -70,9 +67,7 @@ class PyTorchAdapter(BaseModelAdapter):
                     self.model = state_dict
 
             else:
-                raise ValueError(
-                    f"Unsupported file format: {config.model_path.suffix}"
-                )
+                raise ValueError(f"Unsupported file format: {config.model_path.suffix}")
 
             # 모델을 디바이스로 이동
             if hasattr(self.model, "to"):
@@ -138,8 +133,7 @@ class PyTorchAdapter(BaseModelAdapter):
                     output = output.cpu().numpy()
                 elif isinstance(output, tuple):
                     output = tuple(
-                        o.cpu().numpy() if isinstance(o, torch.Tensor) else o
-                        for o in output
+                        o.cpu().numpy() if isinstance(o, torch.Tensor) else o for o in output
                     )
 
             return InferenceResult(
@@ -154,9 +148,7 @@ class PyTorchAdapter(BaseModelAdapter):
         except Exception as e:
             raise RuntimeError(f"PyTorch inference failed: {str(e)}")
 
-    def batch_predict(
-        self, input_data_list: List[Any], **kwargs
-    ) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
         """
         배치 추론 (최적화된 구현)
 

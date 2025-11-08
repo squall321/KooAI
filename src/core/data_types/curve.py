@@ -5,11 +5,11 @@
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, Callable
+from typing import Dict, Any, Optional
 import numpy as np
 from scipy import interpolate
 
-from src.core.data_types.base import BaseDataType, get_compression_strategy
+from src.core.data_types.base import BaseDataType
 
 
 @dataclass
@@ -107,6 +107,7 @@ class CurveData(BaseDataType):
 
         if method == "gzip":
             import gzip
+
             return gzip.compress(serialized)
 
         return serialized
@@ -118,6 +119,7 @@ class CurveData(BaseDataType):
 
         if method == "gzip":
             import gzip
+
             data = gzip.decompress(data)
 
         unpacked = pickle.loads(data)
@@ -126,12 +128,14 @@ class CurveData(BaseDataType):
     def get_metadata(self) -> Dict[str, Any]:
         """메타데이터 추출"""
         metadata = super().get_metadata()
-        metadata.update({
-            "num_points": len(self.x),
-            "is_3d": self.is_3d(),
-            "x_range": [float(np.min(self.x)), float(np.max(self.x))],
-            "y_range": [float(np.min(self.y)), float(np.max(self.y))],
-        })
+        metadata.update(
+            {
+                "num_points": len(self.x),
+                "is_3d": self.is_3d(),
+                "x_range": [float(np.min(self.x)), float(np.max(self.x))],
+                "y_range": [float(np.min(self.y)), float(np.max(self.y))],
+            }
+        )
         if self.is_3d():
             metadata["z_range"] = [float(np.min(self.z)), float(np.max(self.z))]
         return metadata

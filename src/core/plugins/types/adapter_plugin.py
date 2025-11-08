@@ -24,8 +24,7 @@ class AdapterPlugin(BasePlugin):
         """
         if metadata.plugin_type != PluginType.ADAPTER:
             raise ValueError(
-                f"AdapterPlugin requires PluginType.ADAPTER, "
-                f"got {metadata.plugin_type}"
+                f"AdapterPlugin requires PluginType.ADAPTER, " f"got {metadata.plugin_type}"
             )
 
         super().__init__(metadata)
@@ -35,9 +34,7 @@ class AdapterPlugin(BasePlugin):
         """초기화: 어댑터 클래스 설정"""
         # 서브클래스에서 self._adapter_class를 설정해야 함
         if self._adapter_class is None:
-            raise NotImplementedError(
-                "Subclass must set self._adapter_class in _on_initialize"
-            )
+            raise NotImplementedError("Subclass must set self._adapter_class in _on_initialize")
 
     def get_adapter_class(self) -> type[BaseModelAdapter]:
         """
@@ -51,8 +48,7 @@ class AdapterPlugin(BasePlugin):
         """
         if self._adapter_class is None:
             raise RuntimeError(
-                f"Plugin '{self.name}' not initialized. "
-                f"Call initialize() first."
+                f"Plugin '{self.name}' not initialized. " f"Call initialize() first."
             )
 
         return self._adapter_class

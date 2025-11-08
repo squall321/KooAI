@@ -335,12 +335,14 @@ class ResultAnalyzer:
 
             metrics = ResultAnalyzer.compare_timesteps(ts1, ts2, field_name)
 
-            convergence.append({
-                "timestep": ts2.step,
-                "time": ts2.time,
-                "rms_change": metrics["rms_diff"],
-                "relative_change": metrics["relative_change"],
-            })
+            convergence.append(
+                {
+                    "timestep": ts2.step,
+                    "time": ts2.time,
+                    "rms_change": metrics["rms_diff"],
+                    "relative_change": metrics["relative_change"],
+                }
+            )
 
         return convergence
 

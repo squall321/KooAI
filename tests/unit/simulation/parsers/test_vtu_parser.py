@@ -60,13 +60,13 @@ def sample_vtu_file():
   </UnstructuredGrid>
 </VTKFile>
 """
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.vtu', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".vtu", delete=False) as f:
         f.write(content)
         temp_path = Path(f.name)
-    
+
     yield temp_path
-    
+
     # Cleanup
     if temp_path.exists():
         temp_path.unlink()
@@ -89,32 +89,32 @@ def test_vtu_parser_parse(sample_vtu_file):
     """VTU 파일 파싱 테스트"""
     parser = VTUParser()
     result = parser.parse(sample_vtu_file, name="Test VTU")
-    
+
     # 기본 정보 확인
     assert result.name == "Test VTU"
     assert result.simulation_type == "VTU"
     assert result.num_timesteps == 1
-    
+
     # 메시 확인
     assert result.mesh.num_vertices == 8
     assert result.mesh.vertices.shape == (8, 3)
-    
+
     # 첫 번째 꼭짓점 확인
     assert np.allclose(result.mesh.vertices[0], [0, 0, 0])
     assert np.allclose(result.mesh.vertices[1], [1, 0, 0])
-    
+
     # 필드 확인
     timestep = result.timesteps[0]
     assert "pressure" in timestep.fields
     assert "velocity" in timestep.fields
-    
+
     # Pressure 필드 확인
     pressure = timestep.fields["pressure"]
     assert pressure.field_type == FieldType.SCALAR
     assert pressure.location == DataLocation.NODE
     assert len(pressure.data) == 8
     assert pressure.data[0] == 101325
-    
+
     # Velocity 필드 확인
     velocity = timestep.fields["velocity"]
     assert velocity.field_type == FieldType.VECTOR
@@ -129,11 +129,11 @@ def test_vtu_parser_invalid_file():
 <InvalidRoot>
 </InvalidRoot>
 """
-    
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.vtu', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".vtu", delete=False) as f:
         f.write(content)
         temp_path = Path(f.name)
-    
+
     try:
         parser = VTUParser()
         with pytest.raises(ValueError):
@@ -145,10 +145,10 @@ def test_vtu_parser_invalid_file():
 
 def test_vtu_parser_non_vtu_file():
     """VTU가 아닌 파일 테스트"""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         f.write("Not a VTU file")
         temp_path = Path(f.name)
-    
+
     try:
         parser = VTUParser()
         assert parser.can_parse(temp_path) is False

@@ -32,9 +32,7 @@ class PluginConfigManager:
         if config_dir:
             config_dir.mkdir(parents=True, exist_ok=True)
 
-    def load_config(
-        self, plugin_name: str, config_file: Optional[Path] = None
-    ) -> Dict[str, Any]:
+    def load_config(self, plugin_name: str, config_file: Optional[Path] = None) -> Dict[str, Any]:
         """
         플러그인 설정 로드
 
@@ -51,9 +49,7 @@ class PluginConfigManager:
         # 설정 파일 경로 결정
         if config_file is None:
             if self._config_dir is None:
-                raise PluginConfigError(
-                    f"No config directory specified for plugin '{plugin_name}'"
-                )
+                raise PluginConfigError(f"No config directory specified for plugin '{plugin_name}'")
             config_file = self._config_dir / f"{plugin_name}.json"
 
         # 파일이 없으면 빈 설정 반환
@@ -70,13 +66,9 @@ class PluginConfigManager:
             return config
 
         except json.JSONDecodeError as e:
-            raise PluginConfigError(
-                f"Invalid JSON in config file {config_file}: {e}"
-            ) from e
+            raise PluginConfigError(f"Invalid JSON in config file {config_file}: {e}") from e
         except Exception as e:
-            raise PluginConfigError(
-                f"Failed to load config for '{plugin_name}': {e}"
-            ) from e
+            raise PluginConfigError(f"Failed to load config for '{plugin_name}': {e}") from e
 
     def save_config(
         self,
@@ -98,9 +90,7 @@ class PluginConfigManager:
         # 설정 파일 경로 결정
         if config_file is None:
             if self._config_dir is None:
-                raise PluginConfigError(
-                    f"No config directory specified for plugin '{plugin_name}'"
-                )
+                raise PluginConfigError(f"No config directory specified for plugin '{plugin_name}'")
             config_file = self._config_dir / f"{plugin_name}.json"
 
         try:
@@ -115,9 +105,7 @@ class PluginConfigManager:
             self._configs[plugin_name] = config
 
         except Exception as e:
-            raise PluginConfigError(
-                f"Failed to save config for '{plugin_name}': {e}"
-            ) from e
+            raise PluginConfigError(f"Failed to save config for '{plugin_name}': {e}") from e
 
     def get_config(
         self, plugin_name: str, default: Optional[Dict[str, Any]] = None
@@ -148,9 +136,7 @@ class PluginConfigManager:
 
         self._configs[plugin_name] = config
 
-    def register_schema(
-        self, plugin_name: str, schema: Optional[Dict[str, Any]]
-    ) -> None:
+    def register_schema(self, plugin_name: str, schema: Optional[Dict[str, Any]]) -> None:
         """
         플러그인 설정 스키마 등록
 
@@ -169,9 +155,7 @@ class PluginConfigManager:
         """
         self._schemas[metadata.name] = metadata.config_schema
 
-    def validate_config(
-        self, plugin_name: str, config: Dict[str, Any]
-    ) -> bool:
+    def validate_config(self, plugin_name: str, config: Dict[str, Any]) -> bool:
         """
         설정 검증
 
@@ -191,9 +175,7 @@ class PluginConfigManager:
         except PluginConfigError:
             return False
 
-    def _validate_config(
-        self, plugin_name: str, config: Dict[str, Any]
-    ) -> None:
+    def _validate_config(self, plugin_name: str, config: Dict[str, Any]) -> None:
         """
         설정 검증 (내부 메서드)
 
@@ -212,17 +194,11 @@ class PluginConfigManager:
             model_class(**config)
 
         except ValidationError as e:
-            raise PluginConfigError(
-                f"Config validation failed for '{plugin_name}': {e}"
-            ) from e
+            raise PluginConfigError(f"Config validation failed for '{plugin_name}': {e}") from e
         except Exception as e:
-            raise PluginConfigError(
-                f"Config validation error for '{plugin_name}': {e}"
-            ) from e
+            raise PluginConfigError(f"Config validation error for '{plugin_name}': {e}") from e
 
-    def _create_pydantic_model(
-        self, schema: Dict[str, Any]
-    ) -> type[BaseModel]:
+    def _create_pydantic_model(self, schema: Dict[str, Any]) -> type[BaseModel]:
         """
         JSON Schema에서 Pydantic 모델 생성
 

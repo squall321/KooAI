@@ -13,14 +13,10 @@ from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     async_sessionmaker,
 )
-from sqlalchemy.pool import NullPool, StaticPool
+from sqlalchemy.pool import StaticPool
 
 from src.infrastructure.database.models import (
     Base,
-    SimulationModel,
-    DatasetModel,
-    AnalysisModel,
-    AIModelModel,
 )
 
 

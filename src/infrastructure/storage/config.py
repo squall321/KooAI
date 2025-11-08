@@ -26,9 +26,7 @@ class StorageConfig(BaseSettings):
     """
 
     # Storage type
-    storage_type: StorageType = Field(
-        default=StorageType.LOCAL, description="Storage backend type"
-    )
+    storage_type: StorageType = Field(default=StorageType.LOCAL, description="Storage backend type")
 
     # Local filesystem
     local_base_path: str = Field(default="./data/storage", description="Local storage path")
@@ -40,15 +38,11 @@ class StorageConfig(BaseSettings):
     s3_region: str = Field(default="us-east-1", description="AWS region")
     s3_bucket_name: str = Field(default="kooai-storage", description="S3 bucket name")
     s3_access_key_id: Optional[str] = Field(default=None, description="AWS access key ID")
-    s3_secret_access_key: Optional[str] = Field(
-        default=None, description="AWS secret access key"
-    )
+    s3_secret_access_key: Optional[str] = Field(default=None, description="AWS secret access key")
     s3_use_ssl: bool = Field(default=True, description="Use SSL for S3")
 
     # Google Cloud Storage
-    gcs_bucket_name: str = Field(
-        default="kooai-storage", description="GCS bucket name"
-    )
+    gcs_bucket_name: str = Field(default="kooai-storage", description="GCS bucket name")
     gcs_project_id: Optional[str] = Field(default=None, description="GCP project ID")
     gcs_credentials_path: Optional[str] = Field(
         default=None, description="Path to GCS credentials JSON"
@@ -58,12 +52,8 @@ class StorageConfig(BaseSettings):
     azure_account_name: Optional[str] = Field(
         default=None, description="Azure storage account name"
     )
-    azure_account_key: Optional[str] = Field(
-        default=None, description="Azure storage account key"
-    )
-    azure_container_name: str = Field(
-        default="kooai-storage", description="Azure container name"
-    )
+    azure_account_key: Optional[str] = Field(default=None, description="Azure storage account key")
+    azure_container_name: str = Field(default="kooai-storage", description="Azure container name")
     azure_connection_string: Optional[str] = Field(
         default=None, description="Azure connection string"
     )

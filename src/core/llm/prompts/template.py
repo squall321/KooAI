@@ -5,14 +5,12 @@ Jinja2 기반 프롬프트 템플릿 관리.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 try:
     from jinja2 import Environment, FileSystemLoader, Template, select_autoescape
 except ImportError:
-    raise ImportError(
-        "Jinja2 is required for prompt templates. Install with: pip install jinja2"
-    )
+    raise ImportError("Jinja2 is required for prompt templates. Install with: pip install jinja2")
 
 
 class PromptTemplate:
@@ -127,9 +125,7 @@ class PromptTemplateManager:
         Returns:
             PromptTemplate: 등록된 템플릿
         """
-        prompt_template = PromptTemplate(
-            template=template, name=name, description=description
-        )
+        prompt_template = PromptTemplate(template=template, name=name, description=description)
         self._templates[name] = prompt_template
         return prompt_template
 

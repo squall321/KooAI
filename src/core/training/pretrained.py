@@ -4,7 +4,6 @@
 사전 학습된 모델을 다운로드, 캐시, 로드하는 시스템.
 """
 
-import hashlib
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -73,9 +72,7 @@ class PretrainedModelInfo:
             url=data.get("url"),
             local_path=Path(data["local_path"]) if data.get("local_path") else None,
             metadata=data.get("metadata", {}),
-            cached_at=datetime.fromisoformat(data["cached_at"])
-            if data.get("cached_at")
-            else None,
+            cached_at=datetime.fromisoformat(data["cached_at"]) if data.get("cached_at") else None,
             size_bytes=data.get("size_bytes", 0),
         )
 
@@ -187,9 +184,7 @@ class PretrainedModelManager:
 
         return models
 
-    def download_model(
-        self, name: str, force: bool = False
-    ) -> Path:
+    def download_model(self, name: str, force: bool = False) -> Path:
         """
         모델 다운로드 (캐시에서 사용 가능하면 캐시 반환)
 
@@ -289,9 +284,7 @@ class PretrainedModelManager:
         """캐시 전체 크기 (바이트)"""
         return sum(info.size_bytes for info in self._models.values())
 
-    def _download_from_huggingface(
-        self, info: PretrainedModelInfo
-    ) -> Path:
+    def _download_from_huggingface(self, info: PretrainedModelInfo) -> Path:
         """HuggingFace에서 다운로드"""
         try:
             from transformers import AutoModel, AutoTokenizer
@@ -307,8 +300,7 @@ class PretrainedModelManager:
 
         except ImportError:
             raise RuntimeError(
-                "transformers library not installed. "
-                "Install with: pip install transformers"
+                "transformers library not installed. " "Install with: pip install transformers"
             )
         except Exception as e:
             raise RuntimeError(f"Failed to download from HuggingFace: {e}")
@@ -367,9 +359,7 @@ class PretrainedModelManager:
 
     def _save_metadata(self) -> None:
         """메타데이터 저장"""
-        data = {
-            "models": {name: info.to_dict() for name, info in self._models.items()}
-        }
+        data = {"models": {name: info.to_dict() for name, info in self._models.items()}}
 
         with open(self._metadata_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)

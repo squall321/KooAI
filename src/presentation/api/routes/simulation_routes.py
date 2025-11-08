@@ -72,9 +72,7 @@ async def upload_simulation(
     # 임시 파일로 저장
     import tempfile
 
-    with tempfile.NamedTemporaryFile(
-        delete=False, suffix=Path(file.filename).suffix
-    ) as tmp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix) as tmp_file:
         content = await file.read()
         tmp_file.write(content)
         tmp_file_path = Path(tmp_file.name)
@@ -118,9 +116,7 @@ async def get_simulation(
     """시뮬레이션 정보 조회"""
     from src.application.use_cases import GetSimulationRequest
 
-    result = service.get_use_case.execute(
-        GetSimulationRequest(simulation_id=simulation_id)
-    )
+    result = service.get_use_case.execute(GetSimulationRequest(simulation_id=simulation_id))
 
     return SimulationInfoResponse(
         simulation_id=result.simulation_id,
@@ -157,9 +153,7 @@ async def delete_simulation(
 
         raise NotFoundError(f"Simulation not found: {simulation_id}")
 
-    return SuccessResponse(
-        success=True, message=f"Simulation {simulation_id} deleted successfully"
-    )
+    return SuccessResponse(success=True, message=f"Simulation {simulation_id} deleted successfully")
 
 
 # ============================================================================
@@ -297,9 +291,7 @@ async def compute_convergence(
 ):
     """수렴성 분석"""
     result = service.compute_convergence_use_case.execute(
-        UseCaseComputeConvergenceRequest(
-            simulation_id=simulation_id, field_name=field_name
-        )
+        UseCaseComputeConvergenceRequest(simulation_id=simulation_id, field_name=field_name)
     )
 
     return ComputeConvergenceResponse(

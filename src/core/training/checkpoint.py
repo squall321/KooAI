@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    import torch
+    pass
 
 
 @dataclass
@@ -149,9 +149,9 @@ class CheckpointManager:
             step=step,
             metrics=metrics,
             best_metric=self._best_metric_name,
-            best_metric_value=metrics.get(self._best_metric_name)
-            if self._best_metric_name
-            else None,
+            best_metric_value=(
+                metrics.get(self._best_metric_name) if self._best_metric_name else None
+            ),
             is_best=is_best,
             model_config=model_config or {},
         )
@@ -262,9 +262,7 @@ class CheckpointManager:
 
         return self.load_checkpoint("best", model, optimizer, scheduler, device)
 
-    def get_checkpoint_metadata(
-        self, checkpoint_name: str
-    ) -> Optional[CheckpointMetadata]:
+    def get_checkpoint_metadata(self, checkpoint_name: str) -> Optional[CheckpointMetadata]:
         """체크포인트 메타데이터 조회"""
         for metadata in self._checkpoints:
             if metadata.checkpoint_name == checkpoint_name:
@@ -318,16 +316,12 @@ class CheckpointManager:
             return
 
         # 최고 체크포인트 제외
-        non_best_checkpoints = [
-            cp for cp in self._checkpoints if not cp.is_best
-        ]
+        non_best_checkpoints = [cp for cp in self._checkpoints if not cp.is_best]
 
         # 개수 초과 시 오래된 것 삭제
         if len(non_best_checkpoints) > self._max_checkpoints:
             # 타임스탬프 기준 정렬
-            sorted_checkpoints = sorted(
-                non_best_checkpoints, key=lambda x: x.timestamp
-            )
+            sorted_checkpoints = sorted(non_best_checkpoints, key=lambda x: x.timestamp)
 
             # 삭제할 체크포인트
             to_delete = sorted_checkpoints[: -self._max_checkpoints]
@@ -339,9 +333,7 @@ class CheckpointManager:
         """메타데이터 저장"""
         data = {
             "checkpoints": [cp.to_dict() for cp in self._checkpoints],
-            "best_checkpoint": self._best_checkpoint.to_dict()
-            if self._best_checkpoint
-            else None,
+            "best_checkpoint": self._best_checkpoint.to_dict() if self._best_checkpoint else None,
         }
 
         with open(self._metadata_file, "w", encoding="utf-8") as f:
@@ -357,14 +349,11 @@ class CheckpointManager:
                 data = json.load(f)
 
             self._checkpoints = [
-                CheckpointMetadata.from_dict(cp_data)
-                for cp_data in data.get("checkpoints", [])
+                CheckpointMetadata.from_dict(cp_data) for cp_data in data.get("checkpoints", [])
             ]
 
             if data.get("best_checkpoint"):
-                self._best_checkpoint = CheckpointMetadata.from_dict(
-                    data["best_checkpoint"]
-                )
+                self._best_checkpoint = CheckpointMetadata.from_dict(data["best_checkpoint"])
 
         except Exception as e:
             print(f"Failed to load checkpoint metadata: {e}")

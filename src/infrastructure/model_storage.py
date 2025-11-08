@@ -8,7 +8,7 @@ import hashlib
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional, Dict, Any, BinaryIO
+from typing import Optional, Dict, Any
 from enum import Enum
 from dataclasses import dataclass
 import json
@@ -303,9 +303,7 @@ class ModelStorage:
             # Git 저장소 초기화 (필요한 경우)
             git_dir = self.base_path / ".git"
             if not git_dir.exists():
-                subprocess.run(
-                    ["git", "init"], check=True, capture_output=True, cwd=self.base_path
-                )
+                subprocess.run(["git", "init"], check=True, capture_output=True, cwd=self.base_path)
 
             # Git LFS 설치
             subprocess.run(
@@ -366,9 +364,7 @@ class ModelStorageFactory:
         Returns:
             ModelStorage: 모델 저장소
         """
-        config = StorageConfig(
-            backend=StorageBackend.LOCAL, base_path=base_path, **kwargs
-        )
+        config = StorageConfig(backend=StorageBackend.LOCAL, base_path=base_path, **kwargs)
         return ModelStorage(config)
 
     @staticmethod

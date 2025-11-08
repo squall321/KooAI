@@ -9,10 +9,8 @@ from uuid import uuid4
 from typing import Optional
 
 from sqlalchemy import (
-    Column,
     String,
     DateTime,
-    Integer,
     BigInteger,
     ForeignKey,
     Enum as SQLEnum,
@@ -28,6 +26,7 @@ from src.core.domain.entities import SimulationStatus, AnalysisStatus
 
 class Base(DeclarativeBase):
     """SQLAlchemy Base 클래스"""
+
     pass
 
 
@@ -41,9 +40,7 @@ class SimulationModel(Base):
     __tablename__ = "simulations"
 
     # Primary Key
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
 
     # 기본 정보
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
@@ -77,9 +74,7 @@ class SimulationModel(Base):
     )
 
     # 외래 키
-    created_by: Mapped[Optional[UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
+    created_by: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
 
     # 관계
     datasets: Mapped[list["DatasetModel"]] = relationship(
@@ -103,9 +98,7 @@ class DatasetModel(Base):
     __tablename__ = "datasets"
 
     # Primary Key
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
 
     # 외래 키
     simulation_id: Mapped[UUID] = mapped_column(
@@ -148,9 +141,7 @@ class AnalysisModel(Base):
     __tablename__ = "analyses"
 
     # Primary Key
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
 
     # 외래 키
     simulation_id: Mapped[UUID] = mapped_column(
@@ -177,17 +168,11 @@ class AnalysisModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-    started_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    completed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # 외래 키
-    created_by: Mapped[Optional[UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
+    created_by: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
 
     # 관계
     simulation: Mapped["SimulationModel"] = relationship(
@@ -209,9 +194,7 @@ class AIModelModel(Base):
     __tablename__ = "ai_models"
 
     # Primary Key
-    id: Mapped[UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
 
     # 모델 정보
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
@@ -221,9 +204,7 @@ class AIModelModel(Base):
 
     # JSON 데이터
     architecture: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
-    performance_metrics: Mapped[dict] = mapped_column(
-        JSON, nullable=False, default=dict
-    )
+    performance_metrics: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     training_config: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
 
     # 저장 경로
@@ -235,9 +216,7 @@ class AIModelModel(Base):
     )
 
     # 외래 키
-    trained_by: Mapped[Optional[UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
+    trained_by: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
 
     # 유니크 제약
     __table_args__ = (

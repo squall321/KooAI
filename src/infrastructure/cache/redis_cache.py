@@ -204,9 +204,7 @@ class RedisCache:
             logger.warning("cache_exists_failed", key=key, error=str(e))
             return False
 
-    def get_many(
-        self, keys: List[str], prefix: Optional[str] = None
-    ) -> Dict[str, Any]:
+    def get_many(self, keys: List[str], prefix: Optional[str] = None) -> Dict[str, Any]:
         """
         Get multiple values from cache
 
@@ -230,9 +228,7 @@ class RedisCache:
                     try:
                         result[key] = self._deserialize(data)
                     except Exception as e:
-                        logger.warning(
-                            "cache_deserialize_failed", key=key, error=str(e)
-                        )
+                        logger.warning("cache_deserialize_failed", key=key, error=str(e))
 
             return result
 

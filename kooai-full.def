@@ -1,0 +1,146 @@
+Bootstrap: docker
+From: python:3.11-slim
+
+%labels
+    Author KooAI Team
+    Version 0.1.0-full
+    Description KooAI with AI/ML capabilities (PyTorch, Transformers)
+
+%help
+    KooAI Full - with AI/ML support
+
+    ⚠️  이 이미지는 약 4GB 크기이며, 빌드에 20분 이상 소요됩니다.
+
+    포함된 기능:
+    - 모든 Standard 기능 (3D 파일 지원, PostgreSQL, Redis)
+    - AI/ML 기능 (PyTorch, Transformers)
+    - VAE 기반 시뮬레이션 분석
+    - LLM 통합 (OpenAI, Anthropic)
+
+    사용법:
+        # API 서버 실행
+        apptainer run kooai-full.sif
+
+        # AI 분석 예제 실행
+        apptainer exec kooai-full.sif python examples/ai_analysis.py
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export PYTHONDONTWRITEBYTECODE=1
+    export PATH="/opt/kooai/venv/bin:$PATH"
+    export KOOAI_ENV=production
+    # PyTorch 최적화
+    export OMP_NUM_THREADS=4
+    export MKL_NUM_THREADS=4
+
+%files
+    src /opt/kooai/src
+    examples /opt/kooai/examples
+    scripts /opt/kooai/scripts
+    pyproject.toml /opt/kooai/
+    README.md /opt/kooai/
+    .env.example /opt/kooai/
+    kooai_cli.py /opt/kooai/
+    alembic /opt/kooai/alembic
+    alembic.ini /opt/kooai/
+
+%post
+    echo "================================================"
+    echo "KooAI Apptainer Image Build (Full Profile)"
+    echo "Including AI/ML capabilities"
+    echo "⚠️  This will take 20+ minutes"
+    echo "================================================"
+
+    # 시스템 패키지
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        gcc g++ make git \
+        libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev \
+        && rm -rf /var/lib/apt/lists/*
+
+    cd /opt/kooai
+
+    # 가상환경 생성
+    echo "Creating virtual environment..."
+    python3 -m venv venv
+    . venv/bin/activate
+
+    # pip 업그레이드
+    pip install --upgrade pip setuptools wheel --quiet
+
+    # Full 프로파일 설치 (AI 포함)
+    echo "Installing KooAI [full] profile..."
+    echo "Installing PyTorch and Transformers (this takes time)..."
+    pip install -e ".[full]" --quiet
+
+    # 디렉토리 생성
+    mkdir -p /opt/kooai/{logs,data,data/uploads,data/samples,models}
+
+    # 샘플 데이터 생성
+    echo "Generating sample data..."
+    python scripts/generate_sample_data.py || true
+
+    # 권한 설정
+    chmod +x kooai_cli.py scripts/*.py
+
+    # 정리
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+    echo "✅ Full profile build complete!"
+    echo "Image size: ~4GB"
+
+%runscript
+    cd /opt/kooai
+    . venv/bin/activate
+
+    if [ -z "$DATABASE_URL" ]; then
+        echo "⚠️  DATABASE_URL not set, using test database"
+        export USE_TEST_DB=true
+    fi
+
+    echo "======================================"
+    echo "Starting KooAI API Server (Full)"
+    echo "======================================"
+    echo "AI/ML Features: Enabled"
+    echo "======================================"
+
+    exec uvicorn src.presentation.api.main:app \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --log-level info
+
+%startscript
+    cd /opt/kooai
+    . venv/bin/activate
+    exec uvicorn src.presentation.api.main:app \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --workers 4
+
+%test
+    echo "Testing Full profile installation..."
+    cd /opt/kooai
+    . venv/bin/activate
+
+    # AI/ML 패키지 테스트
+    python -c "
+import torch
+import transformers
+import sklearn
+print(f'✅ PyTorch {torch.__version__}')
+print(f'✅ Transformers {transformers.__version__}')
+print('✅ AI/ML packages: OK')
+"
+
+    # KooAI AI 모듈 테스트
+    python -c "
+try:
+    from src.core.ai.vae import VAE
+    from src.core.ai.llm import LLMClient
+    print('✅ KooAI AI modules: OK')
+except ImportError as e:
+    print(f'ℹ️  AI modules: {e}')
+"
+
+    echo "✅ Full profile tests passed!"

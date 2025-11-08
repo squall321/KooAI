@@ -201,9 +201,7 @@ class ComputeConvergenceResponse(BaseModel):
     """수렴성 분석 응답"""
 
     field_name: str = Field(..., description="필드 이름")
-    convergence_data: List[ConvergenceDataPoint] = Field(
-        ..., description="수렴성 데이터"
-    )
+    convergence_data: List[ConvergenceDataPoint] = Field(..., description="수렴성 데이터")
 
     class Config:
         json_schema_extra = {
@@ -349,4 +347,6 @@ class SuccessResponse(BaseModel):
     message: str = Field(..., description="메시지")
 
     class Config:
-        json_schema_extra = {"example": {"success": True, "message": "Operation completed successfully"}}
+        json_schema_extra = {
+            "example": {"success": True, "message": "Operation completed successfully"}
+        }

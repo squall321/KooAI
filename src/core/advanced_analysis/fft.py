@@ -41,9 +41,7 @@ class FFTAnalyzer:
         self.sampling_rate = sampling_rate
         self.window = window
 
-    def analyze(
-        self, data: np.ndarray, real_valued: bool = True
-    ) -> FFTResult:
+    def analyze(self, data: np.ndarray, real_valued: bool = True) -> FFTResult:
         """
         Perform FFT analysis
 

@@ -255,9 +255,7 @@ class BaseLLMClient(ABC):
 
         서브클래스에서 오버라이드 가능.
         """
-        raise NotImplementedError(
-            f"{self.__class__.__name__} does not support embeddings"
-        )
+        raise NotImplementedError(f"{self.__class__.__name__} does not support embeddings")
 
     async def stream_generate(
         self,
@@ -270,9 +268,7 @@ class BaseLLMClient(ABC):
 
         서브클래스에서 오버라이드 가능.
         """
-        raise NotImplementedError(
-            f"{self.__class__.__name__} does not support streaming"
-        )
+        raise NotImplementedError(f"{self.__class__.__name__} does not support streaming")
 
     async def close(self) -> None:
         """클라이언트 종료"""
@@ -313,9 +309,7 @@ class LLMClientFactory:
     _clients: Dict[LLMProvider, type[BaseLLMClient]] = {}
 
     @classmethod
-    def register(
-        cls, provider: LLMProvider, client_class: type[BaseLLMClient]
-    ) -> None:
+    def register(cls, provider: LLMProvider, client_class: type[BaseLLMClient]) -> None:
         """
         클라이언트 등록
 
@@ -326,9 +320,7 @@ class LLMClientFactory:
         cls._clients[provider] = client_class
 
     @classmethod
-    async def create(
-        cls, provider: LLMProvider, config: LLMConfig
-    ) -> BaseLLMClient:
+    async def create(cls, provider: LLMProvider, config: LLMConfig) -> BaseLLMClient:
         """
         클라이언트 생성 및 초기화
 
@@ -344,8 +336,7 @@ class LLMClientFactory:
         """
         if provider not in cls._clients:
             raise ValueError(
-                f"Unsupported provider: {provider}. "
-                f"Available: {list(cls._clients.keys())}"
+                f"Unsupported provider: {provider}. " f"Available: {list(cls._clients.keys())}"
             )
 
         client = cls._clients[provider](config)

@@ -216,9 +216,7 @@ class TestBoundingBox:
         """교차 여부 테스트"""
         bbox1 = BoundingBox(Coordinate3D(0.0, 0.0, 0.0), Coordinate3D(10.0, 10.0, 10.0))
         bbox2 = BoundingBox(Coordinate3D(5.0, 5.0, 5.0), Coordinate3D(15.0, 15.0, 15.0))
-        bbox3 = BoundingBox(
-            Coordinate3D(20.0, 20.0, 20.0), Coordinate3D(30.0, 30.0, 30.0)
-        )
+        bbox3 = BoundingBox(Coordinate3D(20.0, 20.0, 20.0), Coordinate3D(30.0, 30.0, 30.0))
 
         assert bbox1.intersects(bbox2)
         assert not bbox1.intersects(bbox3)
@@ -273,15 +271,9 @@ class TestTimeRange:
 
     def test_overlaps(self):
         """시간 범위 겹침 여부 테스트"""
-        range1 = TimeRange(
-            datetime(2024, 1, 1, 0, 0, 0), datetime(2024, 1, 1, 1, 0, 0)
-        )
-        range2 = TimeRange(
-            datetime(2024, 1, 1, 0, 30, 0), datetime(2024, 1, 1, 1, 30, 0)
-        )
-        range3 = TimeRange(
-            datetime(2024, 1, 1, 2, 0, 0), datetime(2024, 1, 1, 3, 0, 0)
-        )
+        range1 = TimeRange(datetime(2024, 1, 1, 0, 0, 0), datetime(2024, 1, 1, 1, 0, 0))
+        range2 = TimeRange(datetime(2024, 1, 1, 0, 30, 0), datetime(2024, 1, 1, 1, 30, 0))
+        range3 = TimeRange(datetime(2024, 1, 1, 2, 0, 0), datetime(2024, 1, 1, 3, 0, 0))
 
         assert range1.overlaps(range2)
         assert not range1.overlaps(range3)
@@ -345,35 +337,27 @@ class TestDataQuality:
 
     def test_create_data_quality(self):
         """데이터 품질 생성 테스트"""
-        quality = DataQuality(
-            completeness=0.95, accuracy=0.90, consistency=0.85, validity=0.92
-        )
+        quality = DataQuality(completeness=0.95, accuracy=0.90, consistency=0.85, validity=0.92)
 
         assert quality.completeness == 0.95
         assert quality.accuracy == 0.90
 
     def test_overall_score(self):
         """전체 품질 점수 테스트"""
-        quality = DataQuality(
-            completeness=0.8, accuracy=0.8, consistency=0.8, validity=0.8
-        )
+        quality = DataQuality(completeness=0.8, accuracy=0.8, consistency=0.8, validity=0.8)
 
         assert quality.overall_score() == 0.8
 
     def test_is_acceptable(self):
         """허용 가능한 품질 확인 테스트"""
-        quality = DataQuality(
-            completeness=0.75, accuracy=0.75, consistency=0.75, validity=0.75
-        )
+        quality = DataQuality(completeness=0.75, accuracy=0.75, consistency=0.75, validity=0.75)
 
         assert quality.is_acceptable(threshold=0.7)
         assert not quality.is_acceptable(threshold=0.8)
 
     def test_get_weakest_dimension(self):
         """가장 약한 차원 확인 테스트"""
-        quality = DataQuality(
-            completeness=0.95, accuracy=0.90, consistency=0.70, validity=0.92
-        )
+        quality = DataQuality(completeness=0.95, accuracy=0.90, consistency=0.70, validity=0.92)
 
         assert quality.get_weakest_dimension() == "consistency"
 

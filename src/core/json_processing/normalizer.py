@@ -5,11 +5,10 @@
 """
 
 import math
-from typing import Dict, Any, List, Tuple, Union, Optional
-from enum import Enum
+from typing import Dict, Tuple
 import numpy as np
 
-from src.core.json_processing.schema import CoordinateSystem, UnitSystem
+from src.core.json_processing.schema import CoordinateSystem
 
 
 # ============================================================================
@@ -197,9 +196,7 @@ class UnitConverter:
         return joules / cls.ENERGY_UNITS[to_unit]
 
     @classmethod
-    def convert(
-        cls, value: float, from_unit: str, to_unit: str, quantity_type: str
-    ) -> float:
+    def convert(cls, value: float, from_unit: str, to_unit: str, quantity_type: str) -> float:
         """
         일반 단위 변환
 
@@ -245,9 +242,7 @@ class CoordinateTransformer:
     """
 
     @staticmethod
-    def cartesian_to_cylindrical(
-        x: float, y: float, z: float
-    ) -> Tuple[float, float, float]:
+    def cartesian_to_cylindrical(x: float, y: float, z: float) -> Tuple[float, float, float]:
         """
         Cartesian → Cylindrical 좌표 변환
 
@@ -269,9 +264,7 @@ class CoordinateTransformer:
         return r, theta, z
 
     @staticmethod
-    def cylindrical_to_cartesian(
-        r: float, theta: float, z: float
-    ) -> Tuple[float, float, float]:
+    def cylindrical_to_cartesian(r: float, theta: float, z: float) -> Tuple[float, float, float]:
         """
         Cylindrical → Cartesian 좌표 변환
 
@@ -288,9 +281,7 @@ class CoordinateTransformer:
         return x, y, z
 
     @staticmethod
-    def cartesian_to_spherical(
-        x: float, y: float, z: float
-    ) -> Tuple[float, float, float]:
+    def cartesian_to_spherical(x: float, y: float, z: float) -> Tuple[float, float, float]:
         """
         Cartesian → Spherical 좌표 변환
 
@@ -309,9 +300,7 @@ class CoordinateTransformer:
         return r, theta, phi
 
     @staticmethod
-    def spherical_to_cartesian(
-        r: float, theta: float, phi: float
-    ) -> Tuple[float, float, float]:
+    def spherical_to_cartesian(r: float, theta: float, phi: float) -> Tuple[float, float, float]:
         """
         Spherical → Cartesian 좌표 변환
 
@@ -347,9 +336,7 @@ class CoordinateTransformer:
         return CoordinateTransformer.cartesian_to_spherical(x, y, z_cart)
 
     @staticmethod
-    def spherical_to_cylindrical(
-        r: float, theta: float, phi: float
-    ) -> Tuple[float, float, float]:
+    def spherical_to_cylindrical(r: float, theta: float, phi: float) -> Tuple[float, float, float]:
         """
         Spherical → Cylindrical 좌표 변환
 
@@ -394,25 +381,35 @@ class CoordinateTransformer:
 
         # 변환 함수 매핑
         transforms = {
-            (CoordinateSystem.CARTESIAN, CoordinateSystem.CYLINDRICAL):
-                CoordinateTransformer.cartesian_to_cylindrical,
-            (CoordinateSystem.CYLINDRICAL, CoordinateSystem.CARTESIAN):
-                CoordinateTransformer.cylindrical_to_cartesian,
-            (CoordinateSystem.CARTESIAN, CoordinateSystem.SPHERICAL):
-                CoordinateTransformer.cartesian_to_spherical,
-            (CoordinateSystem.SPHERICAL, CoordinateSystem.CARTESIAN):
-                CoordinateTransformer.spherical_to_cartesian,
-            (CoordinateSystem.CYLINDRICAL, CoordinateSystem.SPHERICAL):
-                CoordinateTransformer.cylindrical_to_spherical,
-            (CoordinateSystem.SPHERICAL, CoordinateSystem.CYLINDRICAL):
-                CoordinateTransformer.spherical_to_cylindrical,
+            (
+                CoordinateSystem.CARTESIAN,
+                CoordinateSystem.CYLINDRICAL,
+            ): CoordinateTransformer.cartesian_to_cylindrical,
+            (
+                CoordinateSystem.CYLINDRICAL,
+                CoordinateSystem.CARTESIAN,
+            ): CoordinateTransformer.cylindrical_to_cartesian,
+            (
+                CoordinateSystem.CARTESIAN,
+                CoordinateSystem.SPHERICAL,
+            ): CoordinateTransformer.cartesian_to_spherical,
+            (
+                CoordinateSystem.SPHERICAL,
+                CoordinateSystem.CARTESIAN,
+            ): CoordinateTransformer.spherical_to_cartesian,
+            (
+                CoordinateSystem.CYLINDRICAL,
+                CoordinateSystem.SPHERICAL,
+            ): CoordinateTransformer.cylindrical_to_spherical,
+            (
+                CoordinateSystem.SPHERICAL,
+                CoordinateSystem.CYLINDRICAL,
+            ): CoordinateTransformer.spherical_to_cylindrical,
         }
 
         transform_func = transforms.get((from_system, to_system))
         if not transform_func:
-            raise ValueError(
-                f"Transformation from {from_system} to {to_system} not supported"
-            )
+            raise ValueError(f"Transformation from {from_system} to {to_system} not supported")
 
         for i, point in enumerate(points):
             result[i] = transform_func(point[0], point[1], point[2])
@@ -524,9 +521,7 @@ class DataNormalizer:
         return data * (data_max - data_min) + data_min
 
     @staticmethod
-    def destandardize(
-        standardized_data: np.ndarray, metadata: Dict[str, float]
-    ) -> np.ndarray:
+    def destandardize(standardized_data: np.ndarray, metadata: Dict[str, float]) -> np.ndarray:
         """
         표준화 역변환
 

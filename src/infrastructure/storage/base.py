@@ -178,9 +178,7 @@ class StorageBackend(ABC):
         pass
 
     @abstractmethod
-    async def list_files(
-        self, prefix: str = "", max_results: int = 1000
-    ) -> list[FileMetadata]:
+    async def list_files(self, prefix: str = "", max_results: int = 1000) -> list[FileMetadata]:
         """
         파일 목록 조회
 

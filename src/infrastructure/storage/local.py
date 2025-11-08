@@ -125,9 +125,7 @@ class LocalStorageBackend(StorageBackend):
         destination.parent.mkdir(parents=True, exist_ok=True)
         await aiofiles.os.link(str(full_path), str(destination))
 
-    async def download_stream(
-        self, key: str, chunk_size: int = 8192
-    ) -> AsyncIterator[bytes]:
+    async def download_stream(self, key: str, chunk_size: int = 8192) -> AsyncIterator[bytes]:
         """파일을 스트림으로 다운로드"""
         full_path = self._get_full_path(key)
         if not full_path.exists():
@@ -193,9 +191,7 @@ class LocalStorageBackend(StorageBackend):
             custom_metadata=custom_metadata,
         )
 
-    async def list_files(
-        self, prefix: str = "", max_results: int = 1000
-    ) -> list[FileMetadata]:
+    async def list_files(self, prefix: str = "", max_results: int = 1000) -> list[FileMetadata]:
         """파일 목록 조회"""
         search_path = self.base_path / prefix if prefix else self.base_path
 

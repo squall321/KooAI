@@ -1,0 +1,300 @@
+# Alertmanager Configuration for KooAI
+# 
+# This configuration defines how alerts are routed and delivered
+# Supports: Email, Slack, PagerDuty, Webhook
+#
+# Documentation: https://prometheus.io/docs/alerting/latest/configuration/
+
+global:
+  # Global resolve timeout
+  resolve_timeout: 5m
+  
+  # SMTP Configuration (Email notifications)
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@kooai.example.com'
+  smtp_auth_username: 'alerts@kooai.example.com'
+  smtp_auth_password: '${SMTP_PASSWORD}'  # Set via environment variable
+  smtp_require_tls: true
+  
+  # Slack Configuration (Global defaults)
+  slack_api_url: '${SLACK_WEBHOOK_URL}'  # Set via environment variable
+  
+  # PagerDuty Configuration
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# Email templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree for alert routing
+route:
+  # Default receiver for all alerts
+  receiver: 'team-email'
+  
+  # Group alerts by these labels
+  group_by: ['alertname', 'cluster', 'service']
+  
+  # How long to wait before sending a notification for a group
+  group_wait: 30s
+  
+  # How long to wait before sending notification about new alerts
+  group_interval: 5m
+  
+  # How long to wait before sending a notification again
+  repeat_interval: 4h
+  
+  # Child routes (more specific routing)
+  routes:
+    # Critical alerts - page immediately
+    - match:
+        severity: critical
+      receiver: 'pagerduty-critical'
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 1h
+      continue: true  # Also send to other receivers
+    
+    # Critical alerts - also notify Slack
+    - match:
+        severity: critical
+      receiver: 'slack-critical'
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 1h
+    
+    # Warning alerts - Slack only
+    - match:
+        severity: warning
+      receiver: 'slack-warnings'
+      group_wait: 1m
+      group_interval: 10m
+      repeat_interval: 12h
+    
+    # Database alerts
+    - match:
+        component: database
+      receiver: 'dba-team'
+      group_by: ['alertname', 'instance']
+      repeat_interval: 2h
+    
+    # Security alerts
+    - match:
+        category: security
+      receiver: 'security-team'
+      group_wait: 10s
+      repeat_interval: 30m
+    
+    # Performance alerts
+    - match:
+        category: performance
+      receiver: 'devops-team'
+      repeat_interval: 6h
+    
+    # Development environment (less noisy)
+    - match:
+        environment: development
+      receiver: 'dev-slack'
+      group_wait: 5m
+      repeat_interval: 24h
+
+# Inhibition rules (suppress certain alerts)
+inhibit_rules:
+  # Inhibit warning if critical is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+  
+  # Inhibit all alerts if application is down
+  - source_match:
+      alertname: 'ApplicationDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['instance']
+  
+  # Inhibit connection errors if database is down
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match:
+      alertname: 'DatabaseConnectionError'
+    equal: ['instance']
+
+# Receivers configuration
+receivers:
+  # Default team email
+  - name: 'team-email'
+    email_configs:
+      - to: 'team@kooai.example.com'
+        headers:
+          Subject: '[KooAI Alert] {{ .GroupLabels.alertname }}'
+        html: |
+          <!DOCTYPE html>
+          <html>
+          <body>
+            <h2>Alert: {{ .GroupLabels.alertname }}</h2>
+            <p><strong>Severity:</strong> {{ .CommonLabels.severity }}</p>
+            <p><strong>Summary:</strong> {{ .CommonAnnotations.summary }}</p>
+            <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+            <h3>Firing Alerts ({{ .Alerts.Firing | len }}):</h3>
+            <ul>
+            {{ range .Alerts.Firing }}
+              <li>{{ .Labels.instance }} - {{ .Annotations.summary }}</li>
+            {{ end }}
+            </ul>
+            <h3>Resolved Alerts ({{ .Alerts.Resolved | len }}):</h3>
+            <ul>
+            {{ range .Alerts.Resolved }}
+              <li>{{ .Labels.instance }} - {{ .Annotations.summary }}</li>
+            {{ end }}
+            </ul>
+            <p><a href="{{ .ExternalURL }}">View in Alertmanager</a></p>
+          </body>
+          </html>
+  
+  # PagerDuty for critical alerts
+  - name: 'pagerduty-critical'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ .CommonAnnotations.summary }}'
+        severity: '{{ .CommonLabels.severity }}'
+        details:
+          alertname: '{{ .CommonLabels.alertname }}'
+          instance: '{{ .CommonLabels.instance }}'
+          description: '{{ .CommonAnnotations.description }}'
+  
+  # Slack channel for critical alerts
+  - name: 'slack-critical'
+    slack_configs:
+      - channel: '#kooai-alerts-critical'
+        username: 'Alertmanager'
+        icon_emoji: ':rotating_light:'
+        title: ':fire: Critical Alert: {{ .CommonLabels.alertname }}'
+        text: |
+          *Severity:* {{ .CommonLabels.severity }}
+          *Summary:* {{ .CommonAnnotations.summary }}
+          *Description:* {{ .CommonAnnotations.description }}
+          
+          *Firing Alerts:* {{ .Alerts.Firing | len }}
+          {{ range .Alerts.Firing }}
+          • {{ .Labels.instance }}: {{ .Annotations.summary }}
+          {{ end }}
+        
+        # Additional fields
+        fields:
+          - title: Environment
+            value: '{{ .CommonLabels.environment }}'
+            short: true
+          - title: Component
+            value: '{{ .CommonLabels.component }}'
+            short: true
+        
+        # Actions
+        actions:
+          - type: button
+            text: 'View Grafana Dashboard'
+            url: 'https://grafana.kooai.example.com/d/kooai-main'
+          - type: button
+            text: 'View Logs'
+            url: 'https://logs.kooai.example.com'
+        
+        send_resolved: true
+  
+  # Slack channel for warnings
+  - name: 'slack-warnings'
+    slack_configs:
+      - channel: '#kooai-alerts-warnings'
+        username: 'Alertmanager'
+        icon_emoji: ':warning:'
+        title: 'Warning: {{ .CommonLabels.alertname }}'
+        text: |
+          *Summary:* {{ .CommonAnnotations.summary }}
+          
+          *Firing:* {{ .Alerts.Firing | len }}
+          {{ range .Alerts.Firing }}
+          • {{ .Labels.instance }}
+          {{ end }}
+        send_resolved: true
+  
+  # DBA team email
+  - name: 'dba-team'
+    email_configs:
+      - to: 'dba@kooai.example.com'
+        headers:
+          Subject: '[KooAI Database Alert] {{ .GroupLabels.alertname }}'
+  
+  # Security team
+  - name: 'security-team'
+    email_configs:
+      - to: 'security@kooai.example.com'
+        headers:
+          Subject: '[KooAI Security Alert] {{ .GroupLabels.alertname }}'
+          Priority: 'urgent'
+    slack_configs:
+      - channel: '#security-alerts'
+        username: 'Security Alert'
+        icon_emoji: ':shield:'
+        title: ':warning: Security Alert: {{ .CommonLabels.alertname }}'
+        text: '{{ .CommonAnnotations.description }}'
+        send_resolved: true
+  
+  # DevOps team
+  - name: 'devops-team'
+    email_configs:
+      - to: 'devops@kooai.example.com'
+    slack_configs:
+      - channel: '#devops-alerts'
+        username: 'DevOps Alert'
+        icon_emoji: ':construction:'
+        title: 'Performance Alert: {{ .CommonLabels.alertname }}'
+        text: '{{ .CommonAnnotations.summary }}'
+  
+  # Development environment Slack
+  - name: 'dev-slack'
+    slack_configs:
+      - channel: '#dev-alerts'
+        username: 'Dev Alertmanager'
+        icon_emoji: ':computer:'
+        title: 'Dev Alert: {{ .CommonLabels.alertname }}'
+        text: '{{ .CommonAnnotations.summary }}'
+        send_resolved: false  # Don't spam with resolved alerts in dev
+  
+  # Webhook receiver (for custom integrations)
+  - name: 'webhook'
+    webhook_configs:
+      - url: 'http://localhost:5001/alertmanager-webhook'
+        send_resolved: true
+        http_config:
+          bearer_token: '${WEBHOOK_BEARER_TOKEN}'
+
+# Time intervals for muting (optional)
+time_intervals:
+  # Maintenance window
+  - name: maintenance_window
+    time_intervals:
+      - weekdays: ['saturday', 'sunday']
+        times:
+          - start_time: '02:00'
+            end_time: '06:00'
+  
+  # Business hours
+  - name: business_hours
+    time_intervals:
+      - weekdays: ['monday:friday']
+        times:
+          - start_time: '09:00'
+            end_time: '18:00'
+        location: 'America/New_York'
+
+# Mute time intervals (silence alerts during specific times)
+# Note: These need to be configured via Alertmanager UI or API
+# This is just for documentation purposes
+# 
+# Example: Silence all warning alerts during maintenance window
+# silences:
+#   - matchers:
+#       - severity="warning"
+#     startsAt: "2024-11-07T02:00:00Z"
+#     endsAt: "2024-11-07T06:00:00Z"
+#     comment: "Scheduled maintenance"
+#     createdBy: "admin@kooai.example.com"

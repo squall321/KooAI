@@ -8,7 +8,6 @@ import structlog
 
 from .base import simulation_task, LongRunningTask
 from src.core.simulation.parsers import ParserRegistry
-from src.core.simulation.models import SimulationData
 
 
 logger = structlog.get_logger(__name__)
@@ -74,9 +73,11 @@ def parse_simulation_file(
                 "num_vertices": simulation_data.mesh.num_vertices,
                 "num_cells": simulation_data.mesh.num_cells,
             },
-            "fields": list(simulation_data.timesteps[0].fields.keys())
-            if simulation_data.timesteps
-            else [],
+            "fields": (
+                list(simulation_data.timesteps[0].fields.keys())
+                if simulation_data.timesteps
+                else []
+            ),
             "file_path": file_path,
         }
 

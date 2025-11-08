@@ -14,6 +14,7 @@ from enum import Enum
 
 class SimulationStatus(str, Enum):
     """시뮬레이션 상태"""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -23,6 +24,7 @@ class SimulationStatus(str, Enum):
 
 class AnalysisStatus(str, Enum):
     """분석 상태"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -68,18 +70,14 @@ class SimulationResult:
     def mark_as_processing(self) -> None:
         """시뮬레이션을 처리 중으로 표시"""
         if self.status != SimulationStatus.PENDING:
-            raise ValueError(
-                f"Cannot mark as processing: current status is {self.status}"
-            )
+            raise ValueError(f"Cannot mark as processing: current status is {self.status}")
         self.status = SimulationStatus.PROCESSING
         self.updated_at = datetime.utcnow()
 
     def mark_as_completed(self) -> None:
         """시뮬레이션을 완료로 표시"""
         if self.status != SimulationStatus.PROCESSING:
-            raise ValueError(
-                f"Cannot mark as completed: current status is {self.status}"
-            )
+            raise ValueError(f"Cannot mark as completed: current status is {self.status}")
         self.status = SimulationStatus.COMPLETED
         self.updated_at = datetime.utcnow()
 
@@ -93,9 +91,7 @@ class SimulationResult:
     def cancel(self) -> None:
         """시뮬레이션 취소"""
         if self.status in [SimulationStatus.COMPLETED, SimulationStatus.FAILED]:
-            raise ValueError(
-                f"Cannot cancel: simulation is already {self.status}"
-            )
+            raise ValueError(f"Cannot cancel: simulation is already {self.status}")
         self.status = SimulationStatus.CANCELLED
         self.updated_at = datetime.utcnow()
 

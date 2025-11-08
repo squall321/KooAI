@@ -32,11 +32,7 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
-    def parse(
-        self,
-        file_path: Path,
-        **options
-    ) -> SimulationResult:
+    def parse(self, file_path: Path, **options) -> SimulationResult:
         """
         파일 파싱
 
@@ -85,8 +81,7 @@ class BaseParser(ABC):
 
         if extension not in supported:
             raise ValueError(
-                f"Unsupported file extension: {extension}. "
-                f"Supported: {', '.join(supported)}"
+                f"Unsupported file extension: {extension}. " f"Supported: {', '.join(supported)}"
             )
 
 
@@ -136,9 +131,7 @@ class ParserRegistry:
         parser = self.get_parser(file_path)
 
         if not parser:
-            raise ValueError(
-                f"No suitable parser found for file: {file_path}"
-            )
+            raise ValueError(f"No suitable parser found for file: {file_path}")
 
         return parser.parse(file_path, **options)
 

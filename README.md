@@ -11,19 +11,119 @@
 
 ## 🎯 프로젝트 개요
 
-KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 플랫폼입니다. Clean Architecture 원칙을 따르며 확장 가능하고 유지보수하기 쉬운 구조로 설계되었습니다.
+KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 플랫폼입니다.
+
+**핵심 가치**:
+- 🏗️ **Clean Architecture**: 계층 분리, 의존성 역전, 테스트 가능한 설계
+- 🚀 **프로덕션 준비**: 모니터링, 로깅, 헬스체크, CI/CD 자동화
+- 🐳 **HPC 지원**: Apptainer 컨테이너로 슈퍼컴퓨터 환경 지원
+- 📊 **엔터프라이즈급**: Redis 캐싱, Celery 태스크 큐, Prometheus 모니터링
+- ✅ **높은 품질**: 510+ 테스트 통과 (97%), 44% 커버리지
+
+## 🚀 빠른 시작 (Quick Start)
+
+### 전제 조건
+- Python 3.11 이상
+- Git
+
+### 자동 설치 (권장)
+
+**Linux/macOS**:
+```bash
+git clone https://github.com/yourusername/kooai.git
+cd kooai
+./setup.sh
+```
+
+**Windows**:
+```batch
+git clone https://github.com/yourusername/kooai.git
+cd kooai
+setup.bat
+```
+
+설치 프로파일 선택:
+- **1 - Minimal**: 기본 기능만 (~300MB, 5분)
+- **2 - Standard**: 3D 파일 지원 (~800MB, 10분) **[권장]**
+- **3 - Full**: AI 기능 포함 (~3.5GB, 20분)
+- **4 - Dev**: 개발 환경 (~4GB, 25분)
+
+### 수동 설치
+
+```bash
+# 1. 가상환경 생성
+python3 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 2. 패키지 설치
+pip install --upgrade pip
+pip install -e ".[standard]"  # 또는 [minimal], [full], [dev]
+
+# 3. 환경 설정
+cp .env.example .env
+# .env 파일 편집 (필요시)
+
+# 4. 샘플 데이터 생성
+python scripts/generate_sample_data.py
+
+# 5. 설치 검증
+python scripts/verify_installation.py
+```
+
+### 첫 실행
+
+```bash
+# 가상환경 활성화 (필수)
+source venv/bin/activate
+
+# 예제 실행
+python examples/01_basic_usage.py
+
+# API 서버 시작
+uvicorn src.presentation.api.main:app --reload
+
+# 브라우저에서 API 문서 확인
+# http://localhost:8000/docs
+```
+
+### 문제 해결
+
+설치 문제가 발생하면:
+
+```bash
+# 설치 검증
+python scripts/verify_installation.py
+
+# 재설치
+rm -rf venv
+./setup.sh
+```
+
+---
 
 ### 핵심 기능
 
-- **📊 다양한 시뮬레이션 형식 지원**: CSV, VTK Legacy ASCII, VTU (VTK XML), HDF5 등
+#### 시뮬레이션 처리
+- **📊 다양한 형식 지원**: CSV, VTK Legacy ASCII, VTU (VTK XML), HDF5
 - **🔬 고급 결과 분석**: 통계 분석, 극값 탐지, 이상치 감지, 수렴성 분석
-- **🎯 최첨단 분석 기법**: FFT, POD, DMD, 난류 통계, 시계열 분석, 상관관계 분석
+- **🎯 최첨단 분석**: FFT, POD, DMD, 난류 통계, 시계열, 상관관계
 - **📐 3D 기하학 처리**: 메시 분석, 변환, 스무딩, 서브디비전
-- **💾 파일 스토리지 통합**: 로컬 파일 시스템, S3, MinIO 지원 (GCS, Azure 계획)
-- **⚡ 비동기 작업 처리**: Celery 기반 백그라운드 태스크, 대용량 파일 파싱, 복잡한 분석
-- **🚀 REST API**: FastAPI 기반 RESTful API with 자동 문서화
-- **💻 CLI 도구**: Click + Rich 기반 명령줄 인터페이스
-- **🏗️ Clean Architecture**: 계층 분리, 의존성 역전, 테스트 가능한 설계
+- **⚡ 스트리밍 파서**: 대용량 파일을 메모리 효율적으로 처리
+
+#### 인프라 & 운영 (Priority 1-4 완료 ✅)
+- **📝 구조화된 로깅**: Structlog 기반, 민감 데이터 자동 필터링
+- **💚 헬스 체크**: Kubernetes 호환 (liveness, readiness, startup)
+- **📊 Prometheus 모니터링**: 50+ 메트릭, Grafana 대시보드, 20+ 알람
+- **🤖 CI/CD 자동화**: GitHub Actions (테스트, 품질, 빌드, 릴리스)
+- **🐳 Apptainer 지원**: HPC 환경용 컨테이너 (minimal, standard, full)
+- **⚡ 멀티티어 캐싱**: Redis L1 + In-Memory L2, 데코레이터 지원
+- **🔄 비동기 작업**: Celery 기반 백그라운드 태스크, 우선순위 큐
+- **☁️ 파일 스토리지**: 로컬, S3, MinIO, presigned URL
+
+#### API & 인터페이스
+- **🚀 REST API**: FastAPI 기반, 자동 문서화, OpenAPI
+- **💻 CLI 도구**: Click + Rich 기반, 색상 출력
+- **🏗️ Clean Architecture**: 계층 분리, 의존성 역전, 테스트 가능
 
 ## ✨ 주요 특징
 
@@ -110,7 +210,7 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
   - 비등방성 텐서
   - 난류 불변량
 
-### 성능 최적화 & 캐싱 (Phase 30)
+### 성능 최적화 & 캐싱 (Phase 30) ✅
 - **Redis 캐싱**
   - 자동 직렬화/역직렬화 (JSON, Pickle)
   - 압축 지원 (zlib)
@@ -137,6 +237,39 @@ KooAI는 시뮬레이션 후처리 분석을 위한 AI 기반 통합 솔루션 �
   - 자동 압축 판단 (크기 & content-type)
   - ASGI 미들웨어 지원
   - 압축률 로깅
+
+### 실용 비즈니스 로직 (Phase 33) ✅
+- **시뮬레이션 비교**
+  - RMSE 계산
+  - 상관계수 분석
+  - 수렴성 분석
+  - 차이 분류 (negligible, small, moderate, large, critical)
+  - 공간 차이 맵 생성
+- **배치 처리**
+  - 병렬 파일 처리 (멀티스레딩)
+  - 순차 처리
+  - 에러 핸들링 (stop_on_error)
+  - 진행률 추적
+  - 재시도 기능
+- **파이프라인 시스템**
+  - 스테이지 기반 처리 (Parse → Analyze → Export)
+  - 메서드 체이닝
+  - 커스텀 스테이지 정의
+  - 에러 전파
+- **다중 형식 내보내기**
+  - JSON (메타데이터 포함)
+  - CSV (필드 플래팅)
+  - NumPy (.npz)
+  - Text (요약 리포트)
+  - 분석 결과 JSON 직렬화
+- **리포트 생성**
+  - Markdown 리포트
+  - HTML 리포트 (스타일링 포함)
+  - Text 리포트
+  - 통계 테이블
+  - 비교 요약
+  - 배치 결과 리포트
+  - 커스텀 섹션 지원
 
 ## 🏗️ 아키텍처
 
@@ -274,9 +407,63 @@ chmod +x scripts/stop_workers.sh
 ./scripts/stop_workers.sh
 ```
 
-## 🐳 Docker 배포
+## 🐳 컨테이너 배포
 
-### 로컬 개발 환경
+### Apptainer (HPC 환경) 🚀
+
+Apptainer는 슈퍼컴퓨터와 HPC 클러스터 환경을 위한 컨테이너 시스템입니다.
+
+#### 빌드
+
+```bash
+# Standard 이미지 빌드 (권장)
+sudo apptainer build kooai-standard.sif containers/kooai.def
+
+# Minimal 이미지 (최소 의존성)
+sudo apptainer build kooai-minimal.sif containers/kooai-minimal.def
+
+# Full 이미지 (AI/ML 포함)
+sudo apptainer build kooai-full.sif containers/kooai-full.def
+
+# 또는 빌드 스크립트 사용
+./scripts/build-apptainer.sh standard
+```
+
+#### 실행
+
+```bash
+# API 서버 실행
+apptainer run kooai-standard.sif
+
+# 또는 실행 스크립트 사용
+./scripts/run-apptainer.sh kooai-standard.sif 8000 /path/to/data
+
+# Shell 접근
+apptainer shell kooai-standard.sif
+
+# 특정 명령 실행
+apptainer exec kooai-standard.sif python -c "import vtk; print(vtk.vtkVersion().GetVTKVersion())"
+```
+
+#### CI/CD
+
+GitHub Actions에서 자동으로 빌드됩니다:
+- **Trigger**: Git tag push (`v*`)
+- **Artifacts**: kooai-minimal.sif, kooai-standard.sif, kooai-full.sif
+- **Testing**: Import verification, API health check
+
+```bash
+# 릴리스 생성
+git tag v1.0.0
+git push origin v1.0.0
+# → GitHub Actions가 자동으로 Apptainer 이미지 빌드 및 릴리스
+```
+
+---
+
+### Docker 배포
+
+#### 로컬 개발 환경
 
 Docker Compose를 사용하여 전체 스택을 쉽게 실행할 수 있습니다:
 
@@ -679,6 +866,47 @@ class MyUseCase(UseCase[MyRequest, MyResponse]):
 
 ---
 
-**개발 상태**: ✅ 주요 기능 완료 (Phase 16/16)
+## 📈 개발 현황
 
-자세한 개발 일지는 [DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md)를 참조하세요.
+### 완료된 작업 ✅
+
+#### Phase 1-33 (핵심 기능)
+- ✅ **Phase 1-3**: 기본 인프라 구축 (도메인, 리포지토리, AI 모델)
+- ✅ **Phase 25-27**: 파일 스토리지, 비동기 작업, 고급 분석
+- ✅ **Phase 30-33**: 최적화, 테스트, 비즈니스 로직
+
+#### Priority 1-4 (안정성 & 자동화)
+- ✅ **Priority 1**: Testing & Stability (테스트 스위트 510+ 테스트)
+- ✅ **Priority 2**: Operational Convenience (로깅, 헬스체크)
+- ✅ **Priority 3**: Monitoring (Prometheus, Grafana, Alerting)
+- ✅ **Priority 4**: CI/CD Automation (GitHub Actions, Apptainer)
+
+#### Priority A (Critical - 2025-11-08 완료)
+- ✅ **A1**: 코드 품질 검증 (510/525 테스트 통과)
+- ✅ **A2**: 환경 변수 검증 (중앙 설정 시스템)
+- ✅ **A3**: 의존성 충돌 해결 (충돌 없음)
+- ✅ **코드 품질**: Ruff 377개 이슈 수정, Black 135개 파일 포맷팅
+
+### 테스트 통계
+
+```
+✅ 510 tests passed (97% 성공률)
+❌ 15 tests failed (optimization 모듈만)
+📊 Coverage: 44% (11,391 lines)
+🎯 Target: 70% coverage
+```
+
+### 코드 품질
+
+```
+✅ Ruff: 2/400 errors (99.5% 개선)
+✅ Black: 100% formatted
+✅ Type hints: 179 mypy errors (개선 중)
+```
+
+### 문서
+
+- [TODO_NEXT_SESSION.md](TODO_NEXT_SESSION.md) - 다음 작업 계획 (Priority B-G)
+- [PRODUCTION_GUIDE.md](docs/PRODUCTION_GUIDE.md) - 프로덕션 배포 가이드
+- [MONITORING_GUIDE.md](docs/MONITORING_GUIDE.md) - 모니터링 설정
+- [CI_CD_GUIDE.md](docs/CI_CD_GUIDE.md) - CI/CD 파이프라인

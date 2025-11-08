@@ -31,9 +31,7 @@ class MeshOperations:
         return vertices + translation
 
     @staticmethod
-    def rotate(
-        vertices: np.ndarray, rotation_matrix: np.ndarray
-    ) -> np.ndarray:
+    def rotate(vertices: np.ndarray, rotation_matrix: np.ndarray) -> np.ndarray:
         """
         메시 회전
 
@@ -147,18 +145,16 @@ class MeshOperations:
                     neighbor_mean = np.mean(smoothed[list(neighbors)], axis=0)
 
                     # Laplacian 업데이트
-                    new_vertices[i] = (
-                        1 - lambda_factor
-                    ) * smoothed[i] + lambda_factor * neighbor_mean
+                    new_vertices[i] = (1 - lambda_factor) * smoothed[
+                        i
+                    ] + lambda_factor * neighbor_mean
 
             smoothed = new_vertices
 
         return smoothed
 
     @staticmethod
-    def _build_adjacency(
-        num_vertices: int, faces: np.ndarray
-    ) -> list[set]:
+    def _build_adjacency(num_vertices: int, faces: np.ndarray) -> list[set]:
         """
         꼭짓점 인접 정보 구축
 
@@ -218,16 +214,12 @@ class MeshOperations:
         vertex_map = {old: new for new, old in enumerate(sorted(used_vertices))}
 
         new_vertices = vertices[sorted(used_vertices)]
-        new_faces = np.array(
-            [[vertex_map[v] for v in face] for face in decimated_faces]
-        )
+        new_faces = np.array([[vertex_map[v] for v in face] for face in decimated_faces])
 
         return new_vertices, new_faces
 
     @staticmethod
-    def subdivide(
-        vertices: np.ndarray, faces: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    def subdivide(vertices: np.ndarray, faces: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
         메시 서브디비전 (Loop subdivision 간단 버전)
 
@@ -368,9 +360,7 @@ class MeshTransform:
         return np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
 
     @staticmethod
-    def rotation_matrix_axis_angle(
-        axis: np.ndarray, angle: float
-    ) -> np.ndarray:
+    def rotation_matrix_axis_angle(axis: np.ndarray, angle: float) -> np.ndarray:
         """
         임의 축 회전 행렬 (Rodrigues' rotation formula)
 

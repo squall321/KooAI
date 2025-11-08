@@ -20,18 +20,21 @@ def _register_adapters():
     """어댑터를 팩토리에 등록"""
     try:
         from .adapters.pytorch import PyTorchAdapter
+
         ModelAdapterFactory.register(ModelFramework.PYTORCH, PyTorchAdapter)
     except ImportError:
         pass
 
     try:
         from .adapters.huggingface import HuggingFaceAdapter
+
         ModelAdapterFactory.register(ModelFramework.HUGGINGFACE, HuggingFaceAdapter)
     except ImportError:
         pass
 
     try:
         from .adapters.onnx import ONNXAdapter
+
         ModelAdapterFactory.register(ModelFramework.ONNX, ONNXAdapter)
     except ImportError:
         pass

@@ -173,10 +173,19 @@ class CSVParser(BaseParser):
 
         # 좌표 및 시간 컬럼 제외
         exclude_columns = {
-            "x", "X", "coord_x",
-            "y", "Y", "coord_y",
-            "z", "Z", "coord_z",
-            "time", "Time", "step", "Step",
+            "x",
+            "X",
+            "coord_x",
+            "y",
+            "Y",
+            "coord_y",
+            "z",
+            "Z",
+            "coord_z",
+            "time",
+            "Time",
+            "step",
+            "Step",
         }
 
         # 벡터 필드 찾기 (name_x, name_y, name_z 패턴)

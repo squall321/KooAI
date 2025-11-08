@@ -15,29 +15,29 @@ from src.core.simulation.models import SimulationResult
 @dataclass
 class ComparisonResult:
     """Result of simulation comparison"""
-    
+
     simulation_ids: List[str]
     field_name: str
     comparison_type: str
-    
+
     # Statistical comparison
     mean_difference: float
     max_difference: float
     min_difference: float
     rmse: float  # Root Mean Square Error
     correlation: float
-    
+
     # Spatial distribution
     difference_histogram: Optional[Dict[str, Any]] = None
     spatial_diff_map: Optional[np.ndarray] = None
-    
+
     # Metadata
     compared_at: datetime = None
-    
+
     def __post_init__(self):
         if self.compared_at is None:
             self.compared_at = datetime.now()
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -57,14 +57,14 @@ class ComparisonResult:
 class SimulationComparator:
     """
     Compare simulation results
-    
+
     Features:
     - Field-wise comparison
     - Statistical analysis
     - Difference mapping
     - Multi-simulation comparison
     """
-    
+
     def compare_fields(
         self,
         sim1: SimulationResult,
@@ -106,9 +106,7 @@ class SimulationComparator:
 
         # Ensure same shape
         if field1.shape != field2.shape:
-            raise ValueError(
-                f"Field shapes don't match: {field1.shape} vs {field2.shape}"
-            )
+            raise ValueError(f"Field shapes don't match: {field1.shape} vs {field2.shape}")
 
         # Calculate differences
         diff = field2 - field1
@@ -146,7 +144,7 @@ class SimulationComparator:
             difference_histogram=histogram,
             spatial_diff_map=diff,
         )
-    
+
     def compare_all_fields(
         self,
         sim1: SimulationResult,
@@ -191,7 +189,7 @@ class SimulationComparator:
                 print(f"Warning: Could not compare field '{field_name}': {e}")
 
         return results
-    
+
     def compare_multiple(
         self,
         simulations: List[SimulationResult],
@@ -224,9 +222,7 @@ class SimulationComparator:
             field = ts.get_field(field_name)
             if field is None:
                 sim_id = sim.id if sim.id else sim.name
-                raise ValueError(
-                    f"Field '{field_name}' not found in simulation {sim_id}"
-                )
+                raise ValueError(f"Field '{field_name}' not found in simulation {sim_id}")
             field_data.append(field.data.flatten())
             sim_ids.append(sim.id if sim.id else sim.name)
 
@@ -253,7 +249,7 @@ class SimulationComparator:
         }
 
         return overall_stats
-    
+
     def calculate_convergence(
         self,
         simulations: List[SimulationResult],
@@ -314,12 +310,14 @@ class SimulationComparator:
             l_inf_error = np.max(np.abs(diff))
 
             sim_id = sim.id if sim.id else sim.name
-            convergence_metrics.append({
-                "simulation_id": sim_id,
-                "l2_error": float(l2_error),
-                "l_inf_error": float(l_inf_error),
-                "relative_l2_error": float(l2_error / np.max(np.abs(ref_field))),
-            })
+            convergence_metrics.append(
+                {
+                    "simulation_id": sim_id,
+                    "l2_error": float(l2_error),
+                    "l_inf_error": float(l_inf_error),
+                    "relative_l2_error": float(l2_error / np.max(np.abs(ref_field))),
+                }
+            )
 
         ref_id = reference.id if reference.id else reference.name
         return {
@@ -327,7 +325,7 @@ class SimulationComparator:
             "field_name": field_name,
             "metrics": convergence_metrics,
         }
-    
+
     def identify_differences(
         self,
         sim1: SimulationResult,
@@ -401,14 +399,12 @@ class SimulationComparator:
             "mean_relative_difference": mean_rel_diff,
             "difference_mask": significant_diff_mask,
         }
-    
-    def _calculate_correlation_matrix(
-        self, field_data: List[np.ndarray]
-    ) -> List[List[float]]:
+
+    def _calculate_correlation_matrix(self, field_data: List[np.ndarray]) -> List[List[float]]:
         """Calculate correlation matrix between all field pairs"""
         n = len(field_data)
         corr_matrix = np.zeros((n, n))
-        
+
         for i in range(n):
             for j in range(n):
                 if i == j:
@@ -416,5 +412,5 @@ class SimulationComparator:
                 else:
                     corr = np.corrcoef(field_data[i], field_data[j])[0, 1]
                     corr_matrix[i, j] = corr
-        
+
         return corr_matrix.tolist()

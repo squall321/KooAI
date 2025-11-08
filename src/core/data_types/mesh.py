@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, Tuple
 import numpy as np
 
-from src.core.data_types.base import BaseDataType, get_compression_strategy
+from src.core.data_types.base import BaseDataType
 
 
 @dataclass
@@ -63,9 +63,7 @@ class MeshData(BaseDataType):
             raise ValueError(f"Vertices must be 2D array, got shape {self.vertices.shape}")
 
         if self.vertices.shape[1] != 3:
-            raise ValueError(
-                f"Vertices must have 3 coordinates, got shape {self.vertices.shape}"
-            )
+            raise ValueError(f"Vertices must have 3 coordinates, got shape {self.vertices.shape}")
 
         # 면 검증
         if self.faces.ndim != 2:
