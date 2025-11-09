@@ -146,7 +146,7 @@ class SetActiveVersionRequest(BaseModel):
 @router.get("/", response_model=List[ModelInfo])
 async def list_models(
     model_type: Optional[str] = Query(None, description="Filter by model type"),
-):
+) -> List[ModelInfo]:
     """
     List all registered models.
 
@@ -180,7 +180,7 @@ async def list_models(
 async def get_model_info(
     model_name: str,
     version: Optional[str] = Query(None, description="Model version"),
-):
+) -> Dict[str, Any]:
     """
     Get detailed information about a model.
 
@@ -210,7 +210,7 @@ async def predict(
     model_name: str,
     request: PredictRequest,
     version: Optional[str] = Query(None, description="Model version to use"),
-):
+) -> Dict[str, Any]:
     """
     Make predictions using a model.
 
@@ -264,7 +264,7 @@ async def batch_predict(
     model_name: str,
     request: BatchPredictRequest,
     version: Optional[str] = Query(None, description="Model version to use"),
-):
+) -> Dict[str, Any]:
     """
     Make batch predictions.
 
@@ -337,7 +337,7 @@ async def validate_model(
     model_name: str,
     request: ValidationRequest,
     version: Optional[str] = Query(None, description="Model version"),
-):
+) -> Dict[str, Any]:
     """
     Validate a model on validation dataset.
 
@@ -374,7 +374,7 @@ async def validate_model(
 
 
 @router.post("/{model_name}/set-active", response_model=Dict[str, str])
-async def set_active_version(model_name: str, request: SetActiveVersionRequest):
+async def set_active_version(model_name: str, request: SetActiveVersionRequest) -> Dict[str, str]:
     """
     Set active version for a model.
 
@@ -403,7 +403,7 @@ async def set_active_version(model_name: str, request: SetActiveVersionRequest):
 async def unload_model(
     model_name: str,
     version: Optional[str] = Query(None, description="Version to unload"),
-):
+) -> Dict[str, str]:
     """
     Unload a model from memory.
 
@@ -432,7 +432,7 @@ async def unload_model(
 
 
 @router.get("/{model_name}/stats", response_model=Dict[str, Any])
-async def get_model_stats(model_name: str):
+async def get_model_stats(model_name: str) -> Dict[str, Any]:
     """
     Get inference statistics for a model.
 
@@ -454,7 +454,7 @@ async def get_model_stats(model_name: str):
 
 
 @router.delete("/{model_name}/stats", response_model=Dict[str, str])
-async def reset_model_stats(model_name: str):
+async def reset_model_stats(model_name: str) -> Dict[str, str]:
     """
     Reset inference statistics for a model.
 
@@ -470,7 +470,7 @@ async def reset_model_stats(model_name: str):
 
 
 @router.get("/stats/all", response_model=Dict[str, Any])
-async def get_all_stats():
+async def get_all_stats() -> Dict[str, Any]:
     """
     Get inference statistics for all models.
 
