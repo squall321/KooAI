@@ -5,7 +5,7 @@ Generate automated analysis reports
 """
 
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
+from typing import Callable, List, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
 import json
@@ -253,7 +253,7 @@ class ReportGenerator:
         self,
         title: str,
         data: Dict[str, Any],
-        format_func: Optional[callable] = None,
+        format_func: Optional[Callable[[Dict[str, Any]], str]] = None,
     ) -> "ReportGenerator":
         """
         Add custom section with data
