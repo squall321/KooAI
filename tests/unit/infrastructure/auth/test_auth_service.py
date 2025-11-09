@@ -8,12 +8,22 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 import pytest
 
+# Check for optional dependencies
 try:
     from jose import JWTError
+    import passlib
+    AUTH_DEPS_AVAILABLE = True
 except ImportError:
+    AUTH_DEPS_AVAILABLE = False
     # Create a mock JWTError for testing if jose is not installed
     class JWTError(Exception):
         pass
+
+# Skip all tests if auth dependencies are not available
+pytestmark = pytest.mark.skipif(
+    not AUTH_DEPS_AVAILABLE,
+    reason="Auth dependencies (jose, passlib) not installed"
+)
 
 
 class TestUserRole:

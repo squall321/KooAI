@@ -8,6 +8,19 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock
 import pytest
 
+# Check for optional dependencies
+try:
+    from sqlalchemy.orm import declarative_base
+    TENANCY_DEPS_AVAILABLE = True
+except ImportError:
+    TENANCY_DEPS_AVAILABLE = False
+
+# Skip all tests if tenancy dependencies are not available
+pytestmark = pytest.mark.skipif(
+    not TENANCY_DEPS_AVAILABLE,
+    reason="Tenancy dependencies (sqlalchemy) not installed"
+)
+
 
 class TestTenantModel:
     """Test Tenant model"""
