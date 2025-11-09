@@ -92,7 +92,7 @@ class PluginLoader:
                 raise PluginLoadError(f"Class '{class_name}' must inherit from BasePlugin")
 
             # 플러그인 인스턴스 생성
-            plugin = plugin_class()
+            plugin: IPlugin = plugin_class()
 
             # 초기화
             if config:
@@ -147,7 +147,7 @@ class PluginLoader:
                 raise PluginLoadError(f"Class '{class_name}' must inherit from BasePlugin")
 
             # 플러그인 인스턴스 생성
-            plugin = plugin_class()
+            plugin: IPlugin = plugin_class()
 
             # 초기화
             if config:

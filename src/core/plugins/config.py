@@ -6,7 +6,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from pydantic import BaseModel, ValidationError, create_model
 
@@ -58,7 +58,7 @@ class PluginConfigManager:
 
         try:
             with open(config_file, "r", encoding="utf-8") as f:
-                config = json.load(f)
+                config: Dict[str, Any] = json.load(f)
 
             # 캐시에 저장
             self._configs[plugin_name] = config
@@ -225,7 +225,7 @@ class PluginConfigManager:
                 fields[field_name] = (field_type, default)
 
         # 동적 모델 생성
-        return create_model("DynamicConfigModel", **fields)
+        return cast(type[Any], create_model("DynamicConfigModel", **fields))
 
     def _map_json_type_to_python(self, field_schema: Dict[str, Any]) -> Any:
         """JSON Schema 타입을 Python 타입으로 매핑"""
