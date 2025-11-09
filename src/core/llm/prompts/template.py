@@ -5,7 +5,7 @@ Jinja2 기반 프롬프트 템플릿 관리.
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 try:
     from jinja2 import Environment, FileSystemLoader, Template, select_autoescape
@@ -37,7 +37,7 @@ class PromptTemplate:
         self.template_str = template
         self._template = Template(template)
 
-    def format(self, **kwargs) -> str:
+    def format(self, **kwargs: Any) -> str:
         """
         템플릿 포맷
 
@@ -48,7 +48,7 @@ class PromptTemplate:
             str: 포맷된 프롬프트
         """
         try:
-            return self._template.render(**kwargs)
+            return str(self._template.render(**kwargs))
         except Exception as e:
             raise ValueError(f"Failed to format template: {str(e)}")
 
@@ -62,7 +62,7 @@ class PromptTemplate:
         return list(self._template.module.__dict__.get("__all__", []))
 
     @classmethod
-    def from_file(cls, file_path: Path, **kwargs) -> "PromptTemplate":
+    def from_file(cls, file_path: Path, **kwargs: Any) -> "PromptTemplate":
         """
         파일에서 템플릿 로드
 
@@ -170,7 +170,7 @@ class PromptTemplateManager:
 
         return self._templates[name]
 
-    def format(self, template_name: str, **kwargs) -> str:
+    def format(self, template_name: str, **kwargs: Any) -> str:
         """
         템플릿 포맷
 
