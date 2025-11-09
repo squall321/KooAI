@@ -86,7 +86,7 @@ class FieldsResponse(BaseModel):
     description="Generate 3D visualization from VTK file",
     responses={200: {"content": {"image/png": {}}}},
 )
-async def render_3d_visualization(request: RenderRequest):
+async def render_3d_visualization(request: RenderRequest) -> Response:
     """
     ## 3D Visualization Rendering
 
@@ -164,7 +164,7 @@ async def render_3d_visualization(request: RenderRequest):
     description="Generate slice through 3D data",
     responses={200: {"content": {"image/png": {}}}},
 )
-async def render_slice_visualization(request: SliceRenderRequest):
+async def render_slice_visualization(request: SliceRenderRequest) -> Response:
     """
     ## Slice Visualization
 
@@ -250,7 +250,7 @@ async def render_multi_slice(
     normal_z: float = Query(1.0, description="Slice plane normal Z"),
     resolution_width: int = Query(1920, description="Width in pixels"),
     resolution_height: int = Query(1080, description="Height in pixels"),
-):
+) -> Response:
     """
     ## Multiple Slice Visualization
 
@@ -303,7 +303,7 @@ async def render_multi_slice(
     summary="Get Available Fields",
     description="List scalar fields available in VTK file",
 )
-async def get_available_fields(file_path: str):
+async def get_available_fields(file_path: str) -> "FieldsResponse":
     """
     ## Get Available Fields
 
@@ -350,7 +350,7 @@ async def get_available_fields(file_path: str):
     summary="Generate Chart",
     description="Generate 2D chart from data",
 )
-async def generate_chart(request: ChartRequest):
+async def generate_chart(request: ChartRequest) -> Response:
     """
     ## Chart Generation
 
@@ -527,7 +527,7 @@ async def generate_chart_from_file(
     xlabel: Optional[str] = Query(None, description="X-axis label"),
     ylabel: Optional[str] = Query(None, description="Y-axis label"),
     output_format: str = Query("png", description="Output format"),
-):
+) -> Response:
     """
     ## Chart from File
 
