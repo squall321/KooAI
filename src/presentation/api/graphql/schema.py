@@ -307,7 +307,7 @@ class LLMStreamChunk:
 class SimulationResult:
     """Simulation result union."""
 
-    result: strawberry.union("SimulationResultUnion", (SimulationResponse, ErrorResponse))
+    result: strawberry.union[SimulationResponse, ErrorResponse]
 
 
 # ==========================================
