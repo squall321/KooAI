@@ -4,7 +4,7 @@ VAE Trainer
 VAE 모델 학습을 위한 Trainer 클래스
 """
 
-from typing import Optional, Dict
+from typing import Dict, List, Optional
 from pathlib import Path
 import json
 from datetime import datetime
@@ -62,7 +62,7 @@ class VAETrainer:
         self.best_val_loss = float("inf")
 
         # 학습 히스토리
-        self.history = {
+        self.history: Dict[str, List[float]] = {
             "train_loss": [],
             "val_loss": [],
             "train_recon_loss": [],

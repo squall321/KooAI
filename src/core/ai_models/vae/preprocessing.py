@@ -377,6 +377,7 @@ class ContourDataset(torch.utils.data.Dataset):
         self.augmentor = ContourAugmentor()
 
         # 정규화기
+        self.normalizer: Optional[ContourNormalizer]
         if normalize:
             self.normalizer = ContourNormalizer()
             # 모든 컨투어를 샘플링하여 정규화 파라미터 학습
