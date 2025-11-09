@@ -120,7 +120,7 @@ class TriggerHookRequest(BaseModel):
 async def list_plugins(
     plugin_type: Optional[str] = Query(None, description="Filter by plugin type"),
     enabled_only: bool = Query(False, description="Show only enabled plugins"),
-):
+) -> List[Dict[str, Any]]:
     """
     List all registered plugins.
 
@@ -160,7 +160,7 @@ async def list_plugins(
 
 
 @router.get("/{plugin_name}", response_model=PluginInfo)
-async def get_plugin(plugin_name: str):
+async def get_plugin(plugin_name: str) -> Dict[str, Any]:
     """
     Get detailed information about a specific plugin.
 
@@ -186,7 +186,7 @@ async def get_plugin(plugin_name: str):
 
 
 @router.get("/{plugin_name}/config", response_model=Dict[str, Any])
-async def get_plugin_config(plugin_name: str):
+async def get_plugin_config(plugin_name: str) -> Dict[str, Any]:
     """
     Get current configuration for a plugin.
 
@@ -207,7 +207,7 @@ async def get_plugin_config(plugin_name: str):
 
 
 @router.put("/{plugin_name}/config", response_model=Dict[str, str])
-async def configure_plugin(plugin_name: str, request: PluginConfigRequest):
+async def configure_plugin(plugin_name: str, request: PluginConfigRequest) -> Dict[str, str]:
     """
     Configure a plugin.
 
@@ -242,7 +242,7 @@ async def configure_plugin(plugin_name: str, request: PluginConfigRequest):
 
 
 @router.post("/{plugin_name}/enable", response_model=Dict[str, str])
-async def enable_plugin(plugin_name: str):
+async def enable_plugin(plugin_name: str) -> Dict[str, str]:
     """
     Enable a plugin.
 
@@ -264,7 +264,7 @@ async def enable_plugin(plugin_name: str):
 
 
 @router.post("/{plugin_name}/disable", response_model=Dict[str, str])
-async def disable_plugin(plugin_name: str):
+async def disable_plugin(plugin_name: str) -> Dict[str, str]:
     """
     Disable a plugin.
 
@@ -286,7 +286,7 @@ async def disable_plugin(plugin_name: str):
 
 
 @router.delete("/{plugin_name}", response_model=Dict[str, str])
-async def unload_plugin(plugin_name: str):
+async def unload_plugin(plugin_name: str) -> Dict[str, str]:
     """
     Unload a plugin.
 
@@ -315,7 +315,7 @@ async def unload_plugin(plugin_name: str):
 
 
 @router.post("/execute", response_model=Dict[str, Any])
-async def execute_plugin(request: PluginExecuteRequest):
+async def execute_plugin(request: PluginExecuteRequest) -> Dict[str, Any]:
     """
     Execute a plugin with given parameters.
 
@@ -364,8 +364,8 @@ async def execute_plugin(request: PluginExecuteRequest):
 
 @router.post("/execute-by-type/{plugin_type}", response_model=Dict[str, Any])
 async def execute_plugins_by_type(
-    plugin_type: str, parameters: Dict[str, Any] = None
-):
+    plugin_type: str, parameters: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
     Execute all enabled plugins of a specific type.
 
@@ -416,7 +416,7 @@ async def execute_plugins_by_type(
 
 
 @router.post("/hooks/trigger", response_model=Dict[str, str])
-async def trigger_hooks(request: TriggerHookRequest):
+async def trigger_hooks(request: TriggerHookRequest) -> Dict[str, str]:
     """
     Manually trigger hooks for an event.
 
@@ -458,7 +458,7 @@ async def trigger_hooks(request: TriggerHookRequest):
 
 
 @router.get("/hooks/events", response_model=List[str])
-async def list_hook_events():
+async def list_hook_events() -> List[str]:
     """
     List all available hook events.
 
@@ -476,7 +476,7 @@ async def list_hook_events():
 
 
 @router.get("/types", response_model=List[str])
-async def list_plugin_types():
+async def list_plugin_types() -> List[str]:
     """
     List all available plugin types.
 
