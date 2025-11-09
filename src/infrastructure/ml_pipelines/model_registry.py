@@ -35,7 +35,7 @@ class ModelRegistry:
     Handles model registration, versioning, and retrieval.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize model registry."""
         self._models: Dict[str, Dict[str, BaseMLModel]] = defaultdict(dict)
         self._active_versions: Dict[str, str] = {}  # model_name -> active_version

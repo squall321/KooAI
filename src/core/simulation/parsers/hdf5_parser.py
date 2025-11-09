@@ -48,7 +48,7 @@ class HDF5Parser(BaseParser):
         time_values: (T,) array
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         if not HDF5_AVAILABLE:
             raise ImportError(
                 "h5py is required for HDF5 parsing. " "Install it with: pip install h5py"
@@ -71,7 +71,7 @@ class HDF5Parser(BaseParser):
         """지원 확장자: .h5, .hdf5"""
         return [".h5", ".hdf5"]
 
-    def parse(self, file_path: Path, **options) -> SimulationResult:
+    def parse(self, file_path: Path, **options: Any) -> SimulationResult:
         """
         HDF5 파일 파싱
 
