@@ -19,7 +19,7 @@ from .prompts import PromptTemplate, PromptTemplateManager, FewShotExampleManage
 from .chains import SummaryChain, ComparisonChain, InsightChain, SequentialChain, ChainResult
 
 
-def _register_clients():
+def _register_clients() -> None:
     """Register LLM clients to factory"""
     # OpenAI
     try:

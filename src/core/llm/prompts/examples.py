@@ -56,7 +56,7 @@ class FewShotExampleManager:
     예시를 저장하고 선택적으로 로드합니다.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """초기화"""
         self._examples: Dict[str, List[Example]] = {}
 
