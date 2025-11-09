@@ -4,6 +4,7 @@
 보안 관련 HTTP 헤더를 자동으로 추가합니다.
 """
 
+from typing import Awaitable, Callable
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -22,7 +23,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     - X-Permitted-Cross-Domain-Policies: crossdomain.xml 제어
     """
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         """요청 처리 및 보안 헤더 추가"""
         response: Response = await call_next(request)
 
