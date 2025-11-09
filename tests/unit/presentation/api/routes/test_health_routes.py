@@ -7,6 +7,18 @@ from unittest.mock import Mock, AsyncMock, patch
 from fastapi import status
 from datetime import datetime
 
+# Check for optional dependencies
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+
+pytestmark = pytest.mark.skipif(
+    not REDIS_AVAILABLE,
+    reason="Redis dependency not installed"
+)
+
 
 class TestBasicHealthCheck:
     """기본 헬스 체크 테스트"""

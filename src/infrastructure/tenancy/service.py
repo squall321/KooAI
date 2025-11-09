@@ -220,7 +220,7 @@ class TenantService:
         user_id: Optional[str] = None,
         resource_type: Optional[str] = None,
         resource_id: Optional[str] = None,
-        metadata: Optional[dict] = None,
+        extra_data: Optional[dict] = None,
     ):
         """
         Log tenant activity.
@@ -231,7 +231,7 @@ class TenantService:
             user_id: User ID
             resource_type: Resource type
             resource_id: Resource ID
-            metadata: Additional metadata
+            extra_data: Additional context data
         """
         log = TenantAuditLog(
             id=f"log_{secrets.token_urlsafe(8)}",
@@ -240,7 +240,7 @@ class TenantService:
             action=action,
             resource_type=resource_type,
             resource_id=resource_id,
-            metadata=metadata or {},
+            extra_data=extra_data or {},
         )
 
         self.db.add(log)

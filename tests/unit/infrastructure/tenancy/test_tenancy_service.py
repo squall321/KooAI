@@ -306,12 +306,12 @@ class TestTenantService:
         assert mock_db.add.called
 
     def test_log_activity_with_metadata(self, tenant_service, mock_db):
-        """Test logging activity with metadata"""
+        """Test logging activity with extra data"""
         tenant_service.log_activity(
             tenant_id="ten_123",
             action="settings.updated",
             user_id="admin_123",
-            metadata={"setting": "max_users", "old_value": 5, "new_value": 10},
+            extra_data={"setting": "max_users", "old_value": 5, "new_value": 10},
         )
 
         assert mock_db.add.called

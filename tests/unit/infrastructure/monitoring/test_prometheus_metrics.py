@@ -5,6 +5,19 @@ Tests for Prometheus metrics
 import pytest
 from unittest.mock import Mock, patch
 
+# Check for optional dependencies
+try:
+    import psutil
+    import prometheus_client
+    MONITORING_DEPS_AVAILABLE = True
+except ImportError:
+    MONITORING_DEPS_AVAILABLE = False
+
+pytestmark = pytest.mark.skipif(
+    not MONITORING_DEPS_AVAILABLE,
+    reason="Monitoring dependencies (psutil, prometheus_client) not installed"
+)
+
 
 class TestPrometheusMetrics:
     """Prometheus 메트릭 테스트"""

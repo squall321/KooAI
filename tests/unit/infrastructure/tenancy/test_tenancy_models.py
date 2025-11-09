@@ -221,7 +221,7 @@ class TestTenantAuditLogModel:
         assert hasattr(TenantAuditLog, "resource_type")
         assert hasattr(TenantAuditLog, "resource_id")
         assert hasattr(TenantAuditLog, "ip_address")
-        assert hasattr(TenantAuditLog, "metadata")
+        assert hasattr(TenantAuditLog, "extra_data")
         assert hasattr(TenantAuditLog, "created_at")
 
     def test_audit_log_repr(self):
