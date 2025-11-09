@@ -71,7 +71,7 @@ class AdapterPluginRegistry:
     Model Adapter 플러그인을 관리하고 어댑터 인스턴스를 생성.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._plugins: Dict[str, AdapterPlugin] = {}  # adapter_name -> plugin
 
     def register(self, plugin: AdapterPlugin) -> None:

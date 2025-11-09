@@ -154,7 +154,7 @@ class FinetuneConfig:
     # 추가 설정
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """초기화 후 처리"""
         # Path 타입 보장
         self.output_dir = Path(self.output_dir)
