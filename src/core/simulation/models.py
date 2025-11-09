@@ -44,7 +44,7 @@ class FieldData:
     unit: Optional[str] = None
     description: Optional[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """데이터 검증"""
         # 데이터 타입 검증
         if self.field_type == FieldType.SCALAR:
@@ -92,7 +92,7 @@ class MeshData:
     faces: Optional[np.ndarray] = None  # 면 (surface mesh용)
     cell_types: Optional[np.ndarray] = None  # 셀 타입
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """데이터 검증"""
         if self.vertices.ndim != 2 or self.vertices.shape[1] != 3:
             raise ValueError(f"Vertices must be Nx3, got shape {self.vertices.shape}")

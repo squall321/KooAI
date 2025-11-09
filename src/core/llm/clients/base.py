@@ -41,7 +41,7 @@ class Message:
 
     def to_dict(self) -> Dict[str, Any]:
         """딕셔너리로 변환"""
-        data = {"role": self.role.value, "content": self.content}
+        data: Dict[str, Any] = {"role": self.role.value, "content": self.content}
         if self.name:
             data["name"] = self.name
         if self.function_call:
@@ -144,7 +144,7 @@ class ILLMClient(Protocol):
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> LLMResponse:
         """
         텍스트 생성
@@ -162,7 +162,7 @@ class ILLMClient(Protocol):
     async def chat(
         self,
         messages: List[Message],
-        **kwargs,
+        **kwargs: Any,
     ) -> LLMResponse:
         """
         채팅 대화
@@ -176,7 +176,7 @@ class ILLMClient(Protocol):
         """
         ...
 
-    async def embed(self, text: str, **kwargs) -> np.ndarray:
+    async def embed(self, text: str, **kwargs: Any) -> np.ndarray:
         """
         텍스트 임베딩
 
@@ -193,7 +193,7 @@ class ILLMClient(Protocol):
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> AsyncIterator[str]:
         """
         스트리밍 텍스트 생성
@@ -235,7 +235,7 @@ class BaseLLMClient(ABC):
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> LLMResponse:
         """텍스트 생성 (서브클래스에서 구현)"""
         pass
@@ -244,12 +244,12 @@ class BaseLLMClient(ABC):
     async def chat(
         self,
         messages: List[Message],
-        **kwargs,
+        **kwargs: Any,
     ) -> LLMResponse:
         """채팅 대화 (서브클래스에서 구현)"""
         pass
 
-    async def embed(self, text: str, **kwargs) -> np.ndarray:
+    async def embed(self, text: str, **kwargs: Any) -> np.ndarray:
         """
         텍스트 임베딩 기본 구현
 
@@ -261,7 +261,7 @@ class BaseLLMClient(ABC):
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> AsyncIterator[str]:
         """
         스트리밍 생성 기본 구현
@@ -285,7 +285,7 @@ class BaseLLMClient(ABC):
                 f"{self.__class__.__name__} not initialized. Call initialize() first."
             )
 
-    def _build_generation_params(self, **kwargs) -> Dict[str, Any]:
+    def _build_generation_params(self, **kwargs: Any) -> Dict[str, Any]:
         """생성 파라미터 구성"""
         params = {
             "temperature": kwargs.get("temperature", self.config.temperature),

@@ -51,7 +51,7 @@ def get_service() -> SimulationService:
 
 @click.group()
 @click.version_option(version="1.0.0", prog_name="kooai")
-def cli():
+def cli() -> None:
     """
     KooAI - AI-powered Simulation Post-Processing CLI
 
@@ -65,7 +65,7 @@ def cli():
 @click.option("--name", "-n", help="시뮬레이션 이름")
 @click.option("--type", "-t", "sim_type", help="시뮬레이션 타입")
 @click.option("--analyze", "-a", is_flag=True, help="업로드 후 자동 분석")
-def upload(file: Path, name: Optional[str], sim_type: Optional[str], analyze: bool):
+def upload(file: Path, name: Optional[str], sim_type: Optional[str], analyze: bool) -> None:
     """
     시뮬레이션 파일 업로드
 
@@ -112,7 +112,7 @@ def upload(file: Path, name: Optional[str], sim_type: Optional[str], analyze: bo
 @cli.command()
 @click.option("--page", "-p", default=1, help="페이지 번호")
 @click.option("--size", "-s", default=20, help="페이지 크기")
-def list(page: int, size: int):
+def list(page: int, size: int) -> None:
     """
     시뮬레이션 목록 조회
 
@@ -153,7 +153,7 @@ def list(page: int, size: int):
 
 @cli.command()
 @click.argument("simulation_id")
-def info(simulation_id: str):
+def info(simulation_id: str) -> None:
     """
     시뮬레이션 정보 조회
 
@@ -200,7 +200,7 @@ def analyze(
     extremes: bool,
     outliers: bool,
     histogram: bool,
-):
+) -> None:
     """
     필드 분석
 
@@ -253,7 +253,7 @@ def analyze(
 @click.argument("field_name")
 @click.option("--timestep1", "-t1", default=0, help="첫 번째 타임스텝")
 @click.option("--timestep2", "-t2", default=1, help="두 번째 타임스텝")
-def compare(simulation_id: str, field_name: str, timestep1: int, timestep2: int):
+def compare(simulation_id: str, field_name: str, timestep1: int, timestep2: int) -> None:
     """
     타임스텝 비교
 
@@ -298,7 +298,7 @@ def compare(simulation_id: str, field_name: str, timestep1: int, timestep2: int)
 @cli.command()
 @click.argument("simulation_id")
 @click.argument("field_name")
-def convergence(simulation_id: str, field_name: str):
+def convergence(simulation_id: str, field_name: str) -> None:
     """
     수렴성 분석
 
@@ -345,7 +345,7 @@ def spatial(
     timestep: int,
     min_value: Optional[float],
     max_value: Optional[float],
-):
+) -> None:
     """
     공간 영역 분석
 
@@ -392,7 +392,7 @@ def spatial(
 @cli.command()
 @click.argument("simulation_id")
 @click.confirmation_option(prompt="Are you sure you want to delete this simulation?")
-def delete(simulation_id: str):
+def delete(simulation_id: str) -> None:
     """
     시뮬레이션 삭제
 

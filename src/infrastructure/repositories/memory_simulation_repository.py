@@ -18,7 +18,7 @@ class InMemorySimulationResultRepository(SimulationResultRepository):
     테스트 및 개발용. 데이터는 메모리에만 저장됩니다.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._storage: Dict[str, SimulationResult] = {}
         self._name_index: Dict[str, str] = {}  # name -> id 매핑
 
