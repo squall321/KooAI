@@ -89,13 +89,18 @@ class TestRepositoryDependencies:
     def test_get_simulation_repository_implements_interface(self):
         """Test repository implements SimulationResultRepository interface"""
         from src.presentation.api.dependencies import get_simulation_repository
-        from src.core.repositories.interfaces import SimulationResultRepository
 
         get_simulation_repository.cache_clear()
 
         repo = get_simulation_repository()
 
-        assert isinstance(repo, SimulationResultRepository)
+        # Check repository has required methods (Protocol check)
+        assert hasattr(repo, 'add')
+        assert hasattr(repo, 'get_by_id')
+        assert hasattr(repo, 'list_all')
+        assert callable(repo.add)
+        assert callable(repo.get_by_id)
+        assert callable(repo.list_all)
 
 
 class TestServiceDependencies:
