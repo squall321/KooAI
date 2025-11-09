@@ -16,7 +16,7 @@ from .adapters.base import (
 )
 
 
-def _register_adapters():
+def _register_adapters() -> None:
     """어댑터를 팩토리에 등록"""
     try:
         from .adapters.pytorch import PyTorchAdapter

@@ -209,7 +209,7 @@ class AIModelRegistry:
         name: str,
         version: str = "latest",
         device: str = "cpu",
-        **config_kwargs,
+        **config_kwargs: Any,
     ) -> BaseModelAdapter:
         """
         모델 로드
