@@ -184,6 +184,9 @@ def _setup_file_handler(config: LogConfig) -> None:
     """Setup file handler for logging"""
     import logging.handlers
 
+    if config.log_file is None:
+        return
+
     # Create rotating file handler
     file_handler = logging.handlers.RotatingFileHandler(
         filename=config.log_file,

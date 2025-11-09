@@ -116,7 +116,7 @@ async def analyze_with_llm_stream(request: AnalysisRequest) -> StreamingResponse
                 _usage_tracker.record_usage(
                     model="mock-model",
                     prompt_tokens=len(request.prompt.split()),
-                    completion_tokens=chunk.metadata.get("token_count", 0),
+                    completion_tokens=chunk.metadata.get("token_count", 0) if chunk.metadata else 0,
                     cost_usd=0.001,  # Mock cost
                 )
 
