@@ -85,7 +85,7 @@ def create_error_response(
 # =============================================================================
 
 
-async def validation_error_handler(request: Request, exc: UseCaseValidationError):
+async def validation_error_handler(request: Request, exc: UseCaseValidationError) -> JSONResponse:
     """ValidationError 핸들러"""
     request_id = generate_request_id()
     logger.warning(
@@ -103,7 +103,7 @@ async def validation_error_handler(request: Request, exc: UseCaseValidationError
     )
 
 
-async def not_found_error_handler(request: Request, exc: NotFoundError):
+async def not_found_error_handler(request: Request, exc: NotFoundError) -> JSONResponse:
     """NotFoundError 핸들러"""
     request_id = generate_request_id()
     logger.info(
@@ -121,7 +121,7 @@ async def not_found_error_handler(request: Request, exc: NotFoundError):
     )
 
 
-async def already_exists_error_handler(request: Request, exc: AlreadyExistsError):
+async def already_exists_error_handler(request: Request, exc: AlreadyExistsError) -> JSONResponse:
     """AlreadyExistsError 핸들러"""
     request_id = generate_request_id()
     logger.warning(
@@ -139,7 +139,7 @@ async def already_exists_error_handler(request: Request, exc: AlreadyExistsError
     )
 
 
-async def use_case_error_handler(request: Request, exc: UseCaseError):
+async def use_case_error_handler(request: Request, exc: UseCaseError) -> JSONResponse:
     """UseCaseError 핸들러"""
     request_id = generate_request_id()
     logger.error(
@@ -163,7 +163,7 @@ async def use_case_error_handler(request: Request, exc: UseCaseError):
 # =============================================================================
 
 
-async def kooai_error_handler(request: Request, exc: KooAIError):
+async def kooai_error_handler(request: Request, exc: KooAIError) -> JSONResponse:
     """
     KooAI 커스텀 예외 핸들러
 
@@ -236,7 +236,7 @@ async def kooai_error_handler(request: Request, exc: KooAIError):
     )
 
 
-async def http_exception_handler(request: Request, exc: HTTPException):
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """FastAPI HTTPException 핸들러"""
     request_id = generate_request_id()
     logger.info(
@@ -258,7 +258,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
-async def general_exception_handler(request: Request, exc: Exception):
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """
     일반 예외 핸들러
 
@@ -292,7 +292,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 
-def register_exception_handlers(app):
+def register_exception_handlers(app: Any) -> None:
     """
     예외 핸들러 등록
 
