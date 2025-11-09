@@ -37,7 +37,7 @@ class KooAIError(Exception):
 
     def to_dict(self) -> Dict[str, Any]:
         """딕셔너리로 변환 (API 응답용)"""
-        result = {
+        result: Dict[str, Any] = {
             "error_type": self.__class__.__name__,
             "error_code": self.error_code,
             "message": self.message,
@@ -92,8 +92,8 @@ class MissingFieldError(ParsingError):
         self,
         field_name: str,
         message: Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         self.field_name = field_name
         msg = message or f"Required field missing: {field_name}"
         super().__init__(msg, details={"field_name": field_name}, **kwargs)
@@ -117,7 +117,7 @@ class FileSystemError(KooAIError):
 class FileNotFoundError(FileSystemError):
     """파일을 찾을 수 없음"""
 
-    def __init__(self, file_path: str, **kwargs):
+    def __init__(self, file_path: str, **kwargs: Any) -> None:
         self.file_path = file_path
         super().__init__(
             f"File not found: {file_path}",
@@ -132,7 +132,7 @@ class FileNotFoundError(FileSystemError):
 class FilePermissionError(FileSystemError):
     """파일 접근 권한 없음"""
 
-    def __init__(self, file_path: str, operation: str = "read", **kwargs):
+    def __init__(self, file_path: str, operation: str = "read", **kwargs: Any) -> None:
         self.file_path = file_path
         self.operation = operation
         super().__init__(
@@ -148,7 +148,7 @@ class FilePermissionError(FileSystemError):
 class FileTooLargeError(FileSystemError):
     """파일 크기 초과"""
 
-    def __init__(self, file_path: str, size: int, max_size: int, **kwargs):
+    def __init__(self, file_path: str, size: int, max_size: int, **kwargs: Any) -> None:
         self.file_path = file_path
         self.size = size
         self.max_size = max_size
@@ -177,7 +177,7 @@ class SimulationError(KooAIError):
 class InvalidTimestepError(SimulationError):
     """잘못된 타임스텝"""
 
-    def __init__(self, timestep: int, **kwargs):
+    def __init__(self, timestep: int, **kwargs: Any) -> None:
         self.timestep = timestep
         super().__init__(
             f"Invalid timestep: {timestep}",
@@ -192,10 +192,10 @@ class InvalidTimestepError(SimulationError):
 class FieldNotFoundError(SimulationError):
     """필드를 찾을 수 없음"""
 
-    def __init__(self, field_name: str, available_fields: Optional[list] = None, **kwargs):
+    def __init__(self, field_name: str, available_fields: Optional[list] = None, **kwargs: Any) -> None:
         self.field_name = field_name
         self.available_fields = available_fields
-        details = {"field_name": field_name}
+        details: Dict[str, Any] = {"field_name": field_name}
         if available_fields:
             details["available_fields"] = available_fields
         super().__init__(
@@ -237,7 +237,7 @@ class ComputationError(KooAIError):
 class NumericalInstabilityError(ComputationError):
     """수치 불안정성 (NaN, Inf 등)"""
 
-    def __init__(self, operation: str, **kwargs):
+    def __init__(self, operation: str, **kwargs: Any) -> None:
         self.operation = operation
         super().__init__(
             f"Numerical instability detected in: {operation}",
@@ -252,7 +252,7 @@ class NumericalInstabilityError(ComputationError):
 class ConvergenceError(ComputationError):
     """수렴하지 않음"""
 
-    def __init__(self, iterations: int, tolerance: float, **kwargs):
+    def __init__(self, iterations: int, tolerance: float, **kwargs: Any) -> None:
         self.iterations = iterations
         self.tolerance = tolerance
         super().__init__(
@@ -268,7 +268,7 @@ class ConvergenceError(ComputationError):
 class InsufficientDataError(ComputationError):
     """데이터 부족 (통계 계산 등)"""
 
-    def __init__(self, required: int, actual: int, **kwargs):
+    def __init__(self, required: int, actual: int, **kwargs: Any) -> None:
         self.required = required
         self.actual = actual
         super().__init__(
@@ -355,7 +355,7 @@ class AIError(KooAIError):
 class ModelNotFoundError(AIError):
     """AI 모델을 찾을 수 없음"""
 
-    def __init__(self, model_name: str, **kwargs):
+    def __init__(self, model_name: str, **kwargs: Any) -> None:
         self.model_name = model_name
         super().__init__(
             f"Model not found: {model_name}",
@@ -396,7 +396,7 @@ class ConfigurationError(KooAIError):
 class MissingConfigError(ConfigurationError):
     """필수 설정 누락"""
 
-    def __init__(self, config_key: str, **kwargs):
+    def __init__(self, config_key: str, **kwargs: Any) -> None:
         self.config_key = config_key
         super().__init__(
             f"Missing required configuration: {config_key}",
@@ -411,7 +411,7 @@ class MissingConfigError(ConfigurationError):
 class InvalidConfigError(ConfigurationError):
     """잘못된 설정 값"""
 
-    def __init__(self, config_key: str, value: Any, reason: str, **kwargs):
+    def __init__(self, config_key: str, value: Any, reason: str, **kwargs: Any) -> None:
         self.config_key = config_key
         self.value = value
         self.reason = reason
@@ -440,7 +440,7 @@ class ExternalServiceError(KooAIError):
 class APIConnectionError(ExternalServiceError):
     """외부 API 연결 실패"""
 
-    def __init__(self, service_name: str, **kwargs):
+    def __init__(self, service_name: str, **kwargs: Any) -> None:
         self.service_name = service_name
         super().__init__(
             f"Failed to connect to external service: {service_name}",
@@ -455,7 +455,7 @@ class APIConnectionError(ExternalServiceError):
 class APITimeoutError(ExternalServiceError):
     """외부 API 타임아웃"""
 
-    def __init__(self, service_name: str, timeout: float, **kwargs):
+    def __init__(self, service_name: str, timeout: float, **kwargs: Any) -> None:
         self.service_name = service_name
         self.timeout = timeout
         super().__init__(
@@ -471,7 +471,7 @@ class APITimeoutError(ExternalServiceError):
 class APIRateLimitError(ExternalServiceError):
     """외부 API rate limit 초과"""
 
-    def __init__(self, service_name: str, retry_after: Optional[int] = None, **kwargs):
+    def __init__(self, service_name: str, retry_after: Optional[int] = None, **kwargs: Any) -> None:
         self.service_name = service_name
         self.retry_after = retry_after
         msg = f"Rate limit exceeded for {service_name}"
