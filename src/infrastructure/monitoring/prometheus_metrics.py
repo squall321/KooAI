@@ -12,7 +12,7 @@ Metrics Categories:
 6. Application Metrics - Uptime, version info, active users
 """
 
-from typing import Optional
+from typing import Optional, cast
 import time
 import psutil
 from prometheus_client import (
@@ -390,12 +390,12 @@ def collect_all_metrics() -> bytes:
     update_task_queue_metrics()
 
     # Generate Prometheus format
-    return generate_latest(metrics_registry)
+    return cast(bytes, generate_latest(metrics_registry))
 
 
 def get_metrics_content_type() -> str:
     """Get content type for Prometheus metrics"""
-    return CONTENT_TYPE_LATEST
+    return cast(str, CONTENT_TYPE_LATEST)
 
 
 # ============================================================================

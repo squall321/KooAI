@@ -200,7 +200,7 @@ class MetricsTracker:
             메트릭 이름 -> 요약 통계
         """
         # 모든 메트릭 이름 수집
-        metric_names = set()
+        metric_names: set[str] = set()
         for record in self._records:
             if phase is None or record.phase == phase:
                 metric_names.update(record.metrics.keys())
@@ -246,7 +246,7 @@ class MetricsTracker:
             return
 
         # 모든 메트릭 키 수집
-        all_keys = set()
+        all_keys: set[str] = set()
         for record in filtered_records:
             all_keys.update(record.metrics.keys())
 
