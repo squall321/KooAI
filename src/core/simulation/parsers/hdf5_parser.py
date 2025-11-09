@@ -15,7 +15,7 @@ try:
     HDF5_AVAILABLE = True
 except ImportError:
     HDF5_AVAILABLE = False
-    h5py = None  # type: ignore
+    h5py = None
 
 from .base import BaseParser
 from ..models import (

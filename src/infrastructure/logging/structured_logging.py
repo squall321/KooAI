@@ -8,7 +8,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 import json
 
 try:
@@ -82,7 +82,7 @@ class StructuredLogger:
             file_handler.setFormatter(formatter)
             self.logger.addHandler(file_handler)
 
-    def _log(self, level: int, message: str, **kwargs):
+    def _log(self, level: int, message: str, **kwargs: Any) -> None:
         """Internal log method with extra fields."""
         extra = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -90,11 +90,11 @@ class StructuredLogger:
         }
         self.logger.log(level, message, extra=extra)
 
-    def debug(self, message: str, **kwargs):
+    def debug(self, message: str, **kwargs: Any) -> None:
         """Log debug message with extra fields."""
         self._log(logging.DEBUG, message, **kwargs)
 
-    def info(self, message: str, **kwargs):
+    def info(self, message: str, **kwargs: Any) -> None:
         """
         Log info message with extra fields.
 
@@ -105,11 +105,11 @@ class StructuredLogger:
         """
         self._log(logging.INFO, message, **kwargs)
 
-    def warning(self, message: str, **kwargs):
+    def warning(self, message: str, **kwargs: Any) -> None:
         """Log warning message with extra fields."""
         self._log(logging.WARNING, message, **kwargs)
 
-    def error(self, message: str, **kwargs):
+    def error(self, message: str, **kwargs: Any) -> None:
         """
         Log error message with extra fields.
 
@@ -120,7 +120,7 @@ class StructuredLogger:
         """
         self._log(logging.ERROR, message, **kwargs)
 
-    def critical(self, message: str, **kwargs):
+    def critical(self, message: str, **kwargs: Any) -> None:
         """Log critical message with extra fields."""
         self._log(logging.CRITICAL, message, **kwargs)
 
@@ -143,8 +143,8 @@ class RequestLogger:
         status_code: int,
         duration_ms: float,
         user_id: Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Log HTTP request.
 
@@ -185,8 +185,8 @@ class MetricsLogger:
         file_size: int,
         duration_seconds: float,
         success: bool,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log file upload event."""
         self.logger.info(
             "File upload",
@@ -208,8 +208,8 @@ class MetricsLogger:
         completion_tokens: int,
         duration_seconds: float,
         cost_usd: Optional[float] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log LLM request event."""
         self.logger.info(
             "LLM request",
@@ -230,8 +230,8 @@ class MetricsLogger:
         viz_type: str,
         duration_seconds: float,
         success: bool,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log visualization render event."""
         self.logger.info(
             "Visualization render",
@@ -248,8 +248,8 @@ class MetricsLogger:
         error_type: str,
         error_message: str,
         user_id: Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log error event."""
         self.logger.error(
             "Error occurred",
@@ -280,8 +280,8 @@ class AuditLogger:
         ip_address: str,
         user_agent: str,
         success: bool,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log authentication event."""
         self.logger.info(
             f"Authentication: {event}",
@@ -302,8 +302,8 @@ class AuditLogger:
         resource: str,
         action: str,
         granted: bool,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log authorization event."""
         self.logger.info(
             f"Authorization: {event}",
@@ -322,8 +322,8 @@ class AuditLogger:
         resource_type: str,
         resource_id: str,
         action: str,  # read, write, delete
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log data access event."""
         self.logger.info(
             f"Data access: {action} {resource_type}",
@@ -341,8 +341,8 @@ class AuditLogger:
         setting: str,
         old_value: str,
         new_value: str,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Log configuration change."""
         self.logger.info(
             f"Configuration changed: {setting}",
