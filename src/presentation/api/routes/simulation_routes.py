@@ -61,7 +61,7 @@ async def upload_simulation(
     name: Optional[str] = Form(None, description="시뮬레이션 이름"),
     simulation_type: Optional[str] = Form(None, description="시뮬레이션 타입"),
     service: SimulationService = Depends(get_simulation_service),
-):
+) -> UploadSimulationResponse:
     """
     시뮬레이션 파일 업로드
 
@@ -112,7 +112,7 @@ async def upload_simulation(
 async def get_simulation(
     simulation_id: str,
     service: SimulationService = Depends(get_simulation_service),
-):
+) -> SimulationInfoResponse:
     """시뮬레이션 정보 조회"""
     from src.application.use_cases import GetSimulationRequest
 
@@ -144,7 +144,7 @@ async def get_simulation(
 async def delete_simulation(
     simulation_id: str,
     service: SimulationService = Depends(get_simulation_service),
-):
+) -> SuccessResponse:
     """시뮬레이션 삭제"""
     deleted = service.repository.delete(simulation_id)
 
@@ -171,7 +171,7 @@ async def list_simulations(
     page: int = 1,
     page_size: int = 20,
     service: SimulationService = Depends(get_simulation_service),
-):
+) -> ListSimulationsResponse:
     """시뮬레이션 목록 조회 (페이지네이션)"""
     result = service.list_simulations(page=page, page_size=page_size)
 
@@ -211,7 +211,7 @@ async def analyze_field(
     simulation_id: str,
     request: AnalyzeFieldRequest,
     service: SimulationService = Depends(get_simulation_service),
-):
+) -> AnalyzeFieldResponse:
     """필드 데이터 분석"""
     result = service.analyze_field_use_case.execute(
         UseCaseAnalyzeFieldRequest(
@@ -252,7 +252,7 @@ async def compare_timesteps(
     simulation_id: str,
     request: CompareTimestepsRequest,
     service: SimulationService = Depends(get_simulation_service),
-):
+) -> CompareTimestepsResponse:
     """타임스텝 간 비교"""
     result = service.compare_timesteps_use_case.execute(
         UseCaseCompareTimestepsRequest(
@@ -288,7 +288,7 @@ async def compute_convergence(
     simulation_id: str,
     field_name: str,
     service: SimulationService = Depends(get_simulation_service),
-):
+) -> ComputeConvergenceResponse:
     """수렴성 분석"""
     result = service.compute_convergence_use_case.execute(
         UseCaseComputeConvergenceRequest(simulation_id=simulation_id, field_name=field_name)
@@ -323,7 +323,7 @@ async def spatial_analysis(
     simulation_id: str,
     request: SpatialAnalysisRequest,
     service: SimulationService = Depends(get_simulation_service),
-):
+) -> SpatialAnalysisResponse:
     """공간 영역 분석"""
     result = service.spatial_analysis_use_case.execute(
         UseCaseSpatialAnalysisRequest(
