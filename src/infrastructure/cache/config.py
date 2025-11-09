@@ -3,7 +3,7 @@ Cache configuration
 """
 
 import os
-from typing import Optional
+from typing import Any, Optional
 from pydantic import Field, ConfigDict, field_validator
 from pydantic_settings import BaseSettings
 
@@ -69,7 +69,7 @@ class CacheConfig(BaseSettings):
 
     @field_validator("redis_url", mode="before")
     @classmethod
-    def check_redis_url(cls, v):
+    def check_redis_url(cls: Any, v: Optional[str]) -> Optional[str]:
         """
         REDIS_URL 환경 변수 확인
 
