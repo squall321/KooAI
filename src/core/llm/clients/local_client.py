@@ -47,7 +47,7 @@ class LocalLLMClient(BaseLLMClient):
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> LLMResponse:
         """
         텍스트 생성
@@ -74,7 +74,7 @@ class LocalLLMClient(BaseLLMClient):
     async def chat(
         self,
         messages: List[Message],
-        **kwargs,
+        **kwargs: Any,
     ) -> LLMResponse:
         """
         채팅 대화
@@ -142,7 +142,7 @@ class LocalLLMClient(BaseLLMClient):
         except Exception as e:
             raise RuntimeError(f"Local LLM API call failed: {str(e)}")
 
-    async def embed(self, text: str, **kwargs) -> np.ndarray:
+    async def embed(self, text: str, **kwargs: Any) -> np.ndarray:
         """
         텍스트 임베딩
 
@@ -191,11 +191,11 @@ class LocalLLMClient(BaseLLMClient):
         except Exception as e:
             raise RuntimeError(f"Local LLM embedding failed: {str(e)}")
 
-    async def stream_generate(
+    async def stream_generate(  # type: ignore[override]
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> AsyncIterator[str]:
         """
         스트리밍 텍스트 생성
