@@ -6,8 +6,8 @@ import shutil
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import AsyncIterator, BinaryIO, Optional
-import aiofiles
-import aiofiles.os
+import aiofiles  # type: ignore[import-untyped]
+import aiofiles.os  # type: ignore[import-untyped]
 
 from .base import (
     StorageBackend,

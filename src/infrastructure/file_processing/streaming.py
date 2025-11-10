@@ -9,7 +9,7 @@ import hashlib
 from pathlib import Path
 from typing import AsyncIterator, Optional, Callable, List
 from dataclasses import dataclass
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 
 from fastapi import UploadFile
 

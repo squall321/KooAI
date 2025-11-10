@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 
 class ModelSource(str, Enum):
