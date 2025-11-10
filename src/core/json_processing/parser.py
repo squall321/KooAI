@@ -4,6 +4,8 @@ JSON 파싱 엔진
 대용량 JSON 파일을 스트리밍 방식으로 파싱하고 계층적 데이터를 추출합니다.
 """
 
+from __future__ import annotations
+
 import json
 from typing import (
     Optional,
