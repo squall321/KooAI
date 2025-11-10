@@ -103,7 +103,7 @@ class LocalLLMClient(BaseLLMClient):
 
         try:
             # POST 요청
-            response = await self._client.post(
+            response = await self._client.post(  # type: ignore[union-attr]
                 "/v1/chat/completions",
                 json=request_data,
             )
@@ -168,7 +168,7 @@ class LocalLLMClient(BaseLLMClient):
 
         try:
             # API 요청
-            response = await self._client.post(
+            response = await self._client.post(  # type: ignore[union-attr]
                 "/v1/embeddings",
                 json={
                     "model": embedding_model,
@@ -191,7 +191,7 @@ class LocalLLMClient(BaseLLMClient):
         except Exception as e:
             raise RuntimeError(f"Local LLM embedding failed: {str(e)}")
 
-    async def stream_generate(  # type: ignore[override]
+    async def stream_generate(  # type: ignore[override,misc]
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
@@ -230,7 +230,7 @@ class LocalLLMClient(BaseLLMClient):
 
         try:
             # 스트리밍 요청
-            async with self._client.stream(
+            async with self._client.stream(  # type: ignore[union-attr]
                 "POST",
                 "/v1/chat/completions",
                 json=request_data,

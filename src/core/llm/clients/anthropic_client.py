@@ -124,7 +124,7 @@ class AnthropicClient(BaseLLMClient):
             if system_prompt:
                 call_params["system"] = system_prompt
 
-            response = await self._client.messages.create(**call_params)
+            response = await self._client.messages.create(**call_params)  # type: ignore[union-attr]
 
             # 응답 파싱
             content = response.content[0].text
@@ -164,7 +164,7 @@ class AnthropicClient(BaseLLMClient):
             "Anthropic does not provide embedding API. " "Use OpenAI or other embedding services."
         )
 
-    async def stream_generate(  # type: ignore[override]
+    async def stream_generate(  # type: ignore[override,misc]
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
@@ -205,7 +205,7 @@ class AnthropicClient(BaseLLMClient):
             if system_prompt:
                 call_params["system"] = system_prompt
 
-            async with self._client.messages.stream(**call_params) as stream:
+            async with self._client.messages.stream(**call_params) as stream:  # type: ignore[union-attr]
                 async for text in stream.text_stream:
                     yield text
 
