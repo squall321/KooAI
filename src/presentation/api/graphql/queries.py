@@ -4,7 +4,7 @@ GraphQL Queries, Mutations, and Subscriptions
 Main GraphQL API definition.
 """
 
-from typing import List, Optional
+from typing import List, Optional, AsyncIterator
 import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
@@ -521,7 +521,7 @@ class Subscription:
     @strawberry.subscription(description="Subscribe to upload progress")
     async def uploadProgress(
         self, simulation_id: str, info: Info
-    ) -> UploadProgress:
+    ) -> AsyncIterator[UploadProgress]:
         """
         Subscribe to file upload progress.
 
@@ -551,7 +551,7 @@ class Subscription:
     @strawberry.subscription(description="Subscribe to analysis progress")
     async def analysisProgress(
         self, analysis_id: str, info: Info
-    ) -> AnalysisProgress:
+    ) -> AsyncIterator[AnalysisProgress]:
         """
         Subscribe to analysis progress.
 
@@ -579,7 +579,7 @@ class Subscription:
     @strawberry.subscription(description="Subscribe to LLM streaming")
     async def llmStream(
         self, llm_input: LLMAnalysisInput, info: Info
-    ) -> LLMStreamChunk:
+    ) -> AsyncIterator[LLMStreamChunk]:
         """
         Subscribe to streaming LLM responses.
 
