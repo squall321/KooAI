@@ -99,7 +99,7 @@ class MatplotlibChartService:
     Generates static charts in PNG/SVG formats.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize matplotlib chart service."""
         if plt is None:
             raise ImportError(
@@ -427,7 +427,7 @@ class PlotlyChartService:
     Generates interactive charts in HTML/JSON formats.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize Plotly chart service."""
         if go is None:
             raise ImportError(
@@ -501,9 +501,9 @@ class PlotlyChartService:
         )
 
         if output_format == ChartFormat.HTML:
-            return fig.to_html(include_plotlyjs="cdn")
+            return fig.to_html(include_plotlyjs="cdn")  # type: ignore[no-any-return]
         elif output_format == ChartFormat.JSON:
-            return fig.to_json()
+            return fig.to_json()  # type: ignore[no-any-return]
         else:
             raise ValueError(f"Unsupported format: {output_format}")
 
@@ -560,9 +560,9 @@ class PlotlyChartService:
         )
 
         if output_format == ChartFormat.HTML:
-            return fig.to_html(include_plotlyjs="cdn")
+            return fig.to_html(include_plotlyjs="cdn")  # type: ignore[no-any-return]
         elif output_format == ChartFormat.JSON:
-            return fig.to_json()
+            return fig.to_json()  # type: ignore[no-any-return]
         else:
             raise ValueError(f"Unsupported format: {output_format}")
 
@@ -570,33 +570,33 @@ class PlotlyChartService:
 class MockChartService:
     """Mock chart service when libraries unavailable."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize mock service."""
         pass
 
-    def create_line_chart(self, *args, **kwargs):
+    def create_line_chart(self, *args: Any, **kwargs: Any) -> Any:
         """Mock method."""
         raise NotImplementedError(
             "Matplotlib/Plotly not installed. Install with: pip install matplotlib plotly"
         )
 
-    def create_scatter_chart(self, *args, **kwargs):
+    def create_scatter_chart(self, *args: Any, **kwargs: Any) -> Any:
         """Mock method."""
         raise NotImplementedError("Matplotlib not installed")
 
-    def create_histogram(self, *args, **kwargs):
+    def create_histogram(self, *args: Any, **kwargs: Any) -> Any:
         """Mock method."""
         raise NotImplementedError("Matplotlib not installed")
 
-    def create_heatmap(self, *args, **kwargs):
+    def create_heatmap(self, *args: Any, **kwargs: Any) -> Any:
         """Mock method."""
         raise NotImplementedError("Matplotlib not installed")
 
-    def create_contour(self, *args, **kwargs):
+    def create_contour(self, *args: Any, **kwargs: Any) -> Any:
         """Mock method."""
         raise NotImplementedError("Matplotlib not installed")
 
-    def create_3d_surface(self, *args, **kwargs):
+    def create_3d_surface(self, *args: Any, **kwargs: Any) -> Any:
         """Mock method."""
         raise NotImplementedError("Plotly not installed")
 
@@ -605,12 +605,12 @@ class MockChartService:
 def create_matplotlib_service() -> MatplotlibChartService:
     """Create matplotlib chart service."""
     if plt is None:
-        return MockChartService()
+        return MockChartService()  # type: ignore[return-value]
     return MatplotlibChartService()
 
 
 def create_plotly_service() -> PlotlyChartService:
     """Create plotly chart service."""
     if go is None:
-        return MockChartService()
+        return MockChartService()  # type: ignore[return-value]
     return PlotlyChartService()
