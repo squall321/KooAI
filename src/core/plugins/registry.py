@@ -6,7 +6,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from .base import (
     IPlugin,
