@@ -91,7 +91,7 @@ class StreamingJSONParser(BaseParser, StreamingParser[JSONChunk]):
         """지원 확장자"""
         return [".json"]
 
-    def parse(self, file_path: Path, **options) -> SimulationResult:
+    def parse(self, file_path: Path, **options: Any) -> SimulationResult:
         """
         JSON 파일 파싱 (호환성 메서드)
 
@@ -108,7 +108,7 @@ class StreamingJSONParser(BaseParser, StreamingParser[JSONChunk]):
         self,
         file_path: Path,
         json_path: str = "item",  # ijson path (예: "data.item" for {"data": [...]}
-        **options,
+        **options: Any,
     ) -> SimulationResult:
         """
         스트리밍 방식으로 JSON 파일 파싱
@@ -196,8 +196,7 @@ class StreamingJSONParser(BaseParser, StreamingParser[JSONChunk]):
     def read_chunks(
         self,
         file_path: Path,
-        json_path: str = "item",
-        progress_tracker: Optional[object] = None,
+        **options: Any,
     ) -> Iterator[JSONChunk]:
         """
         청크 단위로 JSON 파일 읽기
@@ -206,12 +205,17 @@ class StreamingJSONParser(BaseParser, StreamingParser[JSONChunk]):
 
         Args:
             file_path: JSON 파일 경로
-            json_path: ijson path (예: "item", "data.item")
+            **options: 파서 옵션
+                json_path: ijson path (예: "item", "data.item")
             progress_tracker: 진행률 추적기
 
         Yields:
             JSONChunk 인스턴스
         """
+        # Extract options
+        json_path = options.get("json_path", "item")
+        progress_tracker = options.get("progress_tracker", None)
+
         with open(file_path, "rb") as f:
             # ijson을 사용한 스트리밍 파싱
             parser = ijson.items(f, json_path)

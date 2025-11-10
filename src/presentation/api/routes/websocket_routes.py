@@ -6,7 +6,7 @@ Real-time updates for file uploads, processing status, and notifications.
 
 import json
 import asyncio
-from typing import Dict
+from typing import Dict, Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from datetime import datetime
 

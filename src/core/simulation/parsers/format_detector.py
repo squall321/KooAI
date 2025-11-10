@@ -390,7 +390,7 @@ class AutoFormatParser:
             raise ValueError(f"No parser available for format: {detection.format.value}")
 
         # 파싱 실행
-        return parser.parse(file_path, **options)
+        return parser.parse(file_path, **options)  # type: ignore[no-any-return]
 
     def _get_parser(self, file_format: FileFormat) -> Any:
         """파일 형식에 맞는 파서 반환"""

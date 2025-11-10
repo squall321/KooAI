@@ -7,7 +7,7 @@ Handles large file uploads with chunked streaming and parallel processing.
 import asyncio
 import hashlib
 from pathlib import Path
-from typing import AsyncIterator, Optional, Callable, List
+from typing import Any, AsyncIterator, Awaitable, Callable, List, Optional
 from dataclasses import dataclass
 import aiofiles  # type: ignore[import-untyped]
 
@@ -231,9 +231,9 @@ class ParallelFileProcessor:
     async def process_files(
         self,
         files: List[Path],
-        process_func: Callable[[Path], asyncio.coroutine],
+        process_func: Callable[[Path], Awaitable[Any]],
         progress_callback: Optional[Callable[[int, int], None]] = None,
-    ) -> List[any]:
+    ) -> List[Any]:
         """
         Process multiple files in parallel.
 
@@ -263,7 +263,7 @@ class ParallelFileProcessor:
         completed = 0
         total = len(files)
 
-        async def process_with_semaphore(file: Path):
+        async def process_with_semaphore(file: Path) -> Any:
             nonlocal completed
             async with semaphore:
                 result = await process_func(file)
