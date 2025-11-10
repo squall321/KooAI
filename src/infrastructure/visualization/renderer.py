@@ -6,7 +6,7 @@ Provides 3D visualization rendering using PyVista for simulation data.
 
 import io
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Any
 import numpy as np
 from PIL import Image
 
@@ -60,7 +60,7 @@ class PyVistaRenderer:
     Renders simulation data as 3D visualizations with various options.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize renderer."""
         if pv is None:
             raise ImportError(
@@ -402,47 +402,47 @@ class PyVistaRenderer:
             print(f"Available fields: {fields}")
             ```
         """
-        return mesh.array_names
+        return mesh.array_names  # type: ignore[no-any-return]
 
 
 class MockRenderer:
     """Mock renderer for when PyVista is not available."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize mock renderer."""
         pass
 
-    def render_mesh(self, *args, **kwargs) -> bytes:
+    def render_mesh(self, *args: Any, **kwargs: Any) -> bytes:
         """Mock render method."""
         raise NotImplementedError(
             "PyVista is not installed. Install with: pip install pyvista"
         )
 
-    def render_from_file(self, *args, **kwargs) -> bytes:
+    def render_from_file(self, *args: Any, **kwargs: Any) -> bytes:
         """Mock render method."""
         raise NotImplementedError(
             "PyVista is not installed. Install with: pip install pyvista"
         )
 
-    def render_volume(self, *args, **kwargs) -> bytes:
+    def render_volume(self, *args: Any, **kwargs: Any) -> bytes:
         """Mock render method."""
         raise NotImplementedError(
             "PyVista is not installed. Install with: pip install pyvista"
         )
 
-    def render_slice(self, *args, **kwargs) -> bytes:
+    def render_slice(self, *args: Any, **kwargs: Any) -> bytes:
         """Mock render method."""
         raise NotImplementedError(
             "PyVista is not installed. Install with: pip install pyvista"
         )
 
-    def render_multi_slice(self, *args, **kwargs) -> bytes:
+    def render_multi_slice(self, *args: Any, **kwargs: Any) -> bytes:
         """Mock render method."""
         raise NotImplementedError(
             "PyVista is not installed. Install with: pip install pyvista"
         )
 
-    def get_available_fields(self, *args, **kwargs) -> List[str]:
+    def get_available_fields(self, *args: Any, **kwargs: Any) -> List[str]:
         """Mock method."""
         return []
 
@@ -456,5 +456,5 @@ def create_renderer() -> PyVistaRenderer:
         PyVistaRenderer instance (or MockRenderer if PyVista unavailable)
     """
     if pv is None:
-        return MockRenderer()
+        return MockRenderer()  # type: ignore[return-value]
     return PyVistaRenderer()

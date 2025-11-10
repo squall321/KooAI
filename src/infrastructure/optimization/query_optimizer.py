@@ -3,7 +3,7 @@ Database query optimization utilities
 """
 
 import functools
-from typing import Any, Callable, List, Optional, Sequence
+from typing import Any, Callable, List, Optional, Sequence, Iterator
 from contextlib import contextmanager
 import structlog
 
@@ -62,7 +62,7 @@ class QueryOptimizer:
 
     @staticmethod
     @contextmanager
-    def bulk_insert_context(session: Any):
+    def bulk_insert_context(session: Any) -> Iterator[Any]:
         """
         Context manager for bulk inserts with optimizations
 
@@ -117,7 +117,7 @@ def optimize_query(
     fetch_related: Optional[List[str]] = None,
     use_cache: bool = True,
     batch_size: Optional[int] = None,
-):
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to optimize database queries
 
@@ -132,9 +132,9 @@ def optimize_query(
             return session.query(Post).limit(limit).all()
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             logger.debug(
                 "optimizing_query",
                 function=func.__name__,
@@ -154,7 +154,7 @@ def optimize_query(
     return decorator
 
 
-def batch_query(batch_size: int = 100, key_param: str = "ids"):
+def batch_query(batch_size: int = 100, key_param: str = "ids") -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to batch query operations
 
@@ -168,9 +168,9 @@ def batch_query(batch_size: int = 100, key_param: str = "ids"):
             return session.query(User).filter(User.id.in_(user_ids)).all()
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Extract IDs from kwargs
             ids = kwargs.get(key_param)
 

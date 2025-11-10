@@ -4,7 +4,7 @@ Tenant Management Service
 Business logic for tenant operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 import secrets
@@ -98,13 +98,13 @@ class TenantService:
 
     def get_tenant(self, tenant_id: str) -> Optional[Tenant]:
         """Get tenant by ID."""
-        return self.db.query(Tenant).filter(Tenant.id == tenant_id).first()
+        return self.db.query(Tenant).filter(Tenant.id == tenant_id).first()  # type: ignore[no-any-return]
 
     def get_tenant_by_slug(self, slug: str) -> Optional[Tenant]:
         """Get tenant by slug."""
-        return self.db.query(Tenant).filter(Tenant.slug == slug).first()
+        return self.db.query(Tenant).filter(Tenant.slug == slug).first()  # type: ignore[no-any-return]
 
-    def update_tenant(self, tenant_id: str, **kwargs) -> Optional[Tenant]:
+    def update_tenant(self, tenant_id: str, **kwargs: Any) -> Optional[Tenant]:
         """Update tenant."""
         tenant = self.get_tenant(tenant_id)
         if not tenant:
@@ -221,7 +221,7 @@ class TenantService:
         resource_type: Optional[str] = None,
         resource_id: Optional[str] = None,
         extra_data: Optional[dict] = None,
-    ):
+    ) -> None:
         """
         Log tenant activity.
 

@@ -251,7 +251,8 @@ class ModelServer:
 
         try:
             # Instantiate model
-            model = model_class()
+            metadata = model_class._model_metadata
+            model = model_class(metadata)
 
             # Load model from disk
             full_path = self.model_dir / model_path

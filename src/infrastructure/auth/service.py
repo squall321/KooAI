@@ -91,11 +91,11 @@ class AuthService:
     # Password hashing
     def hash_password(self, password: str) -> str:
         """Hash a password."""
-        return pwd_context.hash(password)
+        return pwd_context.hash(password)  # type: ignore[no-any-return]
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a password against hash."""
-        return pwd_context.verify(plain_password, hashed_password)
+        return pwd_context.verify(plain_password, hashed_password)  # type: ignore[no-any-return]
 
     # Token generation
     def create_access_token(
@@ -130,7 +130,7 @@ class AuthService:
         }
 
         encoded_jwt = jwt.encode(to_encode, self.config.SECRET_KEY, algorithm=self.config.ALGORITHM)
-        return encoded_jwt
+        return encoded_jwt  # type: ignore[no-any-return]
 
     def create_refresh_token(self, user_id: str, email: str, role: UserRole) -> str:
         """
@@ -158,7 +158,7 @@ class AuthService:
         encoded_jwt = jwt.encode(
             to_encode, self.config.REFRESH_SECRET_KEY, algorithm=self.config.ALGORITHM
         )
-        return encoded_jwt
+        return encoded_jwt  # type: ignore[no-any-return]
 
     def create_tokens(self, user_id: str, email: str, role: UserRole) -> Token:
         """

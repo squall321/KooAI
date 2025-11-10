@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 
 class ModelSource(str, Enum):
@@ -230,7 +230,7 @@ class PretrainedModelManager:
 
         return local_path
 
-    def load_model(self, name: str, **kwargs) -> Any:
+    def load_model(self, name: str, **kwargs: Any) -> Any:
         """
         모델 로드 (자동 다운로드)
 
@@ -327,7 +327,7 @@ class PretrainedModelManager:
         except Exception as e:
             raise RuntimeError(f"Failed to download from URL: {e}")
 
-    def _load_pytorch_model(self, model_path: Path, **kwargs) -> Any:
+    def _load_pytorch_model(self, model_path: Path, **kwargs: Any) -> Any:
         """PyTorch 모델 로드"""
         try:
             import torch
@@ -345,7 +345,7 @@ class PretrainedModelManager:
         except Exception as e:
             raise RuntimeError(f"Failed to load PyTorch model: {e}")
 
-    def _load_tensorflow_model(self, model_path: Path, **kwargs) -> Any:
+    def _load_tensorflow_model(self, model_path: Path, **kwargs: Any) -> Any:
         """TensorFlow 모델 로드"""
         try:
             import tensorflow as tf

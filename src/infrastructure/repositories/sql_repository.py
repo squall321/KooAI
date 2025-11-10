@@ -59,7 +59,7 @@ class SimulationRepository:
         self.session.add(db_simulation)
         await self.session.flush()
 
-        return db_simulation.id
+        return db_simulation.id  # type: ignore[no-any-return]
 
     async def find_by_id(self, simulation_id: UUID) -> Optional[SimulationResult]:
         """ID로 시뮬레이션 조회"""
@@ -186,7 +186,7 @@ class SimulationRepository:
         )
         result = await self.session.execute(stmt)
         count = result.scalar_one()
-        return count > 0
+        return count > 0  # type: ignore[no-any-return]
 
     async def count(self, criteria: Optional[Dict[str, Any]] = None) -> int:
         """시뮬레이션 개수 조회"""
@@ -203,7 +203,7 @@ class SimulationRepository:
                 stmt = stmt.where(and_(*filters))
 
         result = await self.session.execute(stmt)
-        return result.scalar_one()
+        return result.scalar_one()  # type: ignore[no-any-return]
 
     def _to_domain(self, db_model: SimulationModel) -> SimulationResult:
         """DB 모델 → 도메인 엔티티 변환"""
@@ -245,7 +245,7 @@ class DatasetRepository:
         self.session.add(db_dataset)
         await self.session.flush()
 
-        return db_dataset.id
+        return db_dataset.id  # type: ignore[no-any-return]
 
     async def find_by_id(self, dataset_id: UUID) -> Optional[Dataset]:
         """ID로 데이터셋 조회"""
@@ -342,7 +342,7 @@ class AnalysisRepository:
         self.session.add(db_analysis)
         await self.session.flush()
 
-        return db_analysis.id
+        return db_analysis.id  # type: ignore[no-any-return]
 
     async def find_by_id(self, analysis_id: UUID) -> Optional[Analysis]:
         """ID로 분석 조회"""
@@ -453,7 +453,7 @@ class AIModelRepository:
         self.session.add(db_model)
         await self.session.flush()
 
-        return db_model.id
+        return db_model.id  # type: ignore[no-any-return]
 
     async def find_by_id(self, model_id: UUID) -> Optional[AIModel]:
         """ID로 모델 조회"""

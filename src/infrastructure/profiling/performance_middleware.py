@@ -6,7 +6,7 @@ FastAPI middleware for profiling request performance.
 
 import time
 import tracemalloc
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 from datetime import datetime
 import psutil
 import os
@@ -20,7 +20,7 @@ try:
     import pstats
     from io import StringIO
 except ImportError:
-    cProfile = None
+    cProfile = None  # type: ignore[assignment]
 
 
 class PerformanceMiddleware(BaseHTTPMiddleware):
@@ -146,7 +146,7 @@ class ResourceMonitor:
     Tracks CPU, memory, and disk I/O.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize resource monitor."""
         self.process = psutil.Process(os.getpid())
 
@@ -215,7 +215,7 @@ class QueryProfiler:
         self.slow_query_threshold_ms = slow_query_threshold_ms
         self.queries: list = []
 
-    def profile_query(self, query: str, params: Optional[dict] = None):
+    def profile_query(self, query: str, params: Optional[dict] = None) -> "QueryContext":
         """
         Context manager for profiling queries.
 
@@ -235,7 +235,7 @@ class QueryProfiler:
 
     def add_query(
         self, query: str, duration_ms: float, params: Optional[dict] = None
-    ):
+    ) -> None:
         """Record query execution."""
         query_record = {
             "query": query,
@@ -274,7 +274,7 @@ class QueryProfiler:
             "total_time_ms": sum(durations),
         }
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear query history."""
         self.queries = []
 
@@ -289,14 +289,15 @@ class QueryContext:
         self.profiler = profiler
         self.query = query
         self.params = params
-        self.start_time = None
+        self.start_time: Optional[float] = None
 
-    def __enter__(self):
+    def __enter__(self) -> "QueryContext":
         """Start profiling."""
         self.start_time = time.perf_counter()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Stop profiling and record."""
-        duration_ms = (time.perf_counter() - self.start_time) * 1000
-        self.profiler.add_query(self.query, duration_ms, self.params)
+        if self.start_time is not None:
+            duration_ms = (time.perf_counter() - self.start_time) * 1000
+            self.profiler.add_query(self.query, duration_ms, self.params)

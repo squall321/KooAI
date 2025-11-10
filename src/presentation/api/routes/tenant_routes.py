@@ -293,7 +293,7 @@ async def create_tenant(
         user_id=current_user["user_id"],
         resource_type="tenant",
         resource_id=tenant.id,
-        metadata={"plan": request.plan, "slug": request.slug},
+        extra_data={"plan": request.plan, "slug": request.slug},
     )
 
     return tenant
@@ -365,7 +365,7 @@ async def list_my_tenants(
 
     tenants = service.db.query(Tenant).filter(Tenant.id.in_(tenant_ids)).all()
 
-    return tenants
+    return tenants  # type: ignore[no-any-return]
 
 
 @router.put("/{tenant_id}", response_model=TenantResponse)
@@ -416,7 +416,7 @@ async def update_tenant(
         user_id=current_user["user_id"],
         resource_type="tenant",
         resource_id=tenant_id,
-        metadata=update_data,
+        extra_data=update_data,
     )
 
     return tenant
@@ -527,7 +527,7 @@ async def invite_user(
         user_id=current_user["user_id"],
         resource_type="invitation",
         resource_id=invitation.id,
-        metadata={"email": request.email, "role": request.role},
+        extra_data={"email": request.email, "role": request.role},
     )
 
     return invitation
@@ -600,7 +600,7 @@ async def list_invitations(
 
     invitations = query.order_by(TenantInvitation.created_at.desc()).all()
 
-    return invitations
+    return invitations  # type: ignore[no-any-return]
 
 
 # ============================================================================
@@ -640,7 +640,7 @@ async def list_tenant_users(
         .all()
     )
 
-    return users
+    return users  # type: ignore[no-any-return]
 
 
 @router.delete("/{tenant_id}/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -707,7 +707,7 @@ async def remove_user_from_tenant(
         user_id=current_user["user_id"],
         resource_type="tenant_user",
         resource_id=tenant_user.id,
-        metadata={"removed_user_id": user_id},
+        extra_data={"removed_user_id": user_id},
     )
 
     return None
@@ -761,4 +761,4 @@ async def get_audit_logs(
         .all()
     )
 
-    return logs
+    return logs  # type: ignore[no-any-return]

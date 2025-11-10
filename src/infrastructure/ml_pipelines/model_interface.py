@@ -5,7 +5,7 @@ Base interfaces and abstractions for ML model serving.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Callable, Type
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -468,10 +468,10 @@ def ml_model(
     model_type: ModelType,
     framework: ModelFramework,
     description: str = "",
-    features: List[str] = None,
-    target: str = None,
-    tags: List[str] = None,
-):
+    features: Optional[List[str]] = None,
+    target: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+) -> Callable[[Type[Any]], Type[Any]]:
     """
     Decorator to register an ML model.
 
@@ -498,7 +498,7 @@ def ml_model(
         ```
     """
 
-    def decorator(cls):
+    def decorator(cls: Type[Any]) -> Type[Any]:
         # Create metadata
         metadata = ModelMetadata(
             name=name,
@@ -517,7 +517,7 @@ def ml_model(
         # Wrap __init__ to inject metadata
         original_init = cls.__init__
 
-        def new_init(self, *args, **kwargs):
+        def new_init(self: Any, *args: Any, **kwargs: Any) -> None:
             BaseMLModel.__init__(self, metadata)
             if original_init is not BaseMLModel.__init__:
                 original_init(self, *args, **kwargs)

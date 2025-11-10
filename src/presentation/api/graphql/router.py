@@ -4,7 +4,9 @@ GraphQL Router Integration
 Integrate GraphQL with FastAPI.
 """
 
+from typing import Dict, Any
 from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse
 from strawberry.fastapi import GraphQLRouter
 from strawberry.subscriptions import GRAPHQL_TRANSPORT_WS_PROTOCOL, GRAPHQL_WS_PROTOCOL
 
@@ -32,7 +34,7 @@ router.include_router(graphql_router)
 
 # Additional REST endpoint for schema introspection
 @router.get("/schema")
-async def get_schema():
+async def get_schema() -> Dict[str, str]:
     """
     Get GraphQL schema as SDL (Schema Definition Language).
 
@@ -50,7 +52,7 @@ async def get_schema():
 
 
 @router.get("/playground")
-async def graphql_playground():
+async def graphql_playground() -> HTMLResponse:
     """
     GraphQL Playground HTML page.
 
@@ -83,8 +85,6 @@ async def graphql_playground():
     </body>
     </html>
     """
-    from fastapi.responses import HTMLResponse
-
     return HTMLResponse(content=html)
 
 
@@ -188,7 +188,7 @@ subscription LLMStream {
 
 
 @router.get("/examples")
-async def get_example_queries():
+async def get_example_queries() -> Dict[str, Any]:
     """
     Get example GraphQL queries.
 

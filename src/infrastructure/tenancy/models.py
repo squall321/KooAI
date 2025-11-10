@@ -5,7 +5,7 @@ Database models for multi-tenant support.
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 from sqlalchemy import Column, String, Boolean, DateTime, Integer, JSON, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -13,7 +13,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-class Tenant(Base):
+class Tenant(Base):  # type: ignore[misc,valid-type]
     """
     Tenant model.
 
@@ -49,11 +49,11 @@ class Tenant(Base):
     users = relationship("TenantUser", back_populates="tenant", cascade="all, delete-orphan")
     subscriptions = relationship("TenantSubscription", back_populates="tenant", cascade="all, delete-orphan")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation."""
         return f"<Tenant(id={self.id}, name={self.name}, slug={self.slug})>"
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
             "id": self.id,
@@ -73,7 +73,7 @@ class Tenant(Base):
         }
 
 
-class TenantUser(Base):
+class TenantUser(Base):  # type: ignore[misc,valid-type]
     """
     Tenant-User association.
 
@@ -105,12 +105,12 @@ class TenantUser(Base):
     # Relationships
     tenant = relationship("Tenant", back_populates="users")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation."""
         return f"<TenantUser(tenant_id={self.tenant_id}, user_id={self.user_id}, role={self.role})>"
 
 
-class TenantSubscription(Base):
+class TenantSubscription(Base):  # type: ignore[misc,valid-type]
     """
     Tenant subscription.
 
@@ -148,12 +148,12 @@ class TenantSubscription(Base):
     # Relationships
     tenant = relationship("Tenant", back_populates="subscriptions")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation."""
         return f"<TenantSubscription(id={self.id}, tenant_id={self.tenant_id}, plan={self.plan}, status={self.status})>"
 
 
-class TenantInvitation(Base):
+class TenantInvitation(Base):  # type: ignore[misc,valid-type]
     """
     Tenant invitation.
 
@@ -182,12 +182,12 @@ class TenantInvitation(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation."""
         return f"<TenantInvitation(id={self.id}, tenant_id={self.tenant_id}, email={self.email}, status={self.status})>"
 
 
-class TenantAuditLog(Base):
+class TenantAuditLog(Base):  # type: ignore[misc,valid-type]
     """
     Tenant audit log.
 
@@ -213,6 +213,6 @@ class TenantAuditLog(Base):
     # Timestamp
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation."""
         return f"<TenantAuditLog(id={self.id}, tenant_id={self.tenant_id}, action={self.action})>"

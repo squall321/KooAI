@@ -5,7 +5,7 @@ Task decorators
 """
 
 import functools
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 
 import structlog
 
@@ -24,7 +24,7 @@ def task(
     priority: TaskPriority = TaskPriority.NORMAL,
     max_retries: int = 3,
     timeout: Optional[int] = None,
-):
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     작업 데코레이터
 
@@ -49,14 +49,14 @@ def task(
         result = process_data.wait(task_id, timeout=60)
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         task_name = name or f"{func.__module__}.{func.__name__}"
 
         # 레지스트리에 등록
         _task_registry[task_name] = func
 
         # delay() 메서드 추가
-        def delay(*args, **kwargs) -> str:
+        def delay(*args: Any, **kwargs: Any) -> str:
             """
             작업을 큐에 추가하고 즉시 반환
 
@@ -85,7 +85,7 @@ def task(
             return task_id
 
         # wait() 메서드 추가
-        def wait(task_id: str, timeout: Optional[float] = None) -> any:
+        def wait(task_id: str, timeout: Optional[float] = None) -> Any:
             """
             작업 완료 대기
 
@@ -122,20 +122,20 @@ def task(
                 time.sleep(0.1)
 
         # apply_async() 메서드 추가 (Celery 호환)
-        def apply_async(*args, **kwargs) -> str:
+        def apply_async(*args: Any, **kwargs: Any) -> str:
             """Celery 스타일 비동기 실행"""
             return delay(*args, **kwargs)
 
         # 원본 함수 유지
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             return func(*args, **kwargs)
 
         # 메서드 첨부
-        wrapper.delay = delay
-        wrapper.wait = wait
-        wrapper.apply_async = apply_async
-        wrapper.task_name = task_name
+        wrapper.delay = delay  # type: ignore[attr-defined]
+        wrapper.wait = wait  # type: ignore[attr-defined]
+        wrapper.apply_async = apply_async  # type: ignore[attr-defined]
+        wrapper.task_name = task_name  # type: ignore[attr-defined]
 
         return wrapper
 

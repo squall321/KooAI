@@ -6,8 +6,8 @@ import shutil
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import AsyncIterator, BinaryIO, Optional
-import aiofiles
-import aiofiles.os
+import aiofiles  # type: ignore[import-untyped]
+import aiofiles.os  # type: ignore[import-untyped]
 
 from .base import (
     StorageBackend,
@@ -114,7 +114,7 @@ class LocalStorageBackend(StorageBackend):
             raise FileNotFoundError(f"File not found: {key}")
 
         async with aiofiles.open(full_path, "rb") as f:
-            return await f.read()
+            return await f.read()  # type: ignore[no-any-return]
 
     async def download_to_file(self, key: str, destination: Path) -> None:
         """파일을 로컬 파일로 다운로드"""
@@ -125,7 +125,7 @@ class LocalStorageBackend(StorageBackend):
         destination.parent.mkdir(parents=True, exist_ok=True)
         await aiofiles.os.link(str(full_path), str(destination))
 
-    async def download_stream(self, key: str, chunk_size: int = 8192) -> AsyncIterator[bytes]:
+    async def download_stream(self, key: str, chunk_size: int = 8192) -> AsyncIterator[bytes]:  # type: ignore[override,misc]
         """파일을 스트림으로 다운로드"""
         full_path = self._get_full_path(key)
         if not full_path.exists():

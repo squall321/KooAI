@@ -4,7 +4,7 @@ Simulation comparator
 Compare multiple simulation results and analyze differences
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 import numpy as np
@@ -32,9 +32,9 @@ class ComparisonResult:
     spatial_diff_map: Optional[np.ndarray] = None
 
     # Metadata
-    compared_at: datetime = None
+    compared_at: datetime = field(default_factory=datetime.now)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.compared_at is None:
             self.compared_at = datetime.now()
 
@@ -413,4 +413,4 @@ class SimulationComparator:
                     corr = np.corrcoef(field_data[i], field_data[j])[0, 1]
                     corr_matrix[i, j] = corr
 
-        return corr_matrix.tolist()
+        return corr_matrix.tolist()  # type: ignore[no-any-return]

@@ -68,7 +68,7 @@ class TurbulenceClassifier(ClassificationModel):
         X = await self.preprocess(input_data.data)
 
         # Make predictions
-        predictions = self._model.predict(X)
+        predictions = self._model.predict(X)  # type: ignore[attr-defined]
 
         # Convert to class names
         class_predictions = [self._classes[int(p)] for p in predictions]
@@ -78,7 +78,7 @@ class TurbulenceClassifier(ClassificationModel):
         confidence = None
 
         if input_data.return_probabilities or input_data.return_confidence:
-            probabilities = self._model.predict_proba(X)
+            probabilities = self._model.predict_proba(X)  # type: ignore[attr-defined]
 
             if input_data.return_confidence:
                 # Confidence is the max probability for each prediction
@@ -100,7 +100,7 @@ class TurbulenceClassifier(ClassificationModel):
             raise RuntimeError("Model not loaded")
 
         X = await self.preprocess(input_data.data)
-        return self._model.predict_proba(X)
+        return self._model.predict_proba(X)  # type: ignore[attr-defined]
 
     async def validate(self, validation_data: Dict[str, Any]) -> ModelMetrics:
         """
@@ -121,7 +121,7 @@ class TurbulenceClassifier(ClassificationModel):
         y_true = validation_data["y"]
 
         # Make predictions
-        y_pred = self._model.predict(X)
+        y_pred = self._model.predict(X)  # type: ignore[attr-defined]
 
         # Calculate metrics
         accuracy = accuracy_score(y_true, y_pred)

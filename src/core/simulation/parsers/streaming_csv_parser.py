@@ -6,7 +6,7 @@
 
 import csv
 from pathlib import Path
-from typing import Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import numpy as np
 
@@ -84,7 +84,7 @@ class StreamingCSVParser(BaseParser, StreamingParser[CSVChunk]):
         """지원 확장자"""
         return [".csv"]
 
-    def parse(
+    def parse(  # type: ignore[override]
         self,
         file_path: Path,
         delimiter: str = ",",
@@ -115,7 +115,7 @@ class StreamingCSVParser(BaseParser, StreamingParser[CSVChunk]):
             default_step=default_step,
         )
 
-    def parse_stream(
+    def parse_stream(  # type: ignore[override]
         self,
         file_path: Path,
         delimiter: str = ",",
@@ -219,11 +219,11 @@ class StreamingCSVParser(BaseParser, StreamingParser[CSVChunk]):
 
         return result
 
-    def read_chunks(
+    def read_chunks(  # type: ignore[override]
         self,
         file_path: Path,
         delimiter: str = ",",
-        progress_tracker: Optional[object] = None,
+        progress_tracker: Optional[Any] = None,
     ) -> Iterator[CSVChunk]:
         """
         청크 단위로 CSV 파일 읽기
@@ -282,9 +282,10 @@ class StreamingCSVParser(BaseParser, StreamingParser[CSVChunk]):
 
     def _extract_vertices(self, data: Dict[str, List[float]]) -> np.ndarray:
         """좌표 추출"""
-        x_key = self._find_column(data.keys(), ["x", "X", "coord_x"])
-        y_key = self._find_column(data.keys(), ["y", "Y", "coord_y"])
-        z_key = self._find_column(data.keys(), ["z", "Z", "coord_z"])
+        columns = list(data.keys())
+        x_key = self._find_column(columns, ["x", "X", "coord_x"])
+        y_key = self._find_column(columns, ["y", "Y", "coord_y"])
+        z_key = self._find_column(columns, ["z", "Z", "coord_z"])
 
         if not x_key or not y_key:
             raise ValueError("CSV must have x, y columns")
@@ -337,7 +338,7 @@ class StreamingCSVParser(BaseParser, StreamingParser[CSVChunk]):
             fields_data[field_name] = vector_data
 
         # 스칼라 필드 생성
-        used_columns = set()
+        used_columns: set[str] = set()
         for components in vector_fields.values():
             used_columns.update(components.values())
 

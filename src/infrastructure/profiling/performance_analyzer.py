@@ -6,7 +6,7 @@ Analyze application performance and generate reports.
 
 import time
 import tracemalloc
-from typing import Callable, Any, Optional
+from typing import Callable, Any, Optional, Dict, List
 from functools import wraps
 from pathlib import Path
 import json
@@ -31,9 +31,9 @@ class FunctionProfiler:
     Tracks execution time and call frequency.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize function profiler."""
-        self.calls: dict = {}
+        self.calls: Dict[str, Dict[str, Any]] = {}
 
     def profile(self, func: Callable) -> Callable:
         """
@@ -60,7 +60,7 @@ class FunctionProfiler:
         """
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.perf_counter()
 
             try:
@@ -131,7 +131,7 @@ class FunctionProfiler:
 
         return sorted_stats
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset profiling data."""
         self.calls = {}
 
@@ -143,9 +143,9 @@ class MemoryProfiler:
     Tracks memory allocation and deallocation.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize memory profiler."""
-        self.snapshots: list = []
+        self.snapshots: List[Any] = []
 
     def profile_memory(self, func: Callable) -> Callable:
         """
@@ -172,7 +172,7 @@ class MemoryProfiler:
         """
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             tracemalloc.start()
 
             try:
@@ -218,7 +218,7 @@ class MemoryProfiler:
             "snapshots": self.snapshots[-10:],  # Last 10 snapshots
         }
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset memory snapshots."""
         self.snapshots = []
 
@@ -245,7 +245,7 @@ class PerformanceReport:
         self.function_profiler = function_profiler
         self.memory_profiler = memory_profiler
 
-    def generate_report(self) -> dict:
+    def generate_report(self) -> Dict[str, Any]:
         """
         Generate comprehensive performance report.
 
@@ -268,7 +268,7 @@ class PerformanceReport:
         # Function profiling
         if self.function_profiler:
             func_stats = self.function_profiler.get_stats()
-            report["function_profiling"] = {
+            report["function_profiling"] = {  # type: ignore[assignment]
                 "total_functions": len(func_stats),
                 "top_by_total_time": dict(list(func_stats.items())[:10]),
                 "summary": {
@@ -287,11 +287,11 @@ class PerformanceReport:
         # Memory profiling
         if self.memory_profiler:
             mem_stats = self.memory_profiler.get_stats()
-            report["memory_profiling"] = mem_stats
+            report["memory_profiling"] = mem_stats  # type: ignore[assignment]
 
         return report
 
-    def save_report(self, output_path: Path):
+    def save_report(self, output_path: Path) -> None:
         """
         Save report to JSON file.
 
@@ -312,7 +312,7 @@ class PerformanceReport:
 
         print(f"Performance report saved to {output_path}")
 
-    def print_summary(self):
+    def print_summary(self) -> None:
         """Print performance report summary to console."""
         report = self.generate_report()
 
@@ -395,7 +395,7 @@ def profile(func: Callable) -> Callable:
     mem_profiler = get_memory_profiler()
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Apply both profilers
         profiled_func = func_profiler.profile(func)
         memory_profiled = mem_profiler.profile_memory(profiled_func)

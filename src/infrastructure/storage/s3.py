@@ -84,7 +84,7 @@ class S3StorageBackend(StorageBackend):
         content = file.read()
         size = len(content)
 
-        extra_args = {
+        extra_args: dict[str, Any] = {
             "ContentType": content_type,
         }
         if metadata:
@@ -113,7 +113,7 @@ class S3StorageBackend(StorageBackend):
         metadata: Optional[dict[str, str]] = None,
     ) -> UploadResult:
         """멀티파트 업로드"""
-        extra_args = {
+        extra_args: dict[str, Any] = {
             "ContentType": content_type,
         }
         if metadata:
@@ -180,7 +180,7 @@ class S3StorageBackend(StorageBackend):
         async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             response = await s3.get_object(Bucket=self.bucket_name, Key=key)
             async with response["Body"] as stream:
-                return await stream.read()
+                return await stream.read()  # type: ignore[no-any-return]
 
     async def download_to_file(self, key: str, destination: Path) -> None:
         """파일을 로컬 파일로 다운로드"""
@@ -189,7 +189,7 @@ class S3StorageBackend(StorageBackend):
         async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             await s3.download_file(self.bucket_name, key, str(destination))
 
-    async def download_stream(self, key: str, chunk_size: int = 8192) -> AsyncIterator[bytes]:
+    async def download_stream(self, key: str, chunk_size: int = 8192) -> AsyncIterator[bytes]:  # type: ignore[override,misc]
         """파일을 스트림으로 다운로드"""
         async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             response = await s3.get_object(Bucket=self.bucket_name, Key=key)

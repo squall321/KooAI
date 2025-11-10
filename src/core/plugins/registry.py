@@ -6,7 +6,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from .base import (
     IPlugin,
@@ -146,7 +146,7 @@ class PluginRegistry:
         Returns:
             플러그인 메타데이터 리스트
         """
-        plugins = self._plugins.values()
+        plugins = list(self._plugins.values())
 
         # 타입 필터
         if plugin_type:
@@ -226,7 +226,7 @@ class PluginRegistry:
         Args:
             plugin_type: 활성화할 플러그인 타입 (None이면 전체)
         """
-        plugins = self._plugins.values()
+        plugins = list(self._plugins.values())
 
         if plugin_type:
             plugins = [p for p in plugins if p.get_metadata().plugin_type == plugin_type]
@@ -246,7 +246,7 @@ class PluginRegistry:
         Args:
             plugin_type: 비활성화할 플러그인 타입
         """
-        plugins = self._plugins.values()
+        plugins = list(self._plugins.values())
 
         if plugin_type:
             plugins = [p for p in plugins if p.get_metadata().plugin_type == plugin_type]
@@ -259,7 +259,7 @@ class PluginRegistry:
             if plugin.get_status() == PluginStatus.ACTIVE:
                 await plugin.deactivate()
 
-    def health_check_all(self) -> Dict[str, Dict[str, any]]:
+    def health_check_all(self) -> Dict[str, Dict[str, Any]]:
         """
         모든 플러그인 헬스 체크
 

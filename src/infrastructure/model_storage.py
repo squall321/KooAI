@@ -10,7 +10,7 @@ import subprocess
 from pathlib import Path
 from typing import Optional, Dict, Any
 from enum import Enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 
 
@@ -32,9 +32,9 @@ class StorageConfig:
     enable_checksum: bool = True
     enable_compression: bool = False
     git_lfs_enabled: bool = False
-    git_lfs_patterns: list = None  # e.g., ["*.pth", "*.onnx"]
+    git_lfs_patterns: list[str] = field(default_factory=lambda: ["*.pth", "*.pt", "*.onnx", "*.bin"])
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.git_lfs_patterns is None:
             self.git_lfs_patterns = ["*.pth", "*.pt", "*.onnx", "*.bin"]
 
@@ -201,7 +201,7 @@ class ModelStorage:
             return None
 
         with open(metadata_file, "r") as f:
-            return json.load(f)
+            return json.load(f)  # type: ignore[no-any-return]
 
     def list_versions(self, model_name: str) -> list[str]:
         """
@@ -353,7 +353,7 @@ class ModelStorageFactory:
     """모델 저장소 팩토리"""
 
     @staticmethod
-    def create_local_storage(base_path: Path, **kwargs) -> ModelStorage:
+    def create_local_storage(base_path: Path, **kwargs: Any) -> ModelStorage:
         """
         로컬 저장소 생성
 
@@ -368,7 +368,7 @@ class ModelStorageFactory:
         return ModelStorage(config)
 
     @staticmethod
-    def create_git_lfs_storage(base_path: Path, **kwargs) -> ModelStorage:
+    def create_git_lfs_storage(base_path: Path, **kwargs: Any) -> ModelStorage:
         """
         Git LFS 저장소 생성
 

@@ -50,7 +50,7 @@ class BaseChain:
         self.llm_client = llm_client
         self.template = template
 
-    async def run(self, **kwargs) -> ChainResult:
+    async def run(self, **kwargs: Any) -> ChainResult:
         """
         체인 실행
 
@@ -62,7 +62,7 @@ class BaseChain:
         """
         raise NotImplementedError("Subclasses must implement run()")
 
-    def _format_prompt(self, **kwargs) -> str:
+    def _format_prompt(self, **kwargs: Any) -> str:
         """프롬프트 포맷"""
         if self.template:
             return self.template.format(**kwargs)
@@ -97,14 +97,14 @@ class SummaryChain(BaseChain):
         self.few_shot_examples = few_shot_examples
         self.num_examples = num_examples
 
-    async def run(
+    async def run(  # type: ignore[override]
         self,
         simulation_type: str,
         simulation_name: str,
         parameters: Dict[str, Any],
         results: Dict[str, Any],
         description: Optional[str] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> ChainResult:
         """
         시뮬레이션 요약 생성
@@ -130,6 +130,8 @@ class SummaryChain(BaseChain):
             )
 
         # 프롬프트 구성
+        if not self.template:
+            raise ValueError("Template not initialized")
         prompt = self.template.format(
             simulation_type=simulation_type,
             simulation_name=simulation_name,
@@ -146,12 +148,14 @@ class SummaryChain(BaseChain):
         # LLM 호출
         response = await self.llm_client.generate(prompt, **kwargs)
 
-        intermediate_steps.append(
-            {
-                "step": "llm_response",
-                "token_usage": (response.token_usage.__dict__ if response.token_usage else None),
-            }
+        token_usage_dict: Optional[Dict[str, Any]] = (
+            response.token_usage.__dict__ if response.token_usage else None
         )
+        step_dict: Dict[str, Any] = {
+            "step": "llm_response",
+            "token_usage": token_usage_dict,
+        }
+        intermediate_steps.append(step_dict)
 
         return ChainResult(
             output=response.content,
@@ -188,7 +192,7 @@ class ComparisonChain(BaseChain):
         super().__init__(llm_client, template)
         self.few_shot_examples = few_shot_examples
 
-    async def run(
+    async def run(  # type: ignore[override]
         self,
         sim1_name: str,
         sim1_type: str,
@@ -198,7 +202,7 @@ class ComparisonChain(BaseChain):
         sim2_type: str,
         sim2_parameters: Dict[str, Any],
         sim2_results: Dict[str, Any],
-        **kwargs,
+        **kwargs: Any,
     ) -> ChainResult:
         """
         시뮬레이션 비교 분석
@@ -225,6 +229,8 @@ class ComparisonChain(BaseChain):
             examples_text = self.few_shot_examples.format_examples(category="comparison", n=2)
 
         # 프롬프트 구성
+        if not self.template:
+            raise ValueError("Template not initialized")
         prompt = self.template.format(
             sim1_name=sim1_name,
             sim1_type=sim1_type,
@@ -244,12 +250,14 @@ class ComparisonChain(BaseChain):
         # LLM 호출
         response = await self.llm_client.generate(prompt, **kwargs)
 
-        intermediate_steps.append(
-            {
-                "step": "llm_response",
-                "token_usage": (response.token_usage.__dict__ if response.token_usage else None),
-            }
+        token_usage_dict: Optional[Dict[str, Any]] = (
+            response.token_usage.__dict__ if response.token_usage else None
         )
+        step_dict: Dict[str, Any] = {
+            "step": "llm_response",
+            "token_usage": token_usage_dict,
+        }
+        intermediate_steps.append(step_dict)
 
         return ChainResult(
             output=response.content,
@@ -283,12 +291,12 @@ class InsightChain(BaseChain):
 
         super().__init__(llm_client, template)
 
-    async def run(
+    async def run(  # type: ignore[override]
         self,
         context: str,
         data: str,
         task: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> ChainResult:
         """
         인사이트 생성
@@ -305,6 +313,8 @@ class InsightChain(BaseChain):
         intermediate_steps = []
 
         # 프롬프트 구성
+        if not self.template:
+            raise ValueError("Template not initialized")
         prompt = self.template.format(
             context=context,
             data=data,
@@ -316,12 +326,14 @@ class InsightChain(BaseChain):
         # LLM 호출
         response = await self.llm_client.generate(prompt, **kwargs)
 
-        intermediate_steps.append(
-            {
-                "step": "llm_response",
-                "token_usage": (response.token_usage.__dict__ if response.token_usage else None),
-            }
+        token_usage_dict: Optional[Dict[str, Any]] = (
+            response.token_usage.__dict__ if response.token_usage else None
         )
+        step_dict: Dict[str, Any] = {
+            "step": "llm_response",
+            "token_usage": token_usage_dict,
+        }
+        intermediate_steps.append(step_dict)
 
         return ChainResult(
             output=response.content,
@@ -358,7 +370,7 @@ class SequentialChain:
         """
         all_steps = []
         current_input = initial_input
-        final_output = None
+        final_output: Optional[str] = None
 
         for i, chain in enumerate(self.chains):
             result = await chain.run(**current_input)
@@ -367,6 +379,9 @@ class SequentialChain:
             # 다음 체인을 위한 입력 구성
             current_input = {**current_input, "previous_output": result.output}
             final_output = result.output
+
+        if final_output is None:
+            raise ValueError("No chains executed or all chains returned None")
 
         return ChainResult(
             output=final_output,

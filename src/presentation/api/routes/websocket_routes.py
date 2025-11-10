@@ -6,7 +6,7 @@ Real-time updates for file uploads, processing status, and notifications.
 
 import json
 import asyncio
-from typing import Dict
+from typing import Dict, Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from datetime import datetime
 
@@ -236,7 +236,7 @@ async def send_processing_status(client_id: str, task_id: str, status: str, prog
     )
 
 
-async def send_notification(client_id: str, level: str, message: str, title: str = None) -> None:
+async def send_notification(client_id: str, level: str, message: str, title: Optional[str] = None) -> None:
     """
     Send notification.
 

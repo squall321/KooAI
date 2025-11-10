@@ -6,7 +6,7 @@ Task worker implementation
 
 import threading
 import time
-from typing import Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import structlog
 
@@ -183,7 +183,7 @@ class TaskWorker:
             )
             self.queue.complete_task(task.task_id, error=error_msg)
 
-    def _execute_with_timeout(self, func: Callable, task: Task) -> any:
+    def _execute_with_timeout(self, func: Callable, task: Task) -> Any:
         """
         타임아웃과 함께 작업 실행
 

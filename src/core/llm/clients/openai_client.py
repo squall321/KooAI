@@ -96,7 +96,7 @@ class OpenAIClient(BaseLLMClient):
 
         try:
             # API 호출
-            response = await self._client.chat.completions.create(
+            response = await self._client.chat.completions.create(  # type: ignore[union-attr]
                 model=self.config.model,
                 messages=openai_messages,
                 **params,
@@ -148,7 +148,7 @@ class OpenAIClient(BaseLLMClient):
 
         try:
             # API 호출
-            response = await self._client.embeddings.create(
+            response = await self._client.embeddings.create(  # type: ignore[union-attr]
                 model=embedding_model,
                 input=text,
             )
@@ -161,7 +161,7 @@ class OpenAIClient(BaseLLMClient):
         except Exception as e:
             raise RuntimeError(f"OpenAI embedding failed: {str(e)}")
 
-    async def stream_generate(  # type: ignore[override]
+    async def stream_generate(  # type: ignore[override,misc]
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
@@ -193,7 +193,7 @@ class OpenAIClient(BaseLLMClient):
 
         try:
             # 스트리밍 API 호출
-            stream = await self._client.chat.completions.create(
+            stream = await self._client.chat.completions.create(  # type: ignore[union-attr]
                 model=self.config.model,
                 messages=openai_messages,
                 stream=True,

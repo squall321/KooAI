@@ -4,7 +4,7 @@ Tenant Data Isolation
 Ensures data isolation between tenants at database level.
 """
 
-from typing import TypeVar, Generic, Optional, List
+from typing import TypeVar, Generic, Optional, List, Any
 from sqlalchemy import event
 from sqlalchemy.orm import Session, Query
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -22,12 +22,12 @@ class TenantIsolatedQuery(Query):
     Prevents cross-tenant data access.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize tenant-isolated query."""
         super().__init__(*args, **kwargs)
         self._apply_tenant_filter()
 
-    def _apply_tenant_filter(self):
+    def _apply_tenant_filter(self) -> None:
         """Apply tenant filter to query."""
         # Get current tenant
         tenant_context = get_current_tenant()
@@ -55,7 +55,7 @@ class TenantScoped:
     tenant_id: str
 
     @classmethod
-    def for_tenant(cls, session: Session, tenant_id: Optional[str] = None):
+    def for_tenant(cls, session: Session, tenant_id: Optional[str] = None) -> Query:
         """
         Query scoped to specific tenant.
 
@@ -82,7 +82,7 @@ class TenantScoped:
         return session.query(cls).filter(cls.tenant_id == tenant_id)
 
     @classmethod
-    def create_for_tenant(cls, session: Session, **kwargs):
+    def create_for_tenant(cls, session: Session, **kwargs: Any) -> Any:
         """
         Create instance for current tenant.
 
@@ -112,7 +112,7 @@ class TenantScoped:
         return instance
 
 
-def enable_tenant_isolation(session: Session):
+def enable_tenant_isolation(session: Session) -> None:
     """
     Enable automatic tenant isolation for session.
 
@@ -130,7 +130,7 @@ def enable_tenant_isolation(session: Session):
     """
 
     @event.listens_for(session, "before_flush")
-    def before_flush(session, flush_context, instances):
+    def before_flush(session: Any, flush_context: Any, instances: Any) -> None:
         """Validate tenant_id before flush."""
         tenant_context = get_current_tenant()
 
@@ -175,7 +175,7 @@ class TenantIsolationError(Exception):
     pass
 
 
-def check_tenant_access(instance, operation: str = "access"):
+def check_tenant_access(instance: Any, operation: str = "access") -> None:
     """
     Check if current tenant can access instance.
 
@@ -237,7 +237,7 @@ class TenantRepository(Generic[T]):
 
         if hasattr(self.model, "tenant_id"):
             tenant_id = self._get_tenant_id()
-            query = query.filter(self.model.tenant_id == tenant_id)
+            query = query.filter(self.model.tenant_id == tenant_id)  # type: ignore[attr-defined]
 
         return query
 
@@ -251,10 +251,10 @@ class TenantRepository(Generic[T]):
         Returns:
             Instance or None
         """
-        return self._base_query().filter(self.model.id == id).first()
+        return self._base_query().filter(self.model.id == id).first()  # type: ignore[attr-defined,no-any-return]
 
     def list(
-        self, skip: int = 0, limit: int = 100, **filters
+        self, skip: int = 0, limit: int = 100, **filters: Any
     ) -> List[T]:
         """
         List instances with pagination.
@@ -274,9 +274,9 @@ class TenantRepository(Generic[T]):
             if hasattr(self.model, key):
                 query = query.filter(getattr(self.model, key) == value)
 
-        return query.offset(skip).limit(limit).all()
+        return query.offset(skip).limit(limit).all()  # type: ignore[no-any-return]
 
-    def create(self, **kwargs) -> T:
+    def create(self, **kwargs: Any) -> T:
         """
         Create new instance.
 
@@ -296,7 +296,7 @@ class TenantRepository(Generic[T]):
 
         return instance
 
-    def update(self, id: str, **kwargs) -> Optional[T]:
+    def update(self, id: str, **kwargs: Any) -> Optional[T]:
         """
         Update instance.
 
@@ -340,7 +340,7 @@ class TenantRepository(Generic[T]):
 
         return True
 
-    def count(self, **filters) -> int:
+    def count(self, **filters: Any) -> int:
         """
         Count instances.
 
@@ -356,4 +356,4 @@ class TenantRepository(Generic[T]):
             if hasattr(self.model, key):
                 query = query.filter(getattr(self.model, key) == value)
 
-        return query.count()
+        return query.count()  # type: ignore[no-any-return]

@@ -5,7 +5,7 @@ VTK ASCII 형식의 시뮬레이션 결과 파싱.
 """
 
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -51,7 +51,7 @@ class VTKParser(BaseParser):
         """지원 확장자"""
         return [".vtk"]
 
-    def parse(
+    def parse(  # type: ignore[override]
         self,
         file_path: Path,
         time: float = 0.0,
@@ -170,7 +170,7 @@ class VTKParser(BaseParser):
         idx += 1
 
         # 꼭짓점 읽기
-        vertices = []
+        vertices: list[float] = []
         while len(vertices) < num_points * 3:
             idx += 1
             values = lines[idx - 1].split()
@@ -190,7 +190,7 @@ class VTKParser(BaseParser):
                 idx += 1
 
                 # 면 읽기
-                face_data = []
+                face_data: list[Any] = []
                 while len(face_data) < num_polygons:
                     parts = lines[idx].split()
                     idx += 1
@@ -238,7 +238,7 @@ class VTKParser(BaseParser):
         idx += 1
 
         # 꼭짓점 읽기
-        vertices = []
+        vertices: list[float] = []
         while len(vertices) < num_points * 3:
             values = lines[idx].split()
             idx += 1
@@ -254,7 +254,7 @@ class VTKParser(BaseParser):
             idx += 1
 
             # 셀 읽기 (간단히 건너뜀)
-            cell_data = []
+            cell_data: list[Any] = []
             while len(cell_data) < num_cells:
                 parts = lines[idx].split()
                 idx += 1
@@ -306,7 +306,7 @@ class VTKParser(BaseParser):
                     idx += 1
 
                 # 데이터 읽기
-                values = []
+                values: list[float] = []
                 while len(values) < num_points:
                     if idx >= len(lines):
                         break
@@ -337,8 +337,8 @@ class VTKParser(BaseParser):
                 idx += 1
 
                 # 데이터 읽기
-                values = []
-                while len(values) < num_points * 3:
+                vector_values: list[float] = []
+                while len(vector_values) < num_points * 3:
                     if idx >= len(lines):
                         break
                     parts = lines[idx].split()
@@ -349,10 +349,10 @@ class VTKParser(BaseParser):
                         idx -= 1
                         break
 
-                    values.extend([float(v) for v in parts])
+                    vector_values.extend([float(v) for v in parts])
 
-                if values:
-                    data = np.array(values[: num_points * 3]).reshape(-1, 3)
+                if vector_values:
+                    data = np.array(vector_values[: num_points * 3]).reshape(-1, 3)
                     field = FieldData(
                         name=field_name,
                         field_type=FieldType.VECTOR,
