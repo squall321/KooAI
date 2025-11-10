@@ -150,7 +150,7 @@ class Plugin(ABC):
         pass
 
     @abstractmethod
-    async def execute(self, context: PluginContext, **kwargs) -> Any:
+    async def execute(self, context: PluginContext, **kwargs: Any) -> Any:
         """
         Execute plugin logic.
 
@@ -244,7 +244,7 @@ class AnalyzerPlugin(Plugin):
         """
         pass
 
-    async def execute(self, context: PluginContext, **kwargs) -> Any:
+    async def execute(self, context: PluginContext, **kwargs: Any) -> Any:
         """Execute analyzer."""
         simulation_data = kwargs.get("simulation_data", {})
         return await self.analyze(simulation_data, context)
@@ -279,7 +279,7 @@ class VisualizerPlugin(Plugin):
         """
         pass
 
-    async def execute(self, context: PluginContext, **kwargs) -> Any:
+    async def execute(self, context: PluginContext, **kwargs: Any) -> Any:
         """Execute visualizer."""
         data = kwargs.get("data", {})
         return await self.visualize(data, context)
@@ -320,7 +320,7 @@ class ExporterPlugin(Plugin):
         """
         pass
 
-    async def execute(self, context: PluginContext, **kwargs) -> Any:
+    async def execute(self, context: PluginContext, **kwargs: Any) -> Any:
         """Execute exporter."""
         data = kwargs.get("data", {})
         return await self.export(data, context)
@@ -355,7 +355,7 @@ class ProcessorPlugin(Plugin):
         """
         pass
 
-    async def execute(self, context: PluginContext, **kwargs) -> Any:
+    async def execute(self, context: PluginContext, **kwargs: Any) -> Any:
         """Execute processor."""
         data = kwargs.get("data", {})
         return await self.process(data, context)
@@ -428,11 +428,11 @@ class HookPlugin(Plugin):
         """
         pass
 
-    async def execute(self, context: PluginContext, **kwargs) -> Any:
+    async def execute(self, context: PluginContext, **kwargs: Any) -> Any:
         """Execute hook."""
         event = kwargs.get("event")
         data = kwargs.get("data", {})
-        await self.on_event(event, data, context)
+        await self.on_event(event, data, context)  # type: ignore[arg-type]
 
 
 # ============================================================================
@@ -447,9 +447,9 @@ def plugin(
     author: str,
     plugin_type: PluginType,
     priority: PluginPriority = PluginPriority.NORMAL,
-    dependencies: List[str] = None,
-    tags: List[str] = None,
-):
+    dependencies: Optional[List[str]] = None,
+    tags: Optional[List[str]] = None,
+) -> Callable[[type], type]:
     """
     Decorator to register a plugin.
 
@@ -473,7 +473,7 @@ def plugin(
         ```
     """
 
-    def decorator(cls):
+    def decorator(cls: type) -> type:
         # Create metadata
         metadata = PluginMetadata(
             name=name,
@@ -487,13 +487,13 @@ def plugin(
         )
 
         # Store metadata on class
-        cls._plugin_metadata = metadata
+        cls._plugin_metadata = metadata  # type: ignore[attr-defined]
 
         # Original __init__
-        original_init = cls.__init__
+        original_init = cls.__init__  # type: ignore[misc]
 
         # Wrap __init__ to inject metadata
-        def new_init(self, *args, **kwargs):
+        def new_init(self: Any, *args: Any, **kwargs: Any) -> None:
             # Call Plugin.__init__ with metadata
             Plugin.__init__(self, metadata)
             # Call original __init__ if it exists and is not Plugin.__init__
@@ -503,7 +503,7 @@ def plugin(
                 if len(sig.parameters) > 1:
                     original_init(self, *args, **kwargs)
 
-        cls.__init__ = new_init
+        cls.__init__ = new_init  # type: ignore[misc]
 
         return cls
 
