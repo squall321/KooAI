@@ -36,7 +36,7 @@ class TaskQueue:
         task = queue.dequeue()  # 가장 높은 우선순위 작업 반환
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """작업 큐 초기화"""
         # 우선순위 큐 (heapq): (priority, timestamp, task)
         self._queue: List[Tuple[int, float, Task]] = []
@@ -243,7 +243,7 @@ class TaskQueue:
         with self._lock:
             return [task for task in self._tasks.values() if task.status == TaskStatus.RUNNING]
 
-    def get_stats(self) -> Dict[str, any]:
+    def get_stats(self) -> Dict[str, Any]:
         """큐 통계"""
         with self._lock:
             pending_count = len(self._queue)
