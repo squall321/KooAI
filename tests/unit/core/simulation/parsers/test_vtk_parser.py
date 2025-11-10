@@ -13,7 +13,7 @@ import numpy as np
 class TestVTKParserBasics:
     """Test VTKParser basic functionality"""
 
-    def test_vtk_parser_creation(self):
+    def test_vtk_parser_creation(self) -> None:
         """Test VTKParser can be created"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -21,7 +21,7 @@ class TestVTKParserBasics:
 
         assert parser is not None
 
-    def test_vtk_parser_can_parse_vtk_files(self, tmp_path):
+    def test_vtk_parser_can_parse_vtk_files(self, tmp_path: Path) -> None:
         """Test can_parse returns True for VTK files with valid header"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -33,7 +33,7 @@ class TestVTKParserBasics:
 
         assert result is True
 
-    def test_vtk_parser_cannot_parse_non_vtk_files(self):
+    def test_vtk_parser_cannot_parse_non_vtk_files(self) -> None:
         """Test can_parse returns False for non-VTK files"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -44,7 +44,7 @@ class TestVTKParserBasics:
 
         assert result is False
 
-    def test_vtk_parser_cannot_parse_invalid_header(self, tmp_path):
+    def test_vtk_parser_cannot_parse_invalid_header(self, tmp_path: Path) -> None:
         """Test can_parse returns False for VTK file with invalid header"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -56,7 +56,7 @@ class TestVTKParserBasics:
 
         assert result is False
 
-    def test_get_supported_extensions(self):
+    def test_get_supported_extensions(self) -> None:
         """Test get_supported_extensions returns correct list"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -71,7 +71,7 @@ class TestVTKParserBasics:
 class TestVTKParserHeaderParsing:
     """Test VTK header parsing"""
 
-    def test_parse_header_valid(self):
+    def test_parse_header_valid(self) -> None:
         """Test _parse_header with valid VTK header"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -89,7 +89,7 @@ class TestVTKParserHeaderParsing:
         assert header["description"] == "Test VTK file"
         assert header["format"] == "ASCII"
 
-    def test_parse_header_missing_version_raises_error(self):
+    def test_parse_header_missing_version_raises_error(self) -> None:
         """Test _parse_header raises error for missing version"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -104,7 +104,7 @@ class TestVTKParserHeaderParsing:
         with pytest.raises(ValueError, match="missing version header"):
             parser._parse_header(lines)
 
-    def test_parse_header_invalid_format_raises_error(self):
+    def test_parse_header_invalid_format_raises_error(self) -> None:
         """Test _parse_header raises error for invalid format"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -119,7 +119,7 @@ class TestVTKParserHeaderParsing:
         with pytest.raises(ValueError, match="Invalid VTK format"):
             parser._parse_header(lines)
 
-    def test_parse_header_binary_not_supported(self):
+    def test_parse_header_binary_not_supported(self) -> None:
         """Test _parse_header raises NotImplementedError for BINARY format"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -134,7 +134,7 @@ class TestVTKParserHeaderParsing:
         with pytest.raises(NotImplementedError, match="Binary VTK not supported"):
             parser._parse_header(lines)
 
-    def test_parse_header_too_few_lines_raises_error(self):
+    def test_parse_header_too_few_lines_raises_error(self) -> None:
         """Test _parse_header raises error for too few lines"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -148,7 +148,7 @@ class TestVTKParserHeaderParsing:
 class TestVTKParserPolydata:
     """Test VTK POLYDATA parsing"""
 
-    def test_parse_simple_polydata(self, tmp_path):
+    def test_parse_simple_polydata(self, tmp_path: Path) -> None:
         """Test parsing simple POLYDATA file"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -171,7 +171,7 @@ class TestVTKParserPolydata:
         assert result.simulation_type == "VTK"
         assert result.mesh.num_vertices == 3
 
-    def test_parse_polydata_extracts_vertices(self, tmp_path):
+    def test_parse_polydata_extracts_vertices(self, tmp_path: Path) -> None:
         """Test POLYDATA parsing extracts correct vertices"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -195,7 +195,7 @@ class TestVTKParserPolydata:
         assert np.allclose(vertices[0], [1.0, 2.0, 3.0])
         assert np.allclose(vertices[1], [4.0, 5.0, 6.0])
 
-    def test_parse_polydata_with_polygons(self, tmp_path):
+    def test_parse_polydata_with_polygons(self, tmp_path: Path) -> None:
         """Test POLYDATA with POLYGONS section"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -219,7 +219,7 @@ class TestVTKParserPolydata:
         assert result.mesh.faces is not None
         assert result.mesh.faces.shape[0] >= 1
 
-    def test_parse_polydata_missing_points_raises_error(self, tmp_path):
+    def test_parse_polydata_missing_points_raises_error(self, tmp_path: Path) -> None:
         """Test POLYDATA without POINTS raises error"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -241,7 +241,7 @@ class TestVTKParserPolydata:
 class TestVTKParserUnstructuredGrid:
     """Test VTK UNSTRUCTURED_GRID parsing"""
 
-    def test_parse_unstructured_grid(self, tmp_path):
+    def test_parse_unstructured_grid(self, tmp_path: Path) -> None:
         """Test parsing UNSTRUCTURED_GRID"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -264,7 +264,7 @@ class TestVTKParserUnstructuredGrid:
         assert result is not None
         assert result.mesh.num_vertices == 4
 
-    def test_parse_unstructured_grid_with_cells(self, tmp_path):
+    def test_parse_unstructured_grid_with_cells(self, tmp_path: Path) -> None:
         """Test UNSTRUCTURED_GRID with CELLS"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -288,7 +288,7 @@ class TestVTKParserUnstructuredGrid:
 
         assert result is not None
 
-    def test_parse_unstructured_grid_missing_points_raises_error(self, tmp_path):
+    def test_parse_unstructured_grid_missing_points_raises_error(self, tmp_path: Path) -> None:
         """Test UNSTRUCTURED_GRID without POINTS raises error"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -310,7 +310,7 @@ class TestVTKParserUnstructuredGrid:
 class TestVTKParserFieldData:
     """Test VTK field data parsing"""
 
-    def test_parse_scalar_field(self, tmp_path):
+    def test_parse_scalar_field(self, tmp_path: Path) -> None:
         """Test parsing SCALARS field"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
         from src.core.simulation.models import FieldType
@@ -339,7 +339,7 @@ class TestVTKParserFieldData:
         assert temp_field.field_type == FieldType.SCALAR
         assert temp_field.data.shape == (3,)
 
-    def test_parse_vector_field(self, tmp_path):
+    def test_parse_vector_field(self, tmp_path: Path) -> None:
         """Test parsing VECTORS field"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
         from src.core.simulation.models import FieldType
@@ -369,7 +369,7 @@ class TestVTKParserFieldData:
         assert vel_field.data.shape == (2, 3)
         assert np.allclose(vel_field.data[0], [10.0, 20.0, 30.0])
 
-    def test_parse_multiple_fields(self, tmp_path):
+    def test_parse_multiple_fields(self, tmp_path: Path) -> None:
         """Test parsing multiple SCALARS and VECTORS fields"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -396,7 +396,7 @@ class TestVTKParserFieldData:
 
         assert len(timestep.fields) == 2
 
-    def test_parse_cell_data(self, tmp_path):
+    def test_parse_cell_data(self, tmp_path: Path) -> None:
         """Test parsing CELL_DATA"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
         from src.core.simulation.models import DataLocation
@@ -430,7 +430,7 @@ class TestVTKParserFieldData:
 class TestVTKParserMetadata:
     """Test VTK metadata handling"""
 
-    def test_parse_stores_metadata(self, tmp_path):
+    def test_parse_stores_metadata(self, tmp_path: Path) -> None:
         """Test parsing stores VTK version and description in metadata"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -450,7 +450,7 @@ class TestVTKParserMetadata:
         assert result.metadata["vtk_version"] == "4.2"
         assert result.metadata["description"] == "Custom description text"
 
-    def test_parse_custom_time_and_step(self, tmp_path):
+    def test_parse_custom_time_and_step(self, tmp_path: Path) -> None:
         """Test parsing with custom time and step parameters"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -476,7 +476,7 @@ class TestVTKParserMetadata:
 class TestVTKParserEdgeCases:
     """Test VTK parser edge cases"""
 
-    def test_parse_unsupported_dataset_type_raises_error(self, tmp_path):
+    def test_parse_unsupported_dataset_type_raises_error(self, tmp_path: Path) -> None:
         """Test parsing unsupported dataset type raises NotImplementedError"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -493,7 +493,7 @@ class TestVTKParserEdgeCases:
         with pytest.raises(NotImplementedError, match="not supported yet"):
             parser.parse(vtk_file)
 
-    def test_parse_missing_dataset_keyword_raises_error(self, tmp_path):
+    def test_parse_missing_dataset_keyword_raises_error(self, tmp_path: Path) -> None:
         """Test parsing without DATASET keyword raises error"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -510,7 +510,7 @@ class TestVTKParserEdgeCases:
         with pytest.raises(ValueError, match="Missing DATASET keyword"):
             parser.parse(vtk_file)
 
-    def test_parse_multiline_point_data(self, tmp_path):
+    def test_parse_multiline_point_data(self, tmp_path: Path) -> None:
         """Test parsing vertices spread across multiple lines"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 
@@ -534,7 +534,7 @@ class TestVTKParserEdgeCases:
 
         assert result.mesh.num_vertices == 4
 
-    def test_parse_polygon_to_triangles_conversion(self, tmp_path):
+    def test_parse_polygon_to_triangles_conversion(self, tmp_path: Path) -> None:
         """Test quad polygon converted to triangles"""
         from src.core.simulation.parsers.vtk_parser import VTKParser
 

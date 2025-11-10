@@ -4,6 +4,7 @@
 실제 데이터베이스 (SQLite in-memory)를 사용한 리포지토리 통합 테스트입니다.
 """
 
+from typing import Any, AsyncGenerator
 import pytest
 from uuid import uuid4
 from datetime import datetime
@@ -32,7 +33,7 @@ from src.core.domain.entities import (
 
 
 @pytest.fixture
-async def db_connection():
+async def db_connection() -> AsyncGenerator[InMemoryDatabaseConnection, None]:
     """인메모리 데이터베이스 연결"""
     conn = InMemoryDatabaseConnection()
 
@@ -46,7 +47,7 @@ async def db_connection():
 
 
 @pytest.fixture
-async def db_session(db_connection):
+async def db_session(db_connection: InMemoryDatabaseConnection) -> AsyncGenerator[Any, None]:
     """데이터베이스 세션"""
     async with db_connection.get_session() as session:
         yield session
@@ -57,7 +58,7 @@ async def db_session(db_connection):
 
 
 @pytest.mark.asyncio
-async def test_simulation_repository_save_and_find(db_session):
+async def test_simulation_repository_save_and_find(db_session: Any) -> None:
     """시뮬레이션 저장 및 조회 테스트"""
     repo = SimulationRepository(db_session)
 
@@ -87,7 +88,7 @@ async def test_simulation_repository_save_and_find(db_session):
 
 
 @pytest.mark.asyncio
-async def test_simulation_repository_find_by_name(db_session):
+async def test_simulation_repository_find_by_name(db_session: Any) -> None:
     """이름으로 시뮬레이션 조회 테스트"""
     repo = SimulationRepository(db_session)
 
@@ -110,7 +111,7 @@ async def test_simulation_repository_find_by_name(db_session):
 
 
 @pytest.mark.asyncio
-async def test_simulation_repository_find_by_status(db_session):
+async def test_simulation_repository_find_by_status(db_session: Any) -> None:
     """상태로 시뮬레이션 조회 테스트"""
     repo = SimulationRepository(db_session)
 
@@ -136,7 +137,7 @@ async def test_simulation_repository_find_by_status(db_session):
 
 
 @pytest.mark.asyncio
-async def test_simulation_repository_update(db_session):
+async def test_simulation_repository_update(db_session: Any) -> None:
     """시뮬레이션 업데이트 테스트"""
     repo = SimulationRepository(db_session)
 
@@ -153,12 +154,13 @@ async def test_simulation_repository_update(db_session):
 
     # Then
     found = await repo.find_by_id(simulation.id)
+    assert found is not None
     assert found.name == "Updated"
     assert found.status == SimulationStatus.PROCESSING
 
 
 @pytest.mark.asyncio
-async def test_simulation_repository_delete(db_session):
+async def test_simulation_repository_delete(db_session: Any) -> None:
     """시뮬레이션 삭제 테스트"""
     repo = SimulationRepository(db_session)
 
@@ -180,7 +182,7 @@ async def test_simulation_repository_delete(db_session):
 
 
 @pytest.mark.asyncio
-async def test_simulation_repository_count(db_session):
+async def test_simulation_repository_count(db_session: Any) -> None:
     """시뮬레이션 개수 조회 테스트"""
     repo = SimulationRepository(db_session)
 
@@ -201,7 +203,7 @@ async def test_simulation_repository_count(db_session):
 
 
 @pytest.mark.asyncio
-async def test_dataset_repository_save_and_find(db_session):
+async def test_dataset_repository_save_and_find(db_session: Any) -> None:
     """데이터셋 저장 및 조회 테스트"""
     sim_repo = SimulationRepository(db_session)
     ds_repo = DatasetRepository(db_session)
@@ -234,7 +236,7 @@ async def test_dataset_repository_save_and_find(db_session):
 
 
 @pytest.mark.asyncio
-async def test_dataset_repository_find_by_simulation_id(db_session):
+async def test_dataset_repository_find_by_simulation_id(db_session: Any) -> None:
     """시뮬레이션 ID로 데이터셋 조회 테스트"""
     sim_repo = SimulationRepository(db_session)
     ds_repo = DatasetRepository(db_session)
@@ -271,7 +273,7 @@ async def test_dataset_repository_find_by_simulation_id(db_session):
 
 
 @pytest.mark.asyncio
-async def test_analysis_repository_save_and_find(db_session):
+async def test_analysis_repository_save_and_find(db_session: Any) -> None:
     """분석 저장 및 조회 테스트"""
     sim_repo = SimulationRepository(db_session)
     analysis_repo = AnalysisRepository(db_session)
@@ -299,7 +301,7 @@ async def test_analysis_repository_save_and_find(db_session):
 
 
 @pytest.mark.asyncio
-async def test_analysis_repository_find_pending(db_session):
+async def test_analysis_repository_find_pending(db_session: Any) -> None:
     """대기 중인 분석 조회 테스트"""
     sim_repo = SimulationRepository(db_session)
     analysis_repo = AnalysisRepository(db_session)
@@ -331,7 +333,7 @@ async def test_analysis_repository_find_pending(db_session):
 
 
 @pytest.mark.asyncio
-async def test_ai_model_repository_save_and_find(db_session):
+async def test_ai_model_repository_save_and_find(db_session: Any) -> None:
     """AI 모델 저장 및 조회 테스트"""
     repo = AIModelRepository(db_session)
 
@@ -357,7 +359,7 @@ async def test_ai_model_repository_save_and_find(db_session):
 
 
 @pytest.mark.asyncio
-async def test_ai_model_repository_find_by_name_and_version(db_session):
+async def test_ai_model_repository_find_by_name_and_version(db_session: Any) -> None:
     """이름과 버전으로 AI 모델 조회 테스트"""
     repo = AIModelRepository(db_session)
 
@@ -378,7 +380,7 @@ async def test_ai_model_repository_find_by_name_and_version(db_session):
 
 
 @pytest.mark.asyncio
-async def test_ai_model_repository_find_latest_by_name(db_session):
+async def test_ai_model_repository_find_latest_by_name(db_session: Any) -> None:
     """이름으로 최신 AI 모델 조회 테스트"""
     repo = AIModelRepository(db_session)
 

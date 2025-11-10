@@ -21,7 +21,7 @@ from src.core.domain.value_objects import (
 class TestCoordinate3D:
     """Coordinate3D 값 객체 테스트"""
 
-    def test_create_coordinate(self):
+    def test_create_coordinate(self) -> None:
         """좌표 생성 테스트"""
         coord = Coordinate3D(1.0, 2.0, 3.0)
 
@@ -29,24 +29,24 @@ class TestCoordinate3D:
         assert coord.y == 2.0
         assert coord.z == 3.0
 
-    def test_coordinate_is_immutable(self):
+    def test_coordinate_is_immutable(self) -> None:
         """좌표 불변성 테스트"""
         coord = Coordinate3D(1.0, 2.0, 3.0)
 
         with pytest.raises(AttributeError):
             coord.x = 5.0  # type: ignore
 
-    def test_create_with_nan_raises_error(self):
+    def test_create_with_nan_raises_error(self) -> None:
         """NaN으로 생성 시 에러"""
         with pytest.raises(ValueError, match="cannot be NaN or Inf"):
             Coordinate3D(float("nan"), 2.0, 3.0)
 
-    def test_create_with_inf_raises_error(self):
+    def test_create_with_inf_raises_error(self) -> None:
         """Inf로 생성 시 에러"""
         with pytest.raises(ValueError, match="cannot be NaN or Inf"):
             Coordinate3D(float("inf"), 2.0, 3.0)
 
-    def test_distance_to(self):
+    def test_distance_to(self) -> None:
         """거리 계산 테스트"""
         coord1 = Coordinate3D(0.0, 0.0, 0.0)
         coord2 = Coordinate3D(3.0, 4.0, 0.0)
@@ -55,13 +55,13 @@ class TestCoordinate3D:
 
         assert distance == 5.0  # 3-4-5 삼각형
 
-    def test_to_tuple(self):
+    def test_to_tuple(self) -> None:
         """튜플 변환 테스트"""
         coord = Coordinate3D(1.0, 2.0, 3.0)
 
         assert coord.to_tuple() == (1.0, 2.0, 3.0)
 
-    def test_from_tuple(self):
+    def test_from_tuple(self) -> None:
         """튜플로부터 생성 테스트"""
         coord = Coordinate3D.from_tuple((1.0, 2.0, 3.0))
 
@@ -69,7 +69,7 @@ class TestCoordinate3D:
         assert coord.y == 2.0
         assert coord.z == 3.0
 
-    def test_origin(self):
+    def test_origin(self) -> None:
         """원점 생성 테스트"""
         origin = Coordinate3D.origin()
 
@@ -77,7 +77,7 @@ class TestCoordinate3D:
         assert origin.y == 0.0
         assert origin.z == 0.0
 
-    def test_equality(self):
+    def test_equality(self) -> None:
         """동등성 테스트"""
         coord1 = Coordinate3D(1.0, 2.0, 3.0)
         coord2 = Coordinate3D(1.0, 2.0, 3.0)
@@ -90,7 +90,7 @@ class TestCoordinate3D:
 class TestVector3D:
     """Vector3D 값 객체 테스트"""
 
-    def test_create_vector(self):
+    def test_create_vector(self) -> None:
         """벡터 생성 테스트"""
         vec = Vector3D(1.0, 2.0, 3.0)
 
@@ -98,13 +98,13 @@ class TestVector3D:
         assert vec.y == 2.0
         assert vec.z == 3.0
 
-    def test_magnitude(self):
+    def test_magnitude(self) -> None:
         """크기 계산 테스트"""
         vec = Vector3D(3.0, 4.0, 0.0)
 
         assert vec.magnitude() == 5.0
 
-    def test_normalize(self):
+    def test_normalize(self) -> None:
         """정규화 테스트"""
         vec = Vector3D(3.0, 4.0, 0.0)
         normalized = vec.normalize()
@@ -113,14 +113,14 @@ class TestVector3D:
         assert normalized.x == 0.6
         assert normalized.y == 0.8
 
-    def test_normalize_zero_vector_raises_error(self):
+    def test_normalize_zero_vector_raises_error(self) -> None:
         """영벡터 정규화 시 에러"""
         vec = Vector3D.zero()
 
         with pytest.raises(ValueError, match="Cannot normalize zero vector"):
             vec.normalize()
 
-    def test_dot_product(self):
+    def test_dot_product(self) -> None:
         """내적 테스트"""
         vec1 = Vector3D(1.0, 0.0, 0.0)
         vec2 = Vector3D(0.0, 1.0, 0.0)
@@ -130,7 +130,7 @@ class TestVector3D:
         vec3 = Vector3D(1.0, 1.0, 0.0)
         assert vec1.dot(vec3) == 1.0
 
-    def test_cross_product(self):
+    def test_cross_product(self) -> None:
         """외적 테스트"""
         vec1 = Vector3D(1.0, 0.0, 0.0)
         vec2 = Vector3D(0.0, 1.0, 0.0)
@@ -141,7 +141,7 @@ class TestVector3D:
         assert cross.y == 0.0
         assert cross.z == 1.0
 
-    def test_scale(self):
+    def test_scale(self) -> None:
         """스칼라 곱 테스트"""
         vec = Vector3D(1.0, 2.0, 3.0)
         scaled = vec.scale(2.0)
@@ -154,7 +154,7 @@ class TestVector3D:
 class TestBoundingBox:
     """BoundingBox 값 객체 테스트"""
 
-    def test_create_bounding_box(self):
+    def test_create_bounding_box(self) -> None:
         """경계 상자 생성 테스트"""
         min_point = Coordinate3D(0.0, 0.0, 0.0)
         max_point = Coordinate3D(10.0, 10.0, 10.0)
@@ -164,7 +164,7 @@ class TestBoundingBox:
         assert bbox.min_point == min_point
         assert bbox.max_point == max_point
 
-    def test_create_with_invalid_bounds_raises_error(self):
+    def test_create_with_invalid_bounds_raises_error(self) -> None:
         """잘못된 경계로 생성 시 에러"""
         min_point = Coordinate3D(10.0, 0.0, 0.0)
         max_point = Coordinate3D(0.0, 10.0, 10.0)
@@ -172,7 +172,7 @@ class TestBoundingBox:
         with pytest.raises(ValueError, match="min_point.x must be"):
             BoundingBox(min_point, max_point)
 
-    def test_dimensions(self):
+    def test_dimensions(self) -> None:
         """크기 계산 테스트"""
         min_point = Coordinate3D(0.0, 0.0, 0.0)
         max_point = Coordinate3D(10.0, 20.0, 30.0)
@@ -182,7 +182,7 @@ class TestBoundingBox:
         assert bbox.height() == 20.0
         assert bbox.depth() == 30.0
 
-    def test_volume(self):
+    def test_volume(self) -> None:
         """부피 계산 테스트"""
         min_point = Coordinate3D(0.0, 0.0, 0.0)
         max_point = Coordinate3D(2.0, 3.0, 4.0)
@@ -190,7 +190,7 @@ class TestBoundingBox:
 
         assert bbox.volume() == 24.0
 
-    def test_center(self):
+    def test_center(self) -> None:
         """중심점 계산 테스트"""
         min_point = Coordinate3D(0.0, 0.0, 0.0)
         max_point = Coordinate3D(10.0, 10.0, 10.0)
@@ -202,7 +202,7 @@ class TestBoundingBox:
         assert center.y == 5.0
         assert center.z == 5.0
 
-    def test_contains(self):
+    def test_contains(self) -> None:
         """점 포함 여부 테스트"""
         min_point = Coordinate3D(0.0, 0.0, 0.0)
         max_point = Coordinate3D(10.0, 10.0, 10.0)
@@ -212,7 +212,7 @@ class TestBoundingBox:
         assert bbox.contains(Coordinate3D(0.0, 0.0, 0.0))  # 경계
         assert not bbox.contains(Coordinate3D(15.0, 5.0, 5.0))
 
-    def test_intersects(self):
+    def test_intersects(self) -> None:
         """교차 여부 테스트"""
         bbox1 = BoundingBox(Coordinate3D(0.0, 0.0, 0.0), Coordinate3D(10.0, 10.0, 10.0))
         bbox2 = BoundingBox(Coordinate3D(5.0, 5.0, 5.0), Coordinate3D(15.0, 15.0, 15.0))
@@ -225,7 +225,7 @@ class TestBoundingBox:
 class TestTimeRange:
     """TimeRange 값 객체 테스트"""
 
-    def test_create_time_range(self):
+    def test_create_time_range(self) -> None:
         """시간 범위 생성 테스트"""
         start = datetime(2024, 1, 1, 0, 0, 0)
         end = datetime(2024, 1, 1, 1, 0, 0)
@@ -235,7 +235,7 @@ class TestTimeRange:
         assert time_range.start == start
         assert time_range.end == end
 
-    def test_create_with_end_before_start_raises_error(self):
+    def test_create_with_end_before_start_raises_error(self) -> None:
         """종료 시간이 시작 시간보다 빠른 경우 에러"""
         start = datetime(2024, 1, 1, 1, 0, 0)
         end = datetime(2024, 1, 1, 0, 0, 0)
@@ -243,7 +243,7 @@ class TestTimeRange:
         with pytest.raises(ValueError, match="Start time must be before"):
             TimeRange(start, end)
 
-    def test_duration_seconds(self):
+    def test_duration_seconds(self) -> None:
         """기간 계산 (초) 테스트"""
         start = datetime(2024, 1, 1, 0, 0, 0)
         end = datetime(2024, 1, 1, 0, 1, 30)  # 90초
@@ -251,7 +251,7 @@ class TestTimeRange:
 
         assert time_range.duration_seconds() == 90.0
 
-    def test_duration_minutes(self):
+    def test_duration_minutes(self) -> None:
         """기간 계산 (분) 테스트"""
         start = datetime(2024, 1, 1, 0, 0, 0)
         end = datetime(2024, 1, 1, 1, 0, 0)  # 60분
@@ -259,7 +259,7 @@ class TestTimeRange:
 
         assert time_range.duration_minutes() == 60.0
 
-    def test_contains(self):
+    def test_contains(self) -> None:
         """시간 포함 여부 테스트"""
         start = datetime(2024, 1, 1, 0, 0, 0)
         end = datetime(2024, 1, 1, 1, 0, 0)
@@ -269,7 +269,7 @@ class TestTimeRange:
         assert time_range.contains(start)
         assert not time_range.contains(datetime(2024, 1, 1, 2, 0, 0))
 
-    def test_overlaps(self):
+    def test_overlaps(self) -> None:
         """시간 범위 겹침 여부 테스트"""
         range1 = TimeRange(datetime(2024, 1, 1, 0, 0, 0), datetime(2024, 1, 1, 1, 0, 0))
         range2 = TimeRange(datetime(2024, 1, 1, 0, 30, 0), datetime(2024, 1, 1, 1, 30, 0))
@@ -282,7 +282,7 @@ class TestTimeRange:
 class TestCompressionMetadata:
     """CompressionMetadata 값 객체 테스트"""
 
-    def test_create_compression_metadata(self):
+    def test_create_compression_metadata(self) -> None:
         """압축 메타데이터 생성 테스트"""
         metadata = CompressionMetadata(
             original_size=1000, compressed_size=100, compression_method="gzip"
@@ -293,7 +293,7 @@ class TestCompressionMetadata:
         assert metadata.compression_method == "gzip"
         assert metadata.compression_ratio == 10.0
 
-    def test_space_saved(self):
+    def test_space_saved(self) -> None:
         """절약 공간 계산 테스트"""
         metadata = CompressionMetadata(
             original_size=1000, compressed_size=100, compression_method="gzip"
@@ -306,7 +306,7 @@ class TestCompressionMetadata:
 class TestAnalysisResult:
     """AnalysisResult 값 객체 테스트"""
 
-    def test_create_analysis_result(self):
+    def test_create_analysis_result(self) -> None:
         """분석 결과 생성 테스트"""
         result = AnalysisResult(
             analysis_type="statistical",
@@ -319,7 +319,7 @@ class TestAnalysisResult:
         assert result.get_metric("mean") == 10.5
         assert result.confidence_score == 0.95
 
-    def test_has_high_confidence(self):
+    def test_has_high_confidence(self) -> None:
         """높은 신뢰도 확인 테스트"""
         result = AnalysisResult(
             analysis_type="test",
@@ -335,27 +335,27 @@ class TestAnalysisResult:
 class TestDataQuality:
     """DataQuality 값 객체 테스트"""
 
-    def test_create_data_quality(self):
+    def test_create_data_quality(self) -> None:
         """데이터 품질 생성 테스트"""
         quality = DataQuality(completeness=0.95, accuracy=0.90, consistency=0.85, validity=0.92)
 
         assert quality.completeness == 0.95
         assert quality.accuracy == 0.90
 
-    def test_overall_score(self):
+    def test_overall_score(self) -> None:
         """전체 품질 점수 테스트"""
         quality = DataQuality(completeness=0.8, accuracy=0.8, consistency=0.8, validity=0.8)
 
         assert quality.overall_score() == 0.8
 
-    def test_is_acceptable(self):
+    def test_is_acceptable(self) -> None:
         """허용 가능한 품질 확인 테스트"""
         quality = DataQuality(completeness=0.75, accuracy=0.75, consistency=0.75, validity=0.75)
 
         assert quality.is_acceptable(threshold=0.7)
         assert not quality.is_acceptable(threshold=0.8)
 
-    def test_get_weakest_dimension(self):
+    def test_get_weakest_dimension(self) -> None:
         """가장 약한 차원 확인 테스트"""
         quality = DataQuality(completeness=0.95, accuracy=0.90, consistency=0.70, validity=0.92)
 
@@ -365,7 +365,7 @@ class TestDataQuality:
 class TestStatistics:
     """Statistics 값 객체 테스트"""
 
-    def test_create_statistics(self):
+    def test_create_statistics(self) -> None:
         """통계 정보 생성 테스트"""
         stats = Statistics(mean=10.0, std=2.0, min=5.0, max=15.0, count=100)
 
@@ -373,19 +373,19 @@ class TestStatistics:
         assert stats.std == 2.0
         assert stats.count == 100
 
-    def test_range(self):
+    def test_range(self) -> None:
         """범위 계산 테스트"""
         stats = Statistics(mean=10.0, std=2.0, min=5.0, max=15.0)
 
         assert stats.range() == 10.0
 
-    def test_coefficient_of_variation(self):
+    def test_coefficient_of_variation(self) -> None:
         """변동계수 계산 테스트"""
         stats = Statistics(mean=10.0, std=2.0, min=5.0, max=15.0)
 
         assert stats.coefficient_of_variation() == 20.0
 
-    def test_is_outlier(self):
+    def test_is_outlier(self) -> None:
         """이상치 확인 테스트"""
         stats = Statistics(mean=10.0, std=2.0, min=5.0, max=15.0)
 

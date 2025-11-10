@@ -2,6 +2,9 @@
 모델 저장소 테스트
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING, Iterator
+
 import pytest
 import tempfile
 import json
@@ -16,14 +19,14 @@ from src.infrastructure.model_storage import (
 
 
 @pytest.fixture
-def temp_storage_dir():
+def temp_storage_dir() -> Iterator[Path]:
     """임시 저장소 디렉토리"""
     with tempfile.TemporaryDirectory() as tmpdir:
         yield Path(tmpdir)
 
 
 @pytest.fixture
-def temp_model_file():
+def temp_model_file() -> Iterator[Path]:
     """임시 모델 파일"""
     with tempfile.NamedTemporaryFile(suffix=".pth", delete=False) as f:
         f.write(b"fake model data for testing")
@@ -32,7 +35,7 @@ def temp_model_file():
 
 
 @pytest.fixture
-def storage(temp_storage_dir):
+def storage(temp_storage_dir: Path) -> ModelStorage:
     """저장소 인스턴스"""
     config = StorageConfig(
         backend=StorageBackend.LOCAL,
@@ -45,7 +48,7 @@ def storage(temp_storage_dir):
 class TestModelStorage:
     """ModelStorage 테스트"""
 
-    def test_save_model(self, storage, temp_model_file):
+    def test_save_model(self, storage: ModelStorage, temp_model_file: Path) -> None:
         """모델 저장 테스트"""
         saved_path = storage.save(
             model_file=temp_model_file,
@@ -57,7 +60,7 @@ class TestModelStorage:
         assert saved_path.name == temp_model_file.name
         assert saved_path.parent.name == "1.0.0"
 
-    def test_save_with_metadata(self, storage, temp_model_file):
+    def test_save_with_metadata(self, storage: ModelStorage, temp_model_file: Path) -> None:
         """메타데이터 포함 저장 테스트"""
         metadata = {
             "framework": "pytorch",
@@ -78,7 +81,7 @@ class TestModelStorage:
         assert loaded_metadata["framework"] == "pytorch"
         assert loaded_metadata["parameters"] == 1000000
 
-    def test_save_creates_checksum(self, temp_storage_dir, temp_model_file):
+    def test_save_creates_checksum(self, temp_storage_dir: Path, temp_model_file: Path) -> None:
         """체크섬 생성 테스트"""
         config = StorageConfig(
             backend=StorageBackend.LOCAL,
@@ -99,7 +102,7 @@ class TestModelStorage:
         checksum = checksum_file.read_text().strip()
         assert len(checksum) == 64  # SHA256 hash length
 
-    def test_save_nonexistent_file_raises_error(self, storage):
+    def test_save_nonexistent_file_raises_error(self, storage: ModelStorage) -> None:
         """존재하지 않는 파일 저장 시 에러 테스트"""
         fake_path = Path("/nonexistent/model.pth")
 
@@ -110,7 +113,7 @@ class TestModelStorage:
                 version="1.0",
             )
 
-    def test_load_model(self, storage, temp_model_file):
+    def test_load_model(self, storage: ModelStorage, temp_model_file: Path) -> None:
         """모델 로드 테스트"""
         storage.save(
             model_file=temp_model_file,
@@ -123,12 +126,12 @@ class TestModelStorage:
         assert loaded_path.exists()
         assert loaded_path.read_bytes() == temp_model_file.read_bytes()
 
-    def test_load_nonexistent_model_raises_error(self, storage):
+    def test_load_nonexistent_model_raises_error(self, storage: ModelStorage) -> None:
         """존재하지 않는 모델 로드 시 에러 테스트"""
         with pytest.raises(FileNotFoundError):
             storage.load(model_name="nonexistent", version="1.0", filename="model.pth")
 
-    def test_delete_model(self, storage, temp_model_file):
+    def test_delete_model(self, storage: ModelStorage, temp_model_file: Path) -> None:
         """모델 삭제 테스트"""
         storage.save(
             model_file=temp_model_file,
@@ -140,12 +143,12 @@ class TestModelStorage:
 
         assert not storage.exists("model", "1.0", temp_model_file.name)
 
-    def test_delete_nonexistent_raises_error(self, storage):
+    def test_delete_nonexistent_raises_error(self, storage: ModelStorage) -> None:
         """존재하지 않는 모델 삭제 시 에러 테스트"""
         with pytest.raises(FileNotFoundError):
             storage.delete("nonexistent", "1.0")
 
-    def test_exists(self, storage, temp_model_file):
+    def test_exists(self, storage: ModelStorage, temp_model_file: Path) -> None:
         """파일 존재 확인 테스트"""
         assert not storage.exists("model", "1.0", "model.pth")
 
@@ -157,7 +160,7 @@ class TestModelStorage:
 
         assert storage.exists("model", "1.0", temp_model_file.name)
 
-    def test_list_versions(self, storage, temp_model_file):
+    def test_list_versions(self, storage: ModelStorage, temp_model_file: Path) -> None:
         """버전 목록 조회 테스트"""
         storage.save(model_file=temp_model_file, model_name="model", version="1.0")
         storage.save(model_file=temp_model_file, model_name="model", version="2.0")
@@ -170,13 +173,13 @@ class TestModelStorage:
         assert "1.5" in versions
         assert "2.0" in versions
 
-    def test_list_versions_empty(self, storage):
+    def test_list_versions_empty(self, storage: ModelStorage) -> None:
         """빈 버전 목록 테스트"""
         versions = storage.list_versions("nonexistent")
 
         assert versions == []
 
-    def test_get_size(self, storage, temp_model_file):
+    def test_get_size(self, storage: ModelStorage, temp_model_file: Path) -> None:
         """모델 크기 조회 테스트"""
         storage.save(
             model_file=temp_model_file,
@@ -189,7 +192,7 @@ class TestModelStorage:
         assert size > 0
         assert size >= len(b"fake model data for testing")
 
-    def test_get_size_nonexistent_raises_error(self, storage):
+    def test_get_size_nonexistent_raises_error(self, storage: ModelStorage) -> None:
         """존재하지 않는 모델 크기 조회 시 에러 테스트"""
         with pytest.raises(FileNotFoundError):
             storage.get_size("nonexistent", "1.0")
@@ -198,14 +201,14 @@ class TestModelStorage:
 class TestModelStorageFactory:
     """ModelStorageFactory 테스트"""
 
-    def test_create_local_storage(self, temp_storage_dir):
+    def test_create_local_storage(self, temp_storage_dir: Path) -> None:
         """로컬 저장소 생성 테스트"""
         storage = ModelStorageFactory.create_local_storage(temp_storage_dir)
 
         assert storage.config.backend == StorageBackend.LOCAL
         assert storage.base_path == temp_storage_dir
 
-    def test_create_git_lfs_storage(self, temp_storage_dir):
+    def test_create_git_lfs_storage(self, temp_storage_dir: Path) -> None:
         """Git LFS 저장소 생성 테스트"""
         storage = ModelStorageFactory.create_git_lfs_storage(temp_storage_dir)
 

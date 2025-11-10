@@ -24,7 +24,7 @@ from src.core.simulation import (
 class TestFieldData:
     """필드 데이터 테스트"""
 
-    def test_scalar_field(self):
+    def test_scalar_field(self) -> None:
         """스칼라 필드 생성 및 통계"""
         data = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
@@ -42,7 +42,7 @@ class TestFieldData:
         assert field.get_max() == 5.0
         assert field.get_mean() == 3.0
 
-    def test_vector_field(self):
+    def test_vector_field(self) -> None:
         """벡터 필드 생성 및 통계"""
         data = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]], dtype=float)
 
@@ -58,7 +58,7 @@ class TestFieldData:
         assert field.size == 3
         assert field.data.shape == (3, 3)
 
-    def test_invalid_scalar_field(self):
+    def test_invalid_scalar_field(self) -> None:
         """잘못된 스칼라 필드"""
         data = np.array([[1, 2], [3, 4]])  # 2D는 스칼라에 적합하지 않음
 
@@ -70,7 +70,7 @@ class TestFieldData:
                 data=data,
             )
 
-    def test_invalid_vector_field(self):
+    def test_invalid_vector_field(self) -> None:
         """잘못된 벡터 필드"""
         data = np.array([1, 2, 3])  # 1D는 벡터에 적합하지 않음
 
@@ -86,7 +86,7 @@ class TestFieldData:
 class TestMeshData:
     """메시 데이터 테스트"""
 
-    def test_mesh_creation(self):
+    def test_mesh_creation(self) -> None:
         """메시 생성"""
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float)
 
@@ -96,7 +96,7 @@ class TestMeshData:
         assert mesh.num_cells == 0
         assert mesh.num_faces == 0
 
-    def test_mesh_with_faces(self):
+    def test_mesh_with_faces(self) -> None:
         """면이 있는 메시"""
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float)
 
@@ -107,7 +107,7 @@ class TestMeshData:
         assert mesh.num_vertices == 3
         assert mesh.num_faces == 1
 
-    def test_bounding_box(self):
+    def test_bounding_box(self) -> None:
         """바운딩 박스"""
         vertices = np.array([[0, 0, 0], [2, 3, 4], [-1, -2, -3]], dtype=float)
 
@@ -122,7 +122,7 @@ class TestMeshData:
 class TestSimulationResult:
     """시뮬레이션 결과 테스트"""
 
-    def test_result_creation(self):
+    def test_result_creation(self) -> None:
         """결과 생성"""
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float)
         mesh = MeshData(vertices=vertices)
@@ -137,7 +137,7 @@ class TestSimulationResult:
         assert result.simulation_type == "CFD"
         assert result.num_timesteps == 0
 
-    def test_add_timestep(self):
+    def test_add_timestep(self) -> None:
         """타임스텝 추가"""
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float)
         mesh = MeshData(vertices=vertices)
@@ -158,7 +158,7 @@ class TestSimulationResult:
         assert result.num_timesteps == 2
         assert result.time_range == (0.0, 1.0)
 
-    def test_timestep_with_fields(self):
+    def test_timestep_with_fields(self) -> None:
         """필드가 있는 타임스텝"""
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float)
         mesh = MeshData(vertices=vertices)
@@ -194,7 +194,7 @@ class TestSimulationResult:
 class TestCSVParser:
     """CSV 파서 테스트"""
 
-    def test_can_parse(self):
+    def test_can_parse(self) -> None:
         """CSV 파일 인식"""
         parser = CSVParser()
 
@@ -204,7 +204,7 @@ class TestCSVParser:
         assert parser.can_parse(csv_file)
         assert not parser.can_parse(txt_file)
 
-    def test_parse_simple_csv(self):
+    def test_parse_simple_csv(self) -> None:
         """간단한 CSV 파싱"""
         parser = CSVParser()
 
@@ -229,13 +229,14 @@ class TestCSVParser:
             assert ts.has_field("temperature")
 
             temp_field = ts.get_field("temperature")
+            assert temp_field is not None
             assert temp_field.field_type == FieldType.SCALAR
             assert len(temp_field.data) == 3
 
         finally:
             csv_path.unlink()
 
-    def test_parse_vector_field_csv(self):
+    def test_parse_vector_field_csv(self) -> None:
         """벡터 필드가 있는 CSV 파싱"""
         parser = CSVParser()
 
@@ -254,6 +255,7 @@ class TestCSVParser:
             assert ts.has_field("velocity")
 
             vel_field = ts.get_field("velocity")
+            assert vel_field is not None
             assert vel_field.field_type == FieldType.VECTOR
             assert vel_field.data.shape == (2, 3)
 
@@ -264,7 +266,7 @@ class TestCSVParser:
 class TestVTKParser:
     """VTK 파서 테스트"""
 
-    def test_can_parse(self):
+    def test_can_parse(self) -> None:
         """VTK 파일 인식"""
         parser = VTKParser()
 
@@ -280,7 +282,7 @@ class TestVTKParser:
         finally:
             vtk_path.unlink()
 
-    def test_parse_polydata(self):
+    def test_parse_polydata(self) -> None:
         """POLYDATA 파싱"""
         parser = VTKParser()
 
@@ -314,6 +316,7 @@ class TestVTKParser:
             assert ts.has_field("temperature")
 
             temp_field = ts.get_field("temperature")
+            assert temp_field is not None
             assert temp_field.field_type == FieldType.SCALAR
             assert len(temp_field.data) == 3
 
@@ -324,7 +327,7 @@ class TestVTKParser:
 class TestParserRegistry:
     """파서 레지스트리 테스트"""
 
-    def test_register_and_get_parser(self):
+    def test_register_and_get_parser(self) -> None:
         """파서 등록 및 조회"""
         registry = ParserRegistry()
 
@@ -354,7 +357,7 @@ class TestParserRegistry:
 class TestResultAnalyzer:
     """결과 분석기 테스트"""
 
-    def test_field_statistics(self):
+    def test_field_statistics(self) -> None:
         """필드 통계 계산"""
         data = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
@@ -372,7 +375,7 @@ class TestResultAnalyzer:
         assert stats["mean"] == 3.0
         assert stats["median"] == 3.0
 
-    def test_vector_field_statistics(self):
+    def test_vector_field_statistics(self) -> None:
         """벡터 필드 통계 (크기 기준)"""
         data = np.array([[3, 0, 0], [0, 4, 0], [0, 0, 5]], dtype=float)
 
@@ -390,7 +393,7 @@ class TestResultAnalyzer:
         assert stats["max"] == 5.0
         assert stats["mean"] == 4.0
 
-    def test_find_extreme_values(self):
+    def test_find_extreme_values(self) -> None:
         """극값 찾기"""
         data = np.array([1, 5, 2, 8, 3, 9, 4, 7, 6], dtype=float)
 
@@ -413,7 +416,7 @@ class TestResultAnalyzer:
         assert 2 in min_indices
         assert 4 in min_indices
 
-    def test_detect_outliers(self):
+    def test_detect_outliers(self) -> None:
         """이상치 탐지"""
         # 정규 분포 + 이상치
         data = np.array([1, 2, 3, 4, 5, 100], dtype=float)  # 100은 이상치
@@ -430,7 +433,7 @@ class TestResultAnalyzer:
         # 100이 이상치로 감지됨
         assert 5 in outliers
 
-    def test_compute_timestep_metrics(self):
+    def test_compute_timestep_metrics(self) -> None:
         """타임스텝 메트릭 계산"""
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float)
         mesh = MeshData(vertices=vertices)
@@ -459,6 +462,7 @@ class TestResultAnalyzer:
         assert metrics.timestep == 0
 
         temp_stats = metrics.get_field_stats("temperature")
+        assert temp_stats is not None
         assert temp_stats["min"] == 300.0
         assert temp_stats["max"] == 320.0
         assert temp_stats["mean"] == 310.0
@@ -467,7 +471,7 @@ class TestResultAnalyzer:
 class TestSpatialAnalyzer:
     """공간 분석기 테스트"""
 
-    def test_region_statistics(self):
+    def test_region_statistics(self) -> None:
         """영역 통계"""
         data = np.array([1, 2, 3, 4, 5], dtype=float)
 
@@ -490,7 +494,7 @@ class TestSpatialAnalyzer:
         assert stats["max"] == 3.0
         assert stats["mean"] == 2.0
 
-    def test_find_region_by_value(self):
+    def test_find_region_by_value(self) -> None:
         """값 범위로 영역 찾기"""
         data = np.array([1, 5, 10, 15, 20], dtype=float)
 

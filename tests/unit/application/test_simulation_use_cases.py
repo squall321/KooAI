@@ -2,6 +2,7 @@
 
 import tempfile
 from pathlib import Path
+from typing import Generator
 
 import numpy as np
 import pytest
@@ -30,7 +31,7 @@ from src.infrastructure.repositories.memory_simulation_repository import (
 
 
 @pytest.fixture
-def repository():
+def repository() -> Generator[InMemorySimulationResultRepository, None, None]:
     """테스트용 리포지토리"""
     repo = InMemorySimulationResultRepository()
     yield repo
@@ -38,7 +39,7 @@ def repository():
 
 
 @pytest.fixture
-def parser_registry():
+def parser_registry() -> ParserRegistry:
     """테스트용 파서 레지스트리"""
     registry = ParserRegistry()
     registry.register(CSVParser())
@@ -47,7 +48,7 @@ def parser_registry():
 
 
 @pytest.fixture
-def sample_csv_file():
+def sample_csv_file() -> Generator[Path, None, None]:
     """테스트용 CSV 파일"""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
         f.write("x,y,z,temperature,velocity_x,velocity_y,velocity_z\n")
@@ -64,7 +65,7 @@ def sample_csv_file():
 class TestUploadSimulationUseCase:
     """시뮬레이션 업로드 Use Case 테스트"""
 
-    def test_upload_csv_simulation(self, repository, parser_registry, sample_csv_file):
+    def test_upload_csv_simulation(self, repository: InMemorySimulationResultRepository, parser_registry: ParserRegistry, sample_csv_file: Path) -> None:
         """CSV 시뮬레이션 업로드"""
         use_case = UploadSimulationUseCase(parser_registry, repository)
 
@@ -80,7 +81,7 @@ class TestUploadSimulationUseCase:
         assert "temperature" in response.fields
         assert "velocity" in response.fields
 
-    def test_upload_nonexistent_file(self, repository, parser_registry):
+    def test_upload_nonexistent_file(self, repository: InMemorySimulationResultRepository, parser_registry: ParserRegistry) -> None:
         """존재하지 않는 파일 업로드 시 에러"""
         use_case = UploadSimulationUseCase(parser_registry, repository)
 
@@ -93,7 +94,7 @@ class TestUploadSimulationUseCase:
 class TestGetSimulationUseCase:
     """시뮬레이션 조회 Use Case 테스트"""
 
-    def test_get_existing_simulation(self, repository, parser_registry, sample_csv_file):
+    def test_get_existing_simulation(self, repository: InMemorySimulationResultRepository, parser_registry: ParserRegistry, sample_csv_file: Path) -> None:
         """존재하는 시뮬레이션 조회"""
         # 먼저 업로드
         upload_use_case = UploadSimulationUseCase(parser_registry, repository)
@@ -111,7 +112,7 @@ class TestGetSimulationUseCase:
         assert get_response.num_vertices == 3
         assert get_response.num_timesteps == 1
 
-    def test_get_nonexistent_simulation(self, repository):
+    def test_get_nonexistent_simulation(self, repository: InMemorySimulationResultRepository) -> None:
         """존재하지 않는 시뮬레이션 조회 시 에러"""
         use_case = GetSimulationUseCase(repository)
 
@@ -122,7 +123,7 @@ class TestGetSimulationUseCase:
 class TestAnalyzeFieldUseCase:
     """필드 분석 Use Case 테스트"""
 
-    def test_analyze_scalar_field(self, repository, parser_registry, sample_csv_file):
+    def test_analyze_scalar_field(self, repository: InMemorySimulationResultRepository, parser_registry: ParserRegistry, sample_csv_file: Path) -> None:
         """스칼라 필드 분석"""
         # 업로드
         upload_use_case = UploadSimulationUseCase(parser_registry, repository)
@@ -150,7 +151,7 @@ class TestAnalyzeFieldUseCase:
         assert analyze_response.extremes is not None
         assert analyze_response.histogram is not None
 
-    def test_analyze_vector_field(self, repository, parser_registry, sample_csv_file):
+    def test_analyze_vector_field(self, repository: InMemorySimulationResultRepository, parser_registry: ParserRegistry, sample_csv_file: Path) -> None:
         """벡터 필드 분석"""
         # 업로드
         upload_use_case = UploadSimulationUseCase(parser_registry, repository)
@@ -175,7 +176,7 @@ class TestAnalyzeFieldUseCase:
 class TestListSimulationsUseCase:
     """시뮬레이션 목록 조회 Use Case 테스트"""
 
-    def test_list_simulations(self, repository, parser_registry, sample_csv_file):
+    def test_list_simulations(self, repository: InMemorySimulationResultRepository, parser_registry: ParserRegistry, sample_csv_file: Path) -> None:
         """시뮬레이션 목록 조회"""
         # 여러 시뮬레이션 업로드
         upload_use_case = UploadSimulationUseCase(parser_registry, repository)
@@ -194,7 +195,7 @@ class TestListSimulationsUseCase:
         assert list_response.total == 2
         assert len(list_response.simulations) == 2
 
-    def test_list_simulations_pagination(self, repository, parser_registry, sample_csv_file):
+    def test_list_simulations_pagination(self, repository: InMemorySimulationResultRepository, parser_registry: ParserRegistry, sample_csv_file: Path) -> None:
         """페이지네이션"""
         # 3개 업로드
         upload_use_case = UploadSimulationUseCase(parser_registry, repository)
@@ -221,7 +222,7 @@ class TestListSimulationsUseCase:
 class TestSpatialAnalysisUseCase:
     """공간 분석 Use Case 테스트"""
 
-    def test_spatial_analysis(self, repository, parser_registry, sample_csv_file):
+    def test_spatial_analysis(self, repository: InMemorySimulationResultRepository, parser_registry: ParserRegistry, sample_csv_file: Path) -> None:
         """공간 영역 분석"""
         # 업로드
         upload_use_case = UploadSimulationUseCase(parser_registry, repository)

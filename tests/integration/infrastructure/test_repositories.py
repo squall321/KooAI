@@ -7,8 +7,10 @@ Repository 통합 테스트
 import pytest
 from datetime import datetime, timedelta
 from uuid import uuid4, UUID
+from typing import AsyncGenerator
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.domain.entities import (
     SimulationResult,
@@ -29,7 +31,7 @@ from src.infrastructure.repositories.sql_repository import (
 
 
 @pytest.fixture(scope="function")
-async def db_connection():
+async def db_connection() -> AsyncGenerator[InMemoryDatabaseConnection, None]:
     """테스트용 데이터베이스 연결"""
     conn = InMemoryDatabaseConnection()
     await conn.create_tables()
@@ -38,7 +40,7 @@ async def db_connection():
 
 
 @pytest.fixture
-async def session(db_connection):
+async def session(db_connection: InMemoryDatabaseConnection) -> AsyncGenerator[AsyncSession, None]:
     """테스트용 세션"""
     async with db_connection.get_session() as sess:
         yield sess
@@ -50,7 +52,7 @@ async def session(db_connection):
 class TestSimulationRepository:
     """SimulationRepository 통합 테스트"""
 
-    async def test_save_and_find_by_id(self, session):
+    async def test_save_and_find_by_id(self, session: AsyncSession) -> None:
         """저장 및 ID 조회 테스트"""
         repo = SimulationRepository(session)
 
@@ -76,7 +78,7 @@ class TestSimulationRepository:
         assert found.metadata == {"key": "value"}
         assert found.tags == ["test", "cfd"]
 
-    async def test_update(self, session):
+    async def test_update(self, session: AsyncSession) -> None:
         """업데이트 테스트"""
         repo = SimulationRepository(session)
 
@@ -97,10 +99,11 @@ class TestSimulationRepository:
 
         # 확인
         found = await repo.find_by_id(simulation_id)
+        assert found is not None
         assert found.name == "Updated Name"
         assert found.metadata == {"version": "2.0"}
 
-    async def test_delete(self, session):
+    async def test_delete(self, session: AsyncSession) -> None:
         """삭제 테스트"""
         repo = SimulationRepository(session)
 
@@ -120,7 +123,7 @@ class TestSimulationRepository:
         found = await repo.find_by_id(simulation_id)
         assert found is None
 
-    async def test_exists(self, session):
+    async def test_exists(self, session: AsyncSession) -> None:
         """존재 여부 확인 테스트"""
         repo = SimulationRepository(session)
 
@@ -135,7 +138,7 @@ class TestSimulationRepository:
         assert await repo.exists(simulation_id) is True
         assert await repo.exists(uuid4()) is False
 
-    async def test_find_by_name(self, session):
+    async def test_find_by_name(self, session: AsyncSession) -> None:
         """이름으로 조회 테스트"""
         repo = SimulationRepository(session)
 
@@ -151,7 +154,7 @@ class TestSimulationRepository:
         results = await repo.find_by_name("Same Name")
         assert len(results) == 2
 
-    async def test_find_by_status(self, session):
+    async def test_find_by_status(self, session: AsyncSession) -> None:
         """상태로 조회 테스트"""
         repo = SimulationRepository(session)
 
@@ -167,7 +170,7 @@ class TestSimulationRepository:
         pending = await repo.find_by_status(SimulationStatus.PENDING)
         assert len(pending) == 2
 
-    async def test_find_by_type(self, session):
+    async def test_find_by_type(self, session: AsyncSession) -> None:
         """타입으로 조회 테스트"""
         repo = SimulationRepository(session)
 
@@ -183,7 +186,7 @@ class TestSimulationRepository:
         cfd_sims = await repo.find_by_type("CFD")
         assert len(cfd_sims) == 2
 
-    async def test_find_by_criteria_with_tags(self, session):
+    async def test_find_by_criteria_with_tags(self, session: AsyncSession) -> None:
         """태그를 포함한 복합 조건 조회 테스트"""
         repo = SimulationRepository(session)
 
@@ -201,7 +204,7 @@ class TestSimulationRepository:
 
         assert len(results) == 2
 
-    async def test_count(self, session):
+    async def test_count(self, session: AsyncSession) -> None:
         """카운트 테스트"""
         repo = SimulationRepository(session)
 
@@ -228,7 +231,7 @@ class TestSimulationRepository:
 class TestDatasetRepository:
     """DatasetRepository 통합 테스트"""
 
-    async def test_save_and_find_by_id(self, session):
+    async def test_save_and_find_by_id(self, session: AsyncSession) -> None:
         """저장 및 ID 조회 테스트"""
         sim_repo = SimulationRepository(session)
         ds_repo = DatasetRepository(session)
@@ -260,7 +263,7 @@ class TestDatasetRepository:
         assert found.data_type == "mesh"
         assert found.metadata == {"version": "1.0"}
 
-    async def test_update_metadata(self, session):
+    async def test_update_metadata(self, session: AsyncSession) -> None:
         """메타데이터 업데이트 테스트"""
         sim_repo = SimulationRepository(session)
         ds_repo = DatasetRepository(session)
@@ -287,9 +290,10 @@ class TestDatasetRepository:
 
         # 확인
         found = await ds_repo.find_by_id(ds_id)
+        assert found is not None
         assert found.metadata == {"version": "2.0", "updated": True}
 
-    async def test_find_by_simulation_id(self, session):
+    async def test_find_by_simulation_id(self, session: AsyncSession) -> None:
         """시뮬레이션 ID로 데이터셋 조회 테스트"""
         sim_repo = SimulationRepository(session)
         ds_repo = DatasetRepository(session)
@@ -321,7 +325,7 @@ class TestDatasetRepository:
         datasets = await ds_repo.find_by_simulation_id(sim_id)
         assert len(datasets) == 2
 
-    async def test_find_by_data_type(self, session):
+    async def test_find_by_data_type(self, session: AsyncSession) -> None:
         """데이터 타입으로 조회 테스트"""
         sim_repo = SimulationRepository(session)
         ds_repo = DatasetRepository(session)
@@ -366,7 +370,7 @@ class TestDatasetRepository:
 class TestAnalysisRepository:
     """AnalysisRepository 통합 테스트"""
 
-    async def test_save_and_find_by_id(self, session):
+    async def test_save_and_find_by_id(self, session: AsyncSession) -> None:
         """저장 및 ID 조회 테스트"""
         sim_repo = SimulationRepository(session)
         analysis_repo = AnalysisRepository(session)
@@ -393,7 +397,7 @@ class TestAnalysisRepository:
         assert found.analysis_type == "statistical"
         assert found.status == AnalysisStatus.PENDING
 
-    async def test_update_status(self, session):
+    async def test_update_status(self, session: AsyncSession) -> None:
         """상태 업데이트 테스트"""
         sim_repo = SimulationRepository(session)
         analysis_repo = AnalysisRepository(session)
@@ -418,6 +422,7 @@ class TestAnalysisRepository:
         await session.commit()
 
         found = await analysis_repo.find_by_id(analysis_id)
+        assert found is not None
         assert found.status == AnalysisStatus.RUNNING
 
         # 완료
@@ -426,10 +431,11 @@ class TestAnalysisRepository:
         await session.commit()
 
         found = await analysis_repo.find_by_id(analysis_id)
+        assert found is not None
         assert found.status == AnalysisStatus.COMPLETED
         assert found.results == {"mean": 10.5}
 
-    async def test_find_by_status(self, session):
+    async def test_find_by_status(self, session: AsyncSession) -> None:
         """상태로 조회 테스트"""
         sim_repo = SimulationRepository(session)
         analysis_repo = AnalysisRepository(session)
@@ -467,7 +473,7 @@ class TestAnalysisRepository:
         pending = await analysis_repo.find_by_status(AnalysisStatus.PENDING)
         assert len(pending) == 2
 
-    async def test_find_pending(self, session):
+    async def test_find_pending(self, session: AsyncSession) -> None:
         """대기 중 분석 조회 테스트"""
         sim_repo = SimulationRepository(session)
         analysis_repo = AnalysisRepository(session)
@@ -497,7 +503,7 @@ class TestAnalysisRepository:
 class TestAIModelRepository:
     """AIModelRepository 통합 테스트"""
 
-    async def test_save_and_find_by_id(self, session):
+    async def test_save_and_find_by_id(self, session: AsyncSession) -> None:
         """저장 및 ID 조회 테스트"""
         repo = AIModelRepository(session)
 
@@ -522,7 +528,7 @@ class TestAIModelRepository:
         assert found.version == "1.0.0"
         assert found.architecture == {"encoder": "CNN", "decoder": "CNN"}
 
-    async def test_find_by_name(self, session):
+    async def test_find_by_name(self, session: AsyncSession) -> None:
         """이름으로 조회 테스트 (여러 버전)"""
         repo = AIModelRepository(session)
 
@@ -550,7 +556,7 @@ class TestAIModelRepository:
         models = await repo.find_by_name("TestModel")
         assert len(models) == 2
 
-    async def test_find_by_name_and_version(self, session):
+    async def test_find_by_name_and_version(self, session: AsyncSession) -> None:
         """이름과 버전으로 조회 테스트"""
         repo = AIModelRepository(session)
 
@@ -571,7 +577,7 @@ class TestAIModelRepository:
         assert found is not None
         assert found.version == "1.0.0"
 
-    async def test_find_by_type(self, session):
+    async def test_find_by_type(self, session: AsyncSession) -> None:
         """타입으로 조회 테스트"""
         repo = AIModelRepository(session)
 
@@ -608,7 +614,7 @@ class TestAIModelRepository:
         vae_models = await repo.find_by_type("VAE")
         assert len(vae_models) == 2
 
-    async def test_find_latest_by_name(self, session):
+    async def test_find_latest_by_name(self, session: AsyncSession) -> None:
         """최신 버전 조회 테스트"""
         repo = AIModelRepository(session)
 

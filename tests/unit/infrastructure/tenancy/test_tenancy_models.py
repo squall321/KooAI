@@ -25,13 +25,13 @@ pytestmark = pytest.mark.skipif(
 class TestTenantModel:
     """Test Tenant model"""
 
-    def test_tenant_model_exists(self):
+    def test_tenant_model_exists(self) -> None:
         """Test Tenant model can be imported"""
         from src.infrastructure.tenancy.models import Tenant
 
         assert Tenant is not None
 
-    def test_tenant_model_attributes(self):
+    def test_tenant_model_attributes(self) -> None:
         """Test Tenant model has required attributes"""
         from src.infrastructure.tenancy.models import Tenant
 
@@ -49,7 +49,7 @@ class TestTenantModel:
         assert hasattr(Tenant, "max_storage_gb")
         assert hasattr(Tenant, "created_at")
 
-    def test_tenant_to_dict(self):
+    def test_tenant_to_dict(self) -> None:
         """Test Tenant to_dict method"""
         from src.infrastructure.tenancy.models import Tenant
 
@@ -73,7 +73,7 @@ class TestTenantModel:
         assert tenant_dict["slug"] == "acme-corp"
         assert tenant_dict["plan"] == "professional"
 
-    def test_tenant_repr(self):
+    def test_tenant_repr(self) -> None:
         """Test Tenant string representation"""
         from src.infrastructure.tenancy.models import Tenant
 
@@ -87,13 +87,13 @@ class TestTenantModel:
 class TestTenantUserModel:
     """Test TenantUser model"""
 
-    def test_tenant_user_model_exists(self):
+    def test_tenant_user_model_exists(self) -> None:
         """Test TenantUser model can be imported"""
         from src.infrastructure.tenancy.models import TenantUser
 
         assert TenantUser is not None
 
-    def test_tenant_user_attributes(self):
+    def test_tenant_user_attributes(self) -> None:
         """Test TenantUser model has required attributes"""
         from src.infrastructure.tenancy.models import TenantUser
 
@@ -107,7 +107,7 @@ class TestTenantUserModel:
         assert hasattr(TenantUser, "permissions")
         assert hasattr(TenantUser, "joined_at")
 
-    def test_tenant_user_repr(self):
+    def test_tenant_user_repr(self) -> None:
         """Test TenantUser string representation"""
         from src.infrastructure.tenancy.models import TenantUser
 
@@ -123,13 +123,13 @@ class TestTenantUserModel:
 class TestTenantSubscriptionModel:
     """Test TenantSubscription model"""
 
-    def test_subscription_model_exists(self):
+    def test_subscription_model_exists(self) -> None:
         """Test TenantSubscription model can be imported"""
         from src.infrastructure.tenancy.models import TenantSubscription
 
         assert TenantSubscription is not None
 
-    def test_subscription_attributes(self):
+    def test_subscription_attributes(self) -> None:
         """Test TenantSubscription model has required attributes"""
         from src.infrastructure.tenancy.models import TenantSubscription
 
@@ -146,7 +146,7 @@ class TestTenantSubscriptionModel:
         assert hasattr(TenantSubscription, "starts_at")
         assert hasattr(TenantSubscription, "ends_at")
 
-    def test_subscription_repr(self):
+    def test_subscription_repr(self) -> None:
         """Test TenantSubscription string representation"""
         from src.infrastructure.tenancy.models import TenantSubscription
 
@@ -162,13 +162,13 @@ class TestTenantSubscriptionModel:
 class TestTenantInvitationModel:
     """Test TenantInvitation model"""
 
-    def test_invitation_model_exists(self):
+    def test_invitation_model_exists(self) -> None:
         """Test TenantInvitation model can be imported"""
         from src.infrastructure.tenancy.models import TenantInvitation
 
         assert TenantInvitation is not None
 
-    def test_invitation_attributes(self):
+    def test_invitation_attributes(self) -> None:
         """Test TenantInvitation model has required attributes"""
         from src.infrastructure.tenancy.models import TenantInvitation
 
@@ -183,7 +183,7 @@ class TestTenantInvitationModel:
         assert hasattr(TenantInvitation, "status")
         assert hasattr(TenantInvitation, "expires_at")
 
-    def test_invitation_repr(self):
+    def test_invitation_repr(self) -> None:
         """Test TenantInvitation string representation"""
         from src.infrastructure.tenancy.models import TenantInvitation
 
@@ -202,13 +202,13 @@ class TestTenantInvitationModel:
 class TestTenantAuditLogModel:
     """Test TenantAuditLog model"""
 
-    def test_audit_log_model_exists(self):
+    def test_audit_log_model_exists(self) -> None:
         """Test TenantAuditLog model can be imported"""
         from src.infrastructure.tenancy.models import TenantAuditLog
 
         assert TenantAuditLog is not None
 
-    def test_audit_log_attributes(self):
+    def test_audit_log_attributes(self) -> None:
         """Test TenantAuditLog model has required attributes"""
         from src.infrastructure.tenancy.models import TenantAuditLog
 
@@ -224,7 +224,7 @@ class TestTenantAuditLogModel:
         assert hasattr(TenantAuditLog, "extra_data")
         assert hasattr(TenantAuditLog, "created_at")
 
-    def test_audit_log_repr(self):
+    def test_audit_log_repr(self) -> None:
         """Test TenantAuditLog string representation"""
         from src.infrastructure.tenancy.models import TenantAuditLog
 
@@ -240,25 +240,25 @@ class TestTenantAuditLogModel:
 class TestModelRelationships:
     """Test model relationships"""
 
-    def test_tenant_has_users_relationship(self):
+    def test_tenant_has_users_relationship(self) -> None:
         """Test Tenant has users relationship"""
         from src.infrastructure.tenancy.models import Tenant
 
         assert hasattr(Tenant, "users")
 
-    def test_tenant_has_subscriptions_relationship(self):
+    def test_tenant_has_subscriptions_relationship(self) -> None:
         """Test Tenant has subscriptions relationship"""
         from src.infrastructure.tenancy.models import Tenant
 
         assert hasattr(Tenant, "subscriptions")
 
-    def test_tenant_user_has_tenant_relationship(self):
+    def test_tenant_user_has_tenant_relationship(self) -> None:
         """Test TenantUser has tenant relationship"""
         from src.infrastructure.tenancy.models import TenantUser
 
         assert hasattr(TenantUser, "tenant")
 
-    def test_subscription_has_tenant_relationship(self):
+    def test_subscription_has_tenant_relationship(self) -> None:
         """Test TenantSubscription has tenant relationship"""
         from src.infrastructure.tenancy.models import TenantSubscription
 

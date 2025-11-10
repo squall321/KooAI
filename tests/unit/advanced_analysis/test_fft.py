@@ -12,7 +12,7 @@ from src.core.advanced_analysis.fft import (
 )
 
 
-def test_fft_analyzer_initialization():
+def test_fft_analyzer_initialization() -> None:
     """Test FFT analyzer initialization"""
     analyzer = FFTAnalyzer(sampling_rate=100.0, window="hann")
 
@@ -20,7 +20,7 @@ def test_fft_analyzer_initialization():
     assert analyzer.window == "hann"
 
 
-def test_fft_sine_wave():
+def test_fft_sine_wave() -> None:
     """Test FFT on simple sine wave"""
     # Create sine wave: 10 Hz signal sampled at 1000 Hz
     sampling_rate = 1000.0
@@ -40,7 +40,7 @@ def test_fft_sine_wave():
     assert len(result.amplitudes) == len(result.frequencies)
 
 
-def test_fft_with_window():
+def test_fft_with_window() -> None:
     """Test FFT with windowing"""
     sampling_rate = 100.0
     t = np.linspace(0, 1.0, 100, endpoint=False)
@@ -53,7 +53,7 @@ def test_fft_with_window():
     assert result.sampling_rate == sampling_rate
 
 
-def test_compute_power_spectrum():
+def test_compute_power_spectrum() -> None:
     """Test power spectrum computation"""
     sampling_rate = 100.0
     t = np.linspace(0, 10.0, 1000, endpoint=False)
@@ -66,7 +66,7 @@ def test_compute_power_spectrum():
     assert np.all(psd >= 0)
 
 
-def test_spectrogram():
+def test_spectrogram() -> None:
     """Test spectrogram computation"""
     sampling_rate = 100.0
     t = np.linspace(0, 5.0, 500, endpoint=False)
@@ -80,7 +80,7 @@ def test_spectrogram():
     assert spectrogram.shape == (len(frequencies), len(times))
 
 
-def test_fft_result_attributes():
+def test_fft_result_attributes() -> None:
     """Test FFT result has all expected attributes"""
     signal = np.random.randn(100)
     result = compute_fft(signal, sampling_rate=10.0)

@@ -10,7 +10,7 @@ import pytest
 class TestKooAIError:
     """Test base KooAIError class"""
 
-    def test_kooai_error_creation(self):
+    def test_kooai_error_creation(self) -> None:
         """Test creating KooAIError"""
         from src.core.exceptions import KooAIError
 
@@ -19,7 +19,7 @@ class TestKooAIError:
         assert str(error) == "Test error message"
         assert error.message == "Test error message"
 
-    def test_kooai_error_with_error_code(self):
+    def test_kooai_error_with_error_code(self) -> None:
         """Test KooAIError with custom error code"""
         from src.core.exceptions import KooAIError
 
@@ -27,7 +27,7 @@ class TestKooAIError:
 
         assert error.error_code == "TEST_001"
 
-    def test_kooai_error_with_details(self):
+    def test_kooai_error_with_details(self) -> None:
         """Test KooAIError with details"""
         from src.core.exceptions import KooAIError
 
@@ -36,7 +36,7 @@ class TestKooAIError:
 
         assert error.details == details
 
-    def test_kooai_error_default_error_code(self):
+    def test_kooai_error_default_error_code(self) -> None:
         """Test KooAIError generates default error code"""
         from src.core.exceptions import KooAIError
 
@@ -44,7 +44,7 @@ class TestKooAIError:
 
         assert error.error_code == "KOOAIERROR"
 
-    def test_kooai_error_to_dict(self):
+    def test_kooai_error_to_dict(self) -> None:
         """Test KooAIError to_dict method"""
         from src.core.exceptions import KooAIError
 
@@ -55,7 +55,7 @@ class TestKooAIError:
         assert error_dict["error_code"] == "TEST_001"
         assert error_dict["message"] == "Test error"
 
-    def test_kooai_error_to_dict_with_details(self):
+    def test_kooai_error_to_dict_with_details(self) -> None:
         """Test to_dict includes details"""
         from src.core.exceptions import KooAIError
 
@@ -66,7 +66,7 @@ class TestKooAIError:
         assert "details" in error_dict
         assert error_dict["details"] == details
 
-    def test_kooai_error_str_with_details(self):
+    def test_kooai_error_str_with_details(self) -> None:
         """Test string representation with details"""
         from src.core.exceptions import KooAIError
 
@@ -80,7 +80,7 @@ class TestKooAIError:
 class TestParsingErrors:
     """Test parsing-related exceptions"""
 
-    def test_parsing_error(self):
+    def test_parsing_error(self) -> None:
         """Test ParsingError"""
         from src.core.exceptions import ParsingError
 
@@ -89,7 +89,7 @@ class TestParsingErrors:
         assert error.error_code == "PARSE_ERROR"
         assert isinstance(error, Exception)
 
-    def test_unsupported_format_error(self):
+    def test_unsupported_format_error(self) -> None:
         """Test UnsupportedFormatError"""
         from src.core.exceptions import UnsupportedFormatError
 
@@ -97,7 +97,7 @@ class TestParsingErrors:
 
         assert error.error_code == "PARSE_001"
 
-    def test_corrupted_file_error(self):
+    def test_corrupted_file_error(self) -> None:
         """Test CorruptedFileError"""
         from src.core.exceptions import CorruptedFileError
 
@@ -105,7 +105,7 @@ class TestParsingErrors:
 
         assert error.error_code == "PARSE_002"
 
-    def test_invalid_data_error(self):
+    def test_invalid_data_error(self) -> None:
         """Test InvalidDataError"""
         from src.core.exceptions import InvalidDataError
 
@@ -113,7 +113,7 @@ class TestParsingErrors:
 
         assert error.error_code == "PARSE_003"
 
-    def test_missing_field_error(self):
+    def test_missing_field_error(self) -> None:
         """Test MissingFieldError"""
         from src.core.exceptions import MissingFieldError
 
@@ -124,7 +124,7 @@ class TestParsingErrors:
         assert "velocity" in str(error)
         assert error.details["field_name"] == "velocity"
 
-    def test_missing_field_error_custom_message(self):
+    def test_missing_field_error_custom_message(self) -> None:
         """Test MissingFieldError with custom message"""
         from src.core.exceptions import MissingFieldError
 
@@ -139,7 +139,7 @@ class TestParsingErrors:
 class TestFileSystemErrors:
     """Test file system-related exceptions"""
 
-    def test_file_system_error(self):
+    def test_file_system_error(self) -> None:
         """Test FileSystemError"""
         from src.core.exceptions import FileSystemError
 
@@ -147,7 +147,7 @@ class TestFileSystemErrors:
 
         assert error.error_code == "FS_ERROR"
 
-    def test_file_not_found_error(self):
+    def test_file_not_found_error(self) -> None:
         """Test FileNotFoundError"""
         from src.core.exceptions import FileNotFoundError
 
@@ -157,7 +157,7 @@ class TestFileSystemErrors:
         assert error.file_path == "/path/to/file.txt"
         assert "/path/to/file.txt" in str(error)
 
-    def test_file_permission_error(self):
+    def test_file_permission_error(self) -> None:
         """Test FilePermissionError"""
         from src.core.exceptions import FilePermissionError
 
@@ -171,7 +171,7 @@ class TestFileSystemErrors:
         assert error.operation == "write"
         assert "write" in str(error)
 
-    def test_file_permission_error_default_operation(self):
+    def test_file_permission_error_default_operation(self) -> None:
         """Test FilePermissionError with default operation"""
         from src.core.exceptions import FilePermissionError
 
@@ -183,7 +183,7 @@ class TestFileSystemErrors:
 class TestSimulationErrors:
     """Test simulation-related exceptions"""
 
-    def test_simulation_error(self):
+    def test_simulation_error(self) -> None:
         """Test SimulationError"""
         from src.core.exceptions import SimulationError
 
@@ -196,7 +196,7 @@ class TestSimulationErrors:
 class TestComputationErrors:
     """Test computation-related exceptions"""
 
-    def test_computation_error(self):
+    def test_computation_error(self) -> None:
         """Test ComputationError"""
         from src.core.exceptions import ComputationError
 
@@ -209,7 +209,7 @@ class TestComputationErrors:
 class TestDatabaseErrors:
     """Test database-related exceptions"""
 
-    def test_database_error(self):
+    def test_database_error(self) -> None:
         """Test DatabaseError"""
         from src.core.exceptions import DatabaseError
 
@@ -222,7 +222,7 @@ class TestDatabaseErrors:
 class TestCacheErrors:
     """Test cache-related exceptions"""
 
-    def test_cache_error(self):
+    def test_cache_error(self) -> None:
         """Test CacheError"""
         from src.core.exceptions import CacheError
 
@@ -235,7 +235,7 @@ class TestCacheErrors:
 class TestAIErrors:
     """Test AI-related exceptions"""
 
-    def test_ai_error(self):
+    def test_ai_error(self) -> None:
         """Test AIError"""
         from src.core.exceptions import AIError
 
@@ -248,7 +248,7 @@ class TestAIErrors:
 class TestConfigurationErrors:
     """Test configuration-related exceptions"""
 
-    def test_configuration_error(self):
+    def test_configuration_error(self) -> None:
         """Test ConfigurationError"""
         from src.core.exceptions import ConfigurationError
 
@@ -261,7 +261,7 @@ class TestConfigurationErrors:
 class TestExternalServiceErrors:
     """Test external service-related exceptions"""
 
-    def test_external_service_error(self):
+    def test_external_service_error(self) -> None:
         """Test ExternalServiceError"""
         from src.core.exceptions import ExternalServiceError
 
@@ -274,7 +274,7 @@ class TestExternalServiceErrors:
 class TestExceptionInheritance:
     """Test exception inheritance hierarchy"""
 
-    def test_parsing_error_is_kooai_error(self):
+    def test_parsing_error_is_kooai_error(self) -> None:
         """Test ParsingError inherits from KooAIError"""
         from src.core.exceptions import ParsingError, KooAIError
 
@@ -282,7 +282,7 @@ class TestExceptionInheritance:
 
         assert isinstance(error, KooAIError)
 
-    def test_unsupported_format_is_parsing_error(self):
+    def test_unsupported_format_is_parsing_error(self) -> None:
         """Test UnsupportedFormatError inherits from ParsingError"""
         from src.core.exceptions import UnsupportedFormatError, ParsingError
 
@@ -290,7 +290,7 @@ class TestExceptionInheritance:
 
         assert isinstance(error, ParsingError)
 
-    def test_file_not_found_is_file_system_error(self):
+    def test_file_not_found_is_file_system_error(self) -> None:
         """Test FileNotFoundError inherits from FileSystemError"""
         from src.core.exceptions import FileNotFoundError, FileSystemError
 
@@ -298,7 +298,7 @@ class TestExceptionInheritance:
 
         assert isinstance(error, FileSystemError)
 
-    def test_all_errors_are_exceptions(self):
+    def test_all_errors_are_exceptions(self) -> None:
         """Test all errors inherit from Exception"""
         from src.core.exceptions import (
             KooAIError, ParsingError, FileSystemError,

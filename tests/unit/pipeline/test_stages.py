@@ -1,5 +1,6 @@
 """파이프라인 스테이지 테스트"""
 
+from typing import Any
 import pytest
 import tempfile
 from pathlib import Path
@@ -25,7 +26,7 @@ class TestExtractionStages:
     """Extraction 단계 테스트"""
 
     @pytest.mark.asyncio
-    async def test_file_extraction(self):
+    async def test_file_extraction(self) -> None:
         """파일 추출 테스트"""
         # 임시 파일 생성
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt") as f:
@@ -45,7 +46,7 @@ class TestExtractionStages:
             temp_path.unlink()
 
     @pytest.mark.asyncio
-    async def test_json_extraction_from_string(self):
+    async def test_json_extraction_from_string(self) -> None:
         """JSON 문자열 추출 테스트"""
         json_str = '{"key": "value", "number": 42}'
 
@@ -58,7 +59,7 @@ class TestExtractionStages:
         assert data["number"] == 42
 
     @pytest.mark.asyncio
-    async def test_json_extraction_with_path(self):
+    async def test_json_extraction_with_path(self) -> None:
         """JSON 경로 추출 테스트"""
         json_str = '{"data": {"results": [1, 2, 3]}}'
 
@@ -74,7 +75,7 @@ class TestTransformationStages:
     """Transformation 단계 테스트"""
 
     @pytest.mark.asyncio
-    async def test_filter_stage_list(self):
+    async def test_filter_stage_list(self) -> None:
         """필터 단계 (리스트) 테스트"""
         data = [1, 2, 3, 4, 5, 6]
 
@@ -87,7 +88,7 @@ class TestTransformationStages:
         assert context.metadata[f"{stage.name}_filtered_count"] == 3
 
     @pytest.mark.asyncio
-    async def test_filter_stage_single(self):
+    async def test_filter_stage_single(self) -> None:
         """필터 단계 (단일) 테스트"""
         stage = FilterStage(lambda x: x > 5)
         context = PipelineContext()
@@ -101,7 +102,7 @@ class TestTransformationStages:
             await stage.process(3, context)
 
     @pytest.mark.asyncio
-    async def test_map_stage(self):
+    async def test_map_stage(self) -> None:
         """매핑 단계 테스트"""
         data = [1, 2, 3]
 
@@ -113,7 +114,7 @@ class TestTransformationStages:
         assert mapped == [2, 4, 6]
 
     @pytest.mark.asyncio
-    async def test_map_stage_single(self):
+    async def test_map_stage_single(self) -> None:
         """매핑 단계 (단일) 테스트"""
         stage = MapStage(lambda x: x.upper())
         context = PipelineContext()
@@ -123,7 +124,7 @@ class TestTransformationStages:
         assert result == "HELLO"
 
     @pytest.mark.asyncio
-    async def test_aggregate_stage(self):
+    async def test_aggregate_stage(self) -> None:
         """집계 단계 테스트"""
         data = [1, 2, 3, 4, 5]
 
@@ -136,7 +137,7 @@ class TestTransformationStages:
         assert context.metadata[f"{stage.name}_input_count"] == 5
 
     @pytest.mark.asyncio
-    async def test_validation_stage_pass(self):
+    async def test_validation_stage_pass(self) -> None:
         """검증 단계 (통과) 테스트"""
         stage = ValidationStage(lambda x: x > 0, error_message="Must be positive")
         context = PipelineContext()
@@ -146,7 +147,7 @@ class TestTransformationStages:
         assert result == 5
 
     @pytest.mark.asyncio
-    async def test_validation_stage_fail(self):
+    async def test_validation_stage_fail(self) -> None:
         """검증 단계 (실패) 테스트"""
         stage = ValidationStage(lambda x: x > 0, error_message="Must be positive")
         context = PipelineContext()
@@ -159,7 +160,7 @@ class TestLoadingStages:
     """Loading 단계 테스트"""
 
     @pytest.mark.asyncio
-    async def test_file_loading(self):
+    async def test_file_loading(self) -> None:
         """파일 저장 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = Path(tmpdir) / "output.txt"
@@ -175,7 +176,7 @@ class TestLoadingStages:
             assert file_path.read_text() == data
 
     @pytest.mark.asyncio
-    async def test_json_loading(self):
+    async def test_json_loading(self) -> None:
         """JSON 저장 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = Path(tmpdir) / "output.json"

@@ -2,6 +2,8 @@
 VAE 모델 테스트
 """
 
+from pathlib import Path
+
 import pytest
 import torch
 import numpy as np
@@ -17,7 +19,7 @@ from src.core.ai_models.vae.model import (
 class TestContourEncoder:
     """ContourEncoder 테스트"""
 
-    def test_encoder_forward(self):
+    def test_encoder_forward(self) -> None:
         """순전파 테스트"""
         encoder = ContourEncoder(
             input_dim=2,
@@ -36,7 +38,7 @@ class TestContourEncoder:
         assert logvar.shape == (4, 16)
         assert z.shape == (4, 16)
 
-    def test_reparameterize(self):
+    def test_reparameterize(self) -> None:
         """Reparameterization trick 테스트"""
         encoder = ContourEncoder(latent_dim=8)
 
@@ -54,7 +56,7 @@ class TestContourEncoder:
 class TestContourDecoder:
     """ContourDecoder 테스트"""
 
-    def test_decoder_forward(self):
+    def test_decoder_forward(self) -> None:
         """순전파 테스트"""
         decoder = ContourDecoder(
             latent_dim=16,
@@ -76,7 +78,7 @@ class TestContourDecoder:
 class TestContourVAE:
     """ContourVAE 테스트"""
 
-    def test_vae_forward(self):
+    def test_vae_forward(self) -> None:
         """VAE 순전파 테스트"""
         model = ContourVAE(
             input_dim=2,
@@ -97,7 +99,7 @@ class TestContourVAE:
         assert logvar.shape == (4, 16)
         assert z.shape == (4, 16)
 
-    def test_encode(self):
+    def test_encode(self) -> None:
         """인코딩만 테스트"""
         model = ContourVAE(latent_dim=8, num_points=50)
 
@@ -106,7 +108,7 @@ class TestContourVAE:
 
         assert z.shape == (2, 8)
 
-    def test_decode(self):
+    def test_decode(self) -> None:
         """디코딩만 테스트"""
         model = ContourVAE(latent_dim=8, num_points=50)
 
@@ -115,7 +117,7 @@ class TestContourVAE:
 
         assert recon.shape == (2, 50, 2)
 
-    def test_sample(self):
+    def test_sample(self) -> None:
         """샘플 생성 테스트"""
         model = ContourVAE(latent_dim=8, num_points=50)
         device = torch.device("cpu")
@@ -124,7 +126,7 @@ class TestContourVAE:
 
         assert samples.shape == (5, 50, 2)
 
-    def test_get_config(self):
+    def test_get_config(self) -> None:
         """설정 반환 테스트"""
         model = ContourVAE(input_dim=3, latent_dim=16, num_points=200)
 
@@ -138,7 +140,7 @@ class TestContourVAE:
 class TestVAELoss:
     """VAELoss 테스트"""
 
-    def test_loss_computation(self):
+    def test_loss_computation(self) -> None:
         """손실 계산 테스트"""
         loss_fn = VAELoss(recon_loss_type="mse", beta=1.0)
 
@@ -160,7 +162,7 @@ class TestVAELoss:
         assert "kl_loss" in loss_dict
         assert "beta" in loss_dict
 
-    def test_mse_reconstruction_loss(self):
+    def test_mse_reconstruction_loss(self) -> None:
         """MSE 재구성 손실 테스트"""
         loss_fn = VAELoss(recon_loss_type="mse", beta=0.0)  # KL 제외
 
@@ -174,7 +176,7 @@ class TestVAELoss:
         # 완전히 같으면 loss = 0
         assert total_loss.item() == pytest.approx(0.0, abs=1e-6)
 
-    def test_beta_schedule_linear(self):
+    def test_beta_schedule_linear(self) -> None:
         """Linear beta 스케줄링 테스트"""
         loss_fn = VAELoss(beta=1.0, beta_schedule="linear")
 
@@ -197,7 +199,7 @@ class TestVAELoss:
         # Beta가 증가했는지 확인
         assert beta_2 > beta_1
 
-    def test_chamfer_distance(self):
+    def test_chamfer_distance(self) -> None:
         """Chamfer distance 손실 테스트"""
         loss_fn = VAELoss(recon_loss_type="chamfer", beta=0.0)
 
@@ -216,7 +218,7 @@ class TestVAELoss:
 class TestIntegration:
     """통합 테스트"""
 
-    def test_full_forward_backward(self):
+    def test_full_forward_backward(self) -> None:
         """전체 순전파 + 역전파 테스트"""
         model = ContourVAE(
             input_dim=2,
@@ -242,7 +244,7 @@ class TestIntegration:
         # 에러 없이 진행되었는지 확인
         assert loss.item() > 0
 
-    def test_model_save_load(self, tmp_path):
+    def test_model_save_load(self, tmp_path: Path) -> None:
         """모델 저장/로드 테스트"""
         model = ContourVAE(latent_dim=16, num_points=100)
 

@@ -8,6 +8,7 @@ import pytest
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any
 
 from src.infrastructure.cache.lru_cache import LRUCache, CacheEntry
 
@@ -15,7 +16,7 @@ from src.infrastructure.cache.lru_cache import LRUCache, CacheEntry
 class TestCacheEntry:
     """Test CacheEntry dataclass"""
 
-    def test_cache_entry_creation(self):
+    def test_cache_entry_creation(self) -> None:
         """Test creating cache entry"""
         entry = CacheEntry(value="test", expires_at=time.time() + 60)
 
@@ -24,7 +25,7 @@ class TestCacheEntry:
         assert entry.created_at <= time.time()
         assert entry.last_access <= time.time()
 
-    def test_is_expired(self):
+    def test_is_expired(self) -> None:
         """Test expiration check"""
         # Not expired
         entry = CacheEntry(value="test", expires_at=time.time() + 60)
@@ -34,7 +35,7 @@ class TestCacheEntry:
         entry_expired = CacheEntry(value="test", expires_at=time.time() - 1)
         assert entry_expired.is_expired()
 
-    def test_access_tracking(self):
+    def test_access_tracking(self) -> None:
         """Test access counting"""
         entry = CacheEntry(value="test", expires_at=time.time() + 60)
 
@@ -52,11 +53,11 @@ class TestLRUCacheBasicOperations:
     """Test basic cache operations"""
 
     @pytest.fixture
-    def cache(self):
+    def cache(self) -> LRUCache:
         """Create cache instance"""
         return LRUCache(max_size=10, default_ttl=60)
 
-    def test_cache_initialization(self):
+    def test_cache_initialization(self) -> None:
         """Test cache initialization"""
         cache = LRUCache(max_size=100, default_ttl=300)
 
@@ -64,19 +65,19 @@ class TestLRUCacheBasicOperations:
         assert cache.default_ttl == 300
         assert len(cache) == 0
 
-    def test_set_and_get(self, cache):
+    def test_set_and_get(self, cache: LRUCache) -> None:
         """Test basic set and get"""
         cache.set("key1", "value1")
 
         value = cache.get("key1")
         assert value == "value1"
 
-    def test_get_nonexistent_key(self, cache):
+    def test_get_nonexistent_key(self, cache: LRUCache) -> None:
         """Test getting non-existent key"""
         value = cache.get("nonexistent")
         assert value is None
 
-    def test_set_overwrites_existing(self, cache):
+    def test_set_overwrites_existing(self, cache: LRUCache) -> None:
         """Test that set overwrites existing value"""
         cache.set("key1", "value1")
         cache.set("key1", "value2")
@@ -85,7 +86,7 @@ class TestLRUCacheBasicOperations:
         assert value == "value2"
         assert len(cache) == 1
 
-    def test_delete_key(self, cache):
+    def test_delete_key(self, cache: LRUCache) -> None:
         """Test deleting key"""
         cache.set("key1", "value1")
         assert cache.exists("key1")
@@ -94,12 +95,12 @@ class TestLRUCacheBasicOperations:
         assert result is True
         assert not cache.exists("key1")
 
-    def test_delete_nonexistent_key(self, cache):
+    def test_delete_nonexistent_key(self, cache: LRUCache) -> None:
         """Test deleting non-existent key"""
         result = cache.delete("nonexistent")
         assert result is False
 
-    def test_clear_cache(self, cache):
+    def test_clear_cache(self, cache: LRUCache) -> None:
         """Test clearing all cache"""
         cache.set("key1", "value1")
         cache.set("key2", "value2")
@@ -109,14 +110,14 @@ class TestLRUCacheBasicOperations:
         assert count == 3
         assert len(cache) == 0
 
-    def test_exists(self, cache):
+    def test_exists(self, cache: LRUCache) -> None:
         """Test exists check"""
         cache.set("key1", "value1")
 
         assert cache.exists("key1")
         assert not cache.exists("key2")
 
-    def test_contains_operator(self, cache):
+    def test_contains_operator(self, cache: LRUCache) -> None:
         """Test 'in' operator"""
         cache.set("key1", "value1")
 
@@ -127,7 +128,7 @@ class TestLRUCacheBasicOperations:
 class TestLRUEviction:
     """Test LRU eviction policy"""
 
-    def test_eviction_when_full(self):
+    def test_eviction_when_full(self) -> None:
         """Test that least recently used item is evicted when cache is full"""
         cache = LRUCache(max_size=3, default_ttl=60)
 
@@ -147,7 +148,7 @@ class TestLRUEviction:
         assert cache.get("key3") == "value3"  # Still exists
         assert cache.get("key4") == "value4"  # New item
 
-    def test_eviction_order(self):
+    def test_eviction_order(self) -> None:
         """Test eviction happens in correct LRU order"""
         cache = LRUCache(max_size=3, default_ttl=60)
 
@@ -169,7 +170,7 @@ class TestLRUEviction:
         assert "key3" not in cache
         assert "key4" in cache
 
-    def test_update_moves_to_end(self):
+    def test_update_moves_to_end(self) -> None:
         """Test that updating a key moves it to end (most recent)"""
         cache = LRUCache(max_size=3, default_ttl=60)
 
@@ -188,7 +189,7 @@ class TestLRUEviction:
         assert "key3" in cache
         assert "key4" in cache
 
-    def test_eviction_statistics(self):
+    def test_eviction_statistics(self) -> None:
         """Test eviction statistics tracking"""
         cache = LRUCache(max_size=2, default_ttl=60)
 
@@ -204,7 +205,7 @@ class TestLRUEviction:
 class TestTTLAndExpiration:
     """Test TTL and expiration"""
 
-    def test_custom_ttl(self):
+    def test_custom_ttl(self) -> None:
         """Test custom TTL per key"""
         cache = LRUCache(default_ttl=60)
 
@@ -219,7 +220,7 @@ class TestTTLAndExpiration:
         # Should be expired
         assert cache.get("key1") is None
 
-    def test_default_ttl(self):
+    def test_default_ttl(self) -> None:
         """Test default TTL is used when not specified"""
         cache = LRUCache(default_ttl=1)
 
@@ -234,7 +235,7 @@ class TestTTLAndExpiration:
         # Should be expired
         assert cache.get("key1") is None
 
-    def test_expired_key_returns_none(self):
+    def test_expired_key_returns_none(self) -> None:
         """Test that expired keys return None"""
         cache = LRUCache(default_ttl=60)
 
@@ -244,7 +245,7 @@ class TestTTLAndExpiration:
         value = cache.get("key1")
         assert value is None
 
-    def test_exists_checks_expiration(self):
+    def test_exists_checks_expiration(self) -> None:
         """Test that exists() checks expiration"""
         cache = LRUCache(default_ttl=60)
 
@@ -254,7 +255,7 @@ class TestTTLAndExpiration:
         time.sleep(1.1)
         assert not cache.exists("key1")
 
-    def test_cleanup_expired(self):
+    def test_cleanup_expired(self) -> None:
         """Test manual cleanup of expired entries"""
         cache = LRUCache(default_ttl=60)
 
@@ -273,7 +274,7 @@ class TestTTLAndExpiration:
         assert cache.get("key3") == "value3"
         assert len(cache) == 1
 
-    def test_expiration_statistics(self):
+    def test_expiration_statistics(self) -> None:
         """Test expiration statistics tracking"""
         cache = LRUCache(default_ttl=60)
 
@@ -294,11 +295,11 @@ class TestCacheStatistics:
     """Test cache statistics"""
 
     @pytest.fixture
-    def cache(self):
+    def cache(self) -> LRUCache:
         """Create cache instance"""
         return LRUCache(max_size=10, default_ttl=60)
 
-    def test_hit_statistics(self, cache):
+    def test_hit_statistics(self, cache: LRUCache) -> None:
         """Test hit statistics"""
         cache.set("key1", "value1")
 
@@ -309,7 +310,7 @@ class TestCacheStatistics:
         assert stats["hits"] == 1
         assert stats["misses"] == 1
 
-    def test_hit_rate_calculation(self, cache):
+    def test_hit_rate_calculation(self, cache: LRUCache) -> None:
         """Test hit rate calculation"""
         cache.set("key1", "value1")
 
@@ -322,12 +323,12 @@ class TestCacheStatistics:
         stats = cache.get_stats()
         assert stats["hit_rate"] == 0.75  # 3/4
 
-    def test_hit_rate_with_no_requests(self, cache):
+    def test_hit_rate_with_no_requests(self, cache: LRUCache) -> None:
         """Test hit rate when no requests made"""
         stats = cache.get_stats()
         assert stats["hit_rate"] == 0.0
 
-    def test_reset_statistics(self, cache):
+    def test_reset_statistics(self, cache: LRUCache) -> None:
         """Test resetting statistics"""
         cache.set("key1", "value1")
         cache.get("key1")
@@ -341,7 +342,7 @@ class TestCacheStatistics:
         assert stats["evictions"] == 0
         assert stats["expirations"] == 0
 
-    def test_size_statistics(self, cache):
+    def test_size_statistics(self, cache: LRUCache) -> None:
         """Test size statistics"""
         cache.set("key1", "value1")
         cache.set("key2", "value2")
@@ -354,15 +355,15 @@ class TestCacheStatistics:
 class TestThreadSafety:
     """Test thread safety"""
 
-    def test_concurrent_reads_writes(self):
+    def test_concurrent_reads_writes(self) -> None:
         """Test concurrent reads and writes"""
         cache = LRUCache(max_size=100, default_ttl=60)
 
-        def writer(thread_id):
+        def writer(thread_id: int) -> None:
             for i in range(100):
                 cache.set(f"key_{thread_id}_{i}", f"value_{thread_id}_{i}")
 
-        def reader(thread_id):
+        def reader(thread_id: int) -> list[Any]:
             results = []
             for i in range(100):
                 value = cache.get(f"key_{thread_id}_{i}")
@@ -384,11 +385,11 @@ class TestThreadSafety:
         stats = cache.get_stats()
         assert stats["size"] <= 100
 
-    def test_concurrent_evictions(self):
+    def test_concurrent_evictions(self) -> None:
         """Test concurrent evictions don't cause issues"""
         cache = LRUCache(max_size=10, default_ttl=60)
 
-        def fill_cache(thread_id):
+        def fill_cache(thread_id: int) -> None:
             for i in range(50):
                 cache.set(f"key_{thread_id}_{i}", f"value_{thread_id}_{i}")
 
@@ -400,7 +401,7 @@ class TestThreadSafety:
         # Cache should respect max_size
         assert len(cache) <= 10
 
-    def test_concurrent_cleanup(self):
+    def test_concurrent_cleanup(self) -> None:
         """Test concurrent cleanup operations"""
         cache = LRUCache(max_size=100, default_ttl=60)
 
@@ -411,7 +412,7 @@ class TestThreadSafety:
         time.sleep(1.1)
 
         # Run cleanup from multiple threads
-        def cleanup():
+        def cleanup() -> int:
             return cache.cleanup_expired()
 
         with ThreadPoolExecutor(max_workers=5) as executor:
@@ -427,7 +428,7 @@ class TestThreadSafety:
 class TestEdgeCases:
     """Test edge cases"""
 
-    def test_zero_size_cache(self):
+    def test_zero_size_cache(self) -> None:
         """Test cache with size 0"""
         cache = LRUCache(max_size=0, default_ttl=60)
 
@@ -435,7 +436,7 @@ class TestEdgeCases:
         cache.set("key1", "value1")
         assert cache.get("key1") is None
 
-    def test_very_short_ttl(self):
+    def test_very_short_ttl(self) -> None:
         """Test very short TTL"""
         cache = LRUCache(default_ttl=60)
 
@@ -444,7 +445,7 @@ class TestEdgeCases:
 
         assert cache.get("key1") is None
 
-    def test_large_values(self):
+    def test_large_values(self) -> None:
         """Test caching large values"""
         cache = LRUCache(max_size=10, default_ttl=60)
 
@@ -454,7 +455,7 @@ class TestEdgeCases:
         retrieved = cache.get("large")
         assert retrieved == large_value
 
-    def test_none_value(self):
+    def test_none_value(self) -> None:
         """Test storing None value"""
         cache = LRUCache(max_size=10, default_ttl=60)
 
@@ -464,7 +465,7 @@ class TestEdgeCases:
         assert cache.exists("none_key")
         assert cache.get("none_key") is None
 
-    def test_complex_objects(self):
+    def test_complex_objects(self) -> None:
         """Test caching complex objects"""
         cache = LRUCache(max_size=10, default_ttl=60)
 
@@ -475,7 +476,7 @@ class TestEdgeCases:
 
         assert retrieved == complex_obj
 
-    def test_many_keys(self):
+    def test_many_keys(self) -> None:
         """Test cache with many keys"""
         cache = LRUCache(max_size=1000, default_ttl=60)
 
@@ -496,7 +497,7 @@ class TestEdgeCases:
 class TestLRUCachePerformance:
     """Performance tests"""
 
-    def test_get_performance(self):
+    def test_get_performance(self) -> None:
         """Test get operation performance"""
         cache = LRUCache(max_size=10000, default_ttl=60)
 
@@ -515,7 +516,7 @@ class TestLRUCachePerformance:
 
         print(f"\n  1000 cache gets: {elapsed*1000:.2f}ms")
 
-    def test_set_performance(self):
+    def test_set_performance(self) -> None:
         """Test set operation performance"""
         cache = LRUCache(max_size=10000, default_ttl=60)
 

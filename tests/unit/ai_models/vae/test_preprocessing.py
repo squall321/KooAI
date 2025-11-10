@@ -17,7 +17,7 @@ from src.core.ai_models.vae.preprocessing import (
 class TestContourNormalizer:
     """ContourNormalizer 테스트"""
 
-    def test_fit_transform(self):
+    def test_fit_transform(self) -> None:
         """Fit 및 transform 테스트"""
         contours = np.random.randn(10, 100, 2)
 
@@ -30,7 +30,7 @@ class TestContourNormalizer:
         # 최대값이 1 근처여야 함
         assert np.abs(normalized).max() <= 1.0 + 1e-6
 
-    def test_inverse_transform(self):
+    def test_inverse_transform(self) -> None:
         """역변환 테스트"""
         contours = np.random.randn(5, 50, 2) * 100 + 50
 
@@ -41,7 +41,7 @@ class TestContourNormalizer:
         # 원본과 거의 같아야 함
         np.testing.assert_array_almost_equal(contours, restored, decimal=5)
 
-    def test_center_only(self):
+    def test_center_only(self) -> None:
         """중심 정렬만 테스트"""
         contours = np.random.randn(3, 20, 2) + 10  # 중심 이동
 
@@ -51,7 +51,7 @@ class TestContourNormalizer:
         # 중심이 0 근처
         assert np.abs(normalized.mean()) < 0.1
 
-    def test_scale_methods(self):
+    def test_scale_methods(self) -> None:
         """스케일 방법 테스트"""
         contours = np.random.randn(5, 30, 2) * 100
 
@@ -66,7 +66,7 @@ class TestContourNormalizer:
 class TestContourSampler:
     """ContourSampler 테스트"""
 
-    def test_uniform_sample(self):
+    def test_uniform_sample(self) -> None:
         """균등 샘플링 테스트"""
         # 원형 컨투어
         theta = np.linspace(0, 2 * np.pi, 200, endpoint=False)
@@ -82,7 +82,7 @@ class TestContourSampler:
         distances = np.linalg.norm(sampled, axis=1)
         assert np.allclose(distances, 1.0, atol=0.1)
 
-    def test_uniform_sample_same_size(self):
+    def test_uniform_sample_same_size(self) -> None:
         """같은 크기 샘플링"""
         contour = np.random.randn(100, 2)
 
@@ -92,7 +92,7 @@ class TestContourSampler:
         # 크기가 같으면 복사본 반환
         assert sampled.shape == (100, 2)
 
-    def test_random_sample(self):
+    def test_random_sample(self) -> None:
         """랜덤 샘플링 테스트"""
         contour = np.random.randn(200, 2)
 
@@ -111,7 +111,7 @@ class TestContourSampler:
 class TestContourAugmentor:
     """ContourAugmentor 테스트"""
 
-    def test_rotate(self):
+    def test_rotate(self) -> None:
         """회전 변환 테스트"""
         contour = np.array([[1.0, 0.0], [0.0, 1.0]])
 
@@ -123,7 +123,7 @@ class TestContourAugmentor:
 
         np.testing.assert_array_almost_equal(rotated, expected, decimal=5)
 
-    def test_scale(self):
+    def test_scale(self) -> None:
         """스케일 변환 테스트"""
         contour = np.array([[1.0, 2.0], [3.0, 4.0]])
 
@@ -134,7 +134,7 @@ class TestContourAugmentor:
 
         np.testing.assert_array_almost_equal(scaled, expected)
 
-    def test_translate(self):
+    def test_translate(self) -> None:
         """평행 이동 테스트"""
         contour = np.array([[1.0, 2.0], [3.0, 4.0]])
 
@@ -145,7 +145,7 @@ class TestContourAugmentor:
 
         np.testing.assert_array_almost_equal(translated, expected)
 
-    def test_add_noise(self):
+    def test_add_noise(self) -> None:
         """노이즈 추가 테스트"""
         contour = np.ones((100, 2))
 
@@ -158,7 +158,7 @@ class TestContourAugmentor:
         # 평균은 여전히 1 근처
         assert np.abs(noisy.mean() - 1.0) < 0.1
 
-    def test_flip(self):
+    def test_flip(self) -> None:
         """반전 테스트"""
         contour = np.array([[1.0, 2.0], [3.0, 4.0]])
 
@@ -174,7 +174,7 @@ class TestContourAugmentor:
         expected_y = np.array([[1.0, -2.0], [3.0, -4.0]])
         np.testing.assert_array_almost_equal(flipped_y, expected_y)
 
-    def test_random_augment(self):
+    def test_random_augment(self) -> None:
         """랜덤 증강 테스트"""
         contour = np.random.randn(50, 2)
 
@@ -197,7 +197,7 @@ class TestContourAugmentor:
 class TestContourDataset:
     """ContourDataset 테스트"""
 
-    def test_dataset_creation(self):
+    def test_dataset_creation(self) -> None:
         """데이터셋 생성 테스트"""
         # 더미 컨투어들
         contours = [np.random.randn(np.random.randint(50, 150), 2) for _ in range(10)]
@@ -211,7 +211,7 @@ class TestContourDataset:
 
         assert len(dataset) == 10
 
-    def test_dataset_getitem(self):
+    def test_dataset_getitem(self) -> None:
         """데이터셋 아이템 가져오기 테스트"""
         contours = [np.random.randn(100, 2) for _ in range(5)]
 
@@ -234,7 +234,7 @@ class TestContourDataset:
         # Float 타입인지 확인
         assert item.dtype == torch.float32
 
-    def test_dataset_with_augmentation(self):
+    def test_dataset_with_augmentation(self) -> None:
         """증강이 있는 데이터셋 테스트"""
         contours = [np.random.randn(100, 2) for _ in range(3)]
 
@@ -262,7 +262,7 @@ class TestContourDataset:
 class TestIntegration:
     """통합 테스트"""
 
-    def test_full_preprocessing_pipeline(self):
+    def test_full_preprocessing_pipeline(self) -> None:
         """전체 전처리 파이프라인 테스트"""
         # 원형 컨투어 10개 생성
         contours = []

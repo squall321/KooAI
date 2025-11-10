@@ -5,6 +5,7 @@ Tests ParserRegistry functionality including parser registration and automatic s
 """
 
 from pathlib import Path
+from typing import Any, Generator
 from unittest.mock import Mock
 import pytest
 
@@ -12,7 +13,7 @@ import pytest
 class TestParserRegistryBasics:
     """Test ParserRegistry basic functionality"""
 
-    def test_parser_registry_creation(self):
+    def test_parser_registry_creation(self) -> None:
         """Test ParserRegistry can be created"""
         from src.core.simulation.parsers.base import ParserRegistry
 
@@ -20,7 +21,7 @@ class TestParserRegistryBasics:
 
         assert registry is not None
 
-    def test_parser_registry_starts_empty(self):
+    def test_parser_registry_starts_empty(self) -> None:
         """Test ParserRegistry starts with no parsers"""
         from src.core.simulation.parsers.base import ParserRegistry
 
@@ -35,7 +36,7 @@ class TestParserRegistryBasics:
 class TestParserRegistration:
     """Test parser registration"""
 
-    def test_register_parser(self):
+    def test_register_parser(self) -> None:
         """Test registering a parser"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -49,7 +50,7 @@ class TestParserRegistration:
         assert len(parsers) == 1
         assert parsers[0] == mock_parser
 
-    def test_register_multiple_parsers(self):
+    def test_register_multiple_parsers(self) -> None:
         """Test registering multiple parsers"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -66,7 +67,7 @@ class TestParserRegistration:
 
         assert len(parsers) == 3
 
-    def test_list_parsers_returns_copy(self):
+    def test_list_parsers_returns_copy(self) -> None:
         """Test list_parsers returns a copy (not original list)"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -86,7 +87,7 @@ class TestParserRegistration:
 class TestGetParser:
     """Test get_parser functionality"""
 
-    def test_get_parser_finds_matching_parser(self):
+    def test_get_parser_finds_matching_parser(self) -> None:
         """Test get_parser returns matching parser"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -107,7 +108,7 @@ class TestGetParser:
         assert parser == csv_parser
         csv_parser.can_parse.assert_called_once_with(file_path)
 
-    def test_get_parser_returns_none_if_no_match(self):
+    def test_get_parser_returns_none_if_no_match(self) -> None:
         """Test get_parser returns None if no parser can parse file"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -127,7 +128,7 @@ class TestGetParser:
 
         assert parser is None
 
-    def test_get_parser_returns_first_matching_parser(self):
+    def test_get_parser_returns_first_matching_parser(self) -> None:
         """Test get_parser returns first parser that can parse file"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -148,7 +149,7 @@ class TestGetParser:
         # Should return first matching parser
         assert parser == parser1
 
-    def test_get_parser_checks_parsers_in_order(self):
+    def test_get_parser_checks_parsers_in_order(self) -> None:
         """Test get_parser checks parsers in registration order"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -179,7 +180,7 @@ class TestGetParser:
 class TestParse:
     """Test parse functionality"""
 
-    def test_parse_calls_parser_parse_method(self):
+    def test_parse_calls_parser_parse_method(self) -> None:
         """Test parse calls the appropriate parser's parse method"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -198,7 +199,7 @@ class TestParse:
         assert result == mock_result
         mock_parser.parse.assert_called_once_with(file_path)
 
-    def test_parse_passes_options_to_parser(self):
+    def test_parse_passes_options_to_parser(self) -> None:
         """Test parse passes kwargs to parser"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -219,7 +220,7 @@ class TestParse:
             has_time=True
         )
 
-    def test_parse_raises_error_if_no_parser_found(self):
+    def test_parse_raises_error_if_no_parser_found(self) -> None:
         """Test parse raises ValueError if no suitable parser found"""
         from src.core.simulation.parsers.base import ParserRegistry, BaseParser
 
@@ -234,7 +235,7 @@ class TestParse:
         with pytest.raises(ValueError, match="No suitable parser found"):
             registry.parse(file_path)
 
-    def test_parse_with_empty_registry_raises_error(self):
+    def test_parse_with_empty_registry_raises_error(self) -> None:
         """Test parse raises ValueError with empty registry"""
         from src.core.simulation.parsers.base import ParserRegistry
 
@@ -248,7 +249,7 @@ class TestParse:
 class TestParserRegistryIntegration:
     """Test ParserRegistry with real parsers"""
 
-    def test_register_csv_and_vtk_parsers(self):
+    def test_register_csv_and_vtk_parsers(self) -> None:
         """Test registering CSV and VTK parsers"""
         from src.core.simulation.parsers.base import ParserRegistry
         from src.core.simulation.parsers.csv_parser import CSVParser
@@ -266,7 +267,7 @@ class TestParserRegistryIntegration:
 
         assert len(parsers) == 2
 
-    def test_get_parser_selects_correct_parser_for_csv(self):
+    def test_get_parser_selects_correct_parser_for_csv(self) -> None:
         """Test get_parser selects CSV parser for .csv files"""
         from src.core.simulation.parsers.base import ParserRegistry
         from src.core.simulation.parsers.csv_parser import CSVParser
@@ -284,7 +285,7 @@ class TestParserRegistryIntegration:
 
         assert isinstance(parser, CSVParser)
 
-    def test_get_parser_selects_correct_parser_for_vtk(self, tmp_path):
+    def test_get_parser_selects_correct_parser_for_vtk(self, tmp_path: Any) -> None:
         """Test get_parser selects VTK parser for .vtk files"""
         from src.core.simulation.parsers.base import ParserRegistry
         from src.core.simulation.parsers.csv_parser import CSVParser
@@ -305,7 +306,7 @@ class TestParserRegistryIntegration:
 
         assert isinstance(parser, VTKParser)
 
-    def test_parse_with_real_csv_file(self, tmp_path):
+    def test_parse_with_real_csv_file(self, tmp_path: Any) -> None:
         """Test parse with actual CSV file"""
         from src.core.simulation.parsers.base import ParserRegistry
         from src.core.simulation.parsers.csv_parser import CSVParser
@@ -330,14 +331,14 @@ class TestParserRegistryIntegration:
 class TestBaseParserInterface:
     """Test BaseParser abstract interface"""
 
-    def test_base_parser_cannot_be_instantiated(self):
+    def test_base_parser_cannot_be_instantiated(self) -> None:
         """Test BaseParser cannot be instantiated directly"""
         from src.core.simulation.parsers.base import BaseParser
 
         with pytest.raises(TypeError):
-            BaseParser()
+            BaseParser()  # type: ignore[abstract]  # Intentionally testing abstract class
 
-    def test_base_parser_validate_file_checks_existence(self, tmp_path):
+    def test_base_parser_validate_file_checks_existence(self, tmp_path: Any) -> None:
         """Test validate_file checks file existence"""
         from src.core.simulation.parsers.csv_parser import CSVParser
 
@@ -347,7 +348,7 @@ class TestBaseParserInterface:
         with pytest.raises(FileNotFoundError):
             parser.validate_file(missing_file)
 
-    def test_base_parser_validate_file_checks_is_file(self, tmp_path):
+    def test_base_parser_validate_file_checks_is_file(self, tmp_path: Any) -> None:
         """Test validate_file checks if path is a file"""
         from src.core.simulation.parsers.csv_parser import CSVParser
 
@@ -358,7 +359,7 @@ class TestBaseParserInterface:
         with pytest.raises(ValueError, match="Not a file"):
             parser.validate_file(directory)
 
-    def test_base_parser_validate_file_checks_extension(self, tmp_path):
+    def test_base_parser_validate_file_checks_extension(self, tmp_path: Any) -> None:
         """Test validate_file checks file extension"""
         from src.core.simulation.parsers.csv_parser import CSVParser
 
@@ -369,7 +370,7 @@ class TestBaseParserInterface:
         with pytest.raises(ValueError, match="Unsupported file extension"):
             parser.validate_file(wrong_ext)
 
-    def test_base_parser_validate_file_succeeds_for_valid_file(self, tmp_path):
+    def test_base_parser_validate_file_succeeds_for_valid_file(self, tmp_path: Any) -> None:
         """Test validate_file succeeds for valid file"""
         from src.core.simulation.parsers.csv_parser import CSVParser
 

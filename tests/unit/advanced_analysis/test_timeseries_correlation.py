@@ -17,7 +17,7 @@ from src.core.advanced_analysis.correlation import (
 )
 
 
-def test_timeseries_statistics():
+def test_timeseries_statistics() -> None:
     """Test time series statistics computation"""
     data = np.array([1, 2, 3, 4, 5, 4, 3, 2, 1])
 
@@ -31,7 +31,7 @@ def test_timeseries_statistics():
     assert stats.range == 4
 
 
-def test_autocorrelation():
+def test_autocorrelation() -> None:
     """Test autocorrelation computation"""
     # Create periodic signal
     t = np.linspace(0, 10, 100)
@@ -43,7 +43,7 @@ def test_autocorrelation():
     assert autocorr[0] == pytest.approx(1.0)  # Normalized autocorrelation at lag 0
 
 
-def test_moving_average():
+def test_moving_average() -> None:
     """Test moving average"""
     data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
@@ -53,7 +53,7 @@ def test_moving_average():
     assert len(smoothed) == len(data) - 2  # 'valid' mode
 
 
-def test_outlier_detection():
+def test_outlier_detection() -> None:
     """Test outlier detection"""
     # Normal data with outliers
     data = np.concatenate([np.random.randn(100), [10, -10, 15]])
@@ -65,7 +65,7 @@ def test_outlier_detection():
     assert np.sum(outliers) >= 3
 
 
-def test_cross_correlation():
+def test_cross_correlation() -> None:
     """Test cross-correlation"""
     # Create two similar signals
     t = np.linspace(0, 1, 100)
@@ -78,7 +78,7 @@ def test_cross_correlation():
     assert np.max(np.abs(corr)) <= 1.0  # Normalized
 
 
-def test_pearson_correlation():
+def test_pearson_correlation() -> None:
     """Test Pearson correlation"""
     # Perfect linear relationship
     x = np.array([1, 2, 3, 4, 5])
@@ -91,7 +91,7 @@ def test_pearson_correlation():
     assert p_value < 0.05
 
 
-def test_correlation_matrix():
+def test_correlation_matrix() -> None:
     """Test correlation matrix"""
     # Multivariate data
     data = np.random.randn(100, 5)
@@ -103,7 +103,7 @@ def test_correlation_matrix():
     assert np.allclose(np.diag(corr_matrix), 1.0)  # Diagonal should be 1
 
 
-def test_lagged_correlation():
+def test_lagged_correlation() -> None:
     """Test lagged correlation"""
     # Create two signals with known lag
     t = np.linspace(0, 10, 100)
@@ -117,7 +117,7 @@ def test_lagged_correlation():
     assert len(lags) == 41  # -20 to +20
 
 
-def test_periodicity_detection():
+def test_periodicity_detection() -> None:
     """Test periodicity detection"""
     # Create periodic signal
     t = np.linspace(0, 10, 1000)

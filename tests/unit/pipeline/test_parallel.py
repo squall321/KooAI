@@ -27,7 +27,7 @@ class DoubleStage(ProcessingStage):
 class AsyncDoubleFunc:
     """비동기 함수 래퍼"""
 
-    async def __call__(self, x):
+    async def __call__(self, x: Any) -> Any:
         await asyncio.sleep(0.01)  # 비동기 작업 시뮬레이션
         return x * 2
 
@@ -36,7 +36,7 @@ class TestParallelPipeline:
     """ParallelPipeline 테스트"""
 
     @pytest.mark.asyncio
-    async def test_parallel_execution(self):
+    async def test_parallel_execution(self) -> None:
         """병렬 실행 테스트"""
         pipeline = Pipeline().add_stage(DoubleStage())
         parallel_pipeline = ParallelPipeline(pipeline, max_concurrency=3)
@@ -51,7 +51,7 @@ class TestParallelPipeline:
             assert result.final_data == (i + 1) * 2
 
     @pytest.mark.asyncio
-    async def test_parallel_with_max_concurrency(self):
+    async def test_parallel_with_max_concurrency(self) -> None:
         """동시 실행 제한 테스트"""
         pipeline = Pipeline().add_stage(DoubleStage())
         parallel_pipeline = ParallelPipeline(pipeline, max_concurrency=2)
@@ -64,7 +64,7 @@ class TestParallelPipeline:
             assert result.final_data == i * 2
 
     @pytest.mark.asyncio
-    async def test_parallel_with_shared_context(self):
+    async def test_parallel_with_shared_context(self) -> None:
         """공유 컨텍스트 테스트"""
         pipeline = Pipeline().add_stage(DoubleStage())
 
@@ -85,10 +85,10 @@ class TestParallelStage:
     """ParallelStage 테스트"""
 
     @pytest.mark.asyncio
-    async def test_parallel_stage(self):
+    async def test_parallel_stage(self) -> None:
         """병렬 스테이지 테스트"""
 
-        async def double_async(x):
+        async def double_async(x: Any) -> Any:
             await asyncio.sleep(0.01)
             return x * 2
 
@@ -102,10 +102,10 @@ class TestParallelStage:
         assert context.metadata["ParallelStage_processed_count"] == 5
 
     @pytest.mark.asyncio
-    async def test_parallel_stage_with_single_concurrency(self):
+    async def test_parallel_stage_with_single_concurrency(self) -> None:
         """단일 동시 실행 테스트"""
 
-        async def square_async(x):
+        async def square_async(x: Any) -> Any:
             return x**2
 
         stage = ParallelStage(square_async, max_concurrency=1)
@@ -117,10 +117,10 @@ class TestParallelStage:
         assert results == [4, 9, 16]
 
     @pytest.mark.asyncio
-    async def test_parallel_stage_with_non_list_raises_error(self):
+    async def test_parallel_stage_with_non_list_raises_error(self) -> None:
         """리스트가 아닌 입력 시 에러 테스트"""
 
-        async def dummy(x):
+        async def dummy(x: Any) -> Any:
             return x
 
         stage = ParallelStage(dummy)
@@ -134,10 +134,10 @@ class TestBatchStage:
     """BatchStage 테스트"""
 
     @pytest.mark.asyncio
-    async def test_batch_processing(self):
+    async def test_batch_processing(self) -> None:
         """배치 처리 테스트"""
 
-        async def sum_batch(batch):
+        async def sum_batch(batch: Any) -> Any:
             """배치를 합산"""
             return sum(batch)
 
@@ -153,10 +153,10 @@ class TestBatchStage:
         assert context.metadata["BatchStage_batch_size"] == 3
 
     @pytest.mark.asyncio
-    async def test_batch_with_list_results(self):
+    async def test_batch_with_list_results(self) -> None:
         """배치 결과가 리스트인 경우 테스트"""
 
-        async def double_batch(batch):
+        async def double_batch(batch: Any) -> Any:
             """배치의 각 항목을 2배로"""
             return [x * 2 for x in batch]
 
@@ -171,10 +171,10 @@ class TestBatchStage:
         assert results == [2, 4, 6, 8, 10]
 
     @pytest.mark.asyncio
-    async def test_batch_with_single_batch(self):
+    async def test_batch_with_single_batch(self) -> None:
         """단일 배치 테스트"""
 
-        async def process_batch(batch):
+        async def process_batch(batch: Any) -> Any:
             return len(batch)
 
         stage = BatchStage(process_batch, batch_size=100)
@@ -187,10 +187,10 @@ class TestBatchStage:
         assert context.metadata["BatchStage_batch_count"] == 1
 
     @pytest.mark.asyncio
-    async def test_batch_with_non_list_raises_error(self):
+    async def test_batch_with_non_list_raises_error(self) -> None:
         """리스트가 아닌 입력 시 에러 테스트"""
 
-        async def dummy(batch):
+        async def dummy(batch: Any) -> Any:
             return batch
 
         stage = BatchStage(dummy, batch_size=5)
@@ -204,10 +204,10 @@ class TestConditionalStage:
     """ConditionalStage 테스트"""
 
     @pytest.mark.asyncio
-    async def test_conditional_true_path(self):
+    async def test_conditional_true_path(self) -> None:
         """True 경로 테스트"""
 
-        def is_positive(x):
+        def is_positive(x: Any) -> Any:
             return x > 0
 
         true_stage = Pipeline().add_stage(DoubleStage())
@@ -224,10 +224,10 @@ class TestConditionalStage:
         assert context.metadata["ConditionalStage_branch"] == "true"
 
     @pytest.mark.asyncio
-    async def test_conditional_false_path_with_stage(self):
+    async def test_conditional_false_path_with_stage(self) -> None:
         """False 경로 (단계 있음) 테스트"""
 
-        def is_even(x):
+        def is_even(x: Any) -> Any:
             return x % 2 == 0
 
         true_stage = Pipeline().add_stage(DoubleStage())
@@ -257,10 +257,10 @@ class TestConditionalStage:
         assert context2.metadata["ConditionalStage_branch"] == "false"
 
     @pytest.mark.asyncio
-    async def test_conditional_false_path_without_stage(self):
+    async def test_conditional_false_path_without_stage(self) -> None:
         """False 경로 (단계 없음) 테스트"""
 
-        def is_large(x):
+        def is_large(x: Any) -> Any:
             return x > 100
 
         true_stage = Pipeline().add_stage(DoubleStage())
@@ -279,7 +279,7 @@ class TestConditionalStage:
         assert context.metadata["ConditionalStage_branch"] == "false"
 
     @pytest.mark.asyncio
-    async def test_conditional_with_lambda(self):
+    async def test_conditional_with_lambda(self) -> None:
         """람다 조건 함수 테스트"""
         true_stage = Pipeline().add_stage(DoubleStage())
 

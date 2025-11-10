@@ -1,5 +1,8 @@
 """3D 기하학 시스템 통합 테스트"""
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pytest
 
@@ -14,7 +17,7 @@ from src.core.geometry import (
 class TestGeometricAnalyzer:
     """기하학적 분석 테스트"""
 
-    def test_triangle_area(self):
+    def test_triangle_area(self) -> None:
         """삼각형 면적 계산 테스트"""
         v1 = np.array([0.0, 0.0, 0.0])
         v2 = np.array([1.0, 0.0, 0.0])
@@ -25,7 +28,7 @@ class TestGeometricAnalyzer:
         # 직각 이등변 삼각형: 면적 = 0.5
         assert abs(area - 0.5) < 1e-6
 
-    def test_triangle_normal(self):
+    def test_triangle_normal(self) -> None:
         """삼각형 법선 벡터 테스트"""
         v1 = np.array([0.0, 0.0, 0.0])
         v2 = np.array([1.0, 0.0, 0.0])
@@ -37,7 +40,7 @@ class TestGeometricAnalyzer:
         expected = np.array([0.0, 0.0, 1.0])
         assert np.allclose(normal, expected)
 
-    def test_cube_volume(self):
+    def test_cube_volume(self) -> None:
         """정육면체 부피 테스트"""
         # 단위 정육면체 (0~1)
         vertices = np.array(
@@ -83,7 +86,7 @@ class TestGeometricAnalyzer:
         # 단위 정육면체: 부피 = 1
         assert abs(volume - 1.0) < 0.1
 
-    def test_surface_area(self):
+    def test_surface_area(self) -> None:
         """표면적 계산 테스트"""
         # 단위 정육면체
         vertices = np.array(
@@ -122,7 +125,7 @@ class TestGeometricAnalyzer:
         # 단위 정육면체: 표면적 = 6
         assert abs(area - 6.0) < 0.1
 
-    def test_centroid(self):
+    def test_centroid(self) -> None:
         """무게 중심 계산 테스트"""
         # 단위 정육면체의 중심은 (0.5, 0.5, 0.5)
         vertices = np.array(
@@ -146,7 +149,7 @@ class TestGeometricAnalyzer:
         expected = np.array([0.5, 0.5, 0.5])
         assert np.allclose(centroid, expected, atol=0.2)
 
-    def test_bounding_box(self):
+    def test_bounding_box(self) -> None:
         """바운딩 박스 테스트"""
         vertices = np.array([[0, 0, 0], [1, 2, 3], [-1, -2, -3]], dtype=float)
 
@@ -155,7 +158,7 @@ class TestGeometricAnalyzer:
         assert np.allclose(min_point, [-1, -2, -3])
         assert np.allclose(max_point, [1, 2, 3])
 
-    def test_edge_length(self):
+    def test_edge_length(self) -> None:
         """엣지 길이 테스트"""
         v1 = np.array([0.0, 0.0, 0.0])
         v2 = np.array([3.0, 4.0, 0.0])
@@ -169,7 +172,7 @@ class TestGeometricAnalyzer:
 class TestMeshQualityAnalyzer:
     """메시 품질 분석 테스트"""
 
-    def test_equilateral_triangle_quality(self):
+    def test_equilateral_triangle_quality(self) -> None:
         """정삼각형 품질 테스트"""
         # 정삼각형
         v1 = np.array([0.0, 0.0, 0.0])
@@ -181,7 +184,7 @@ class TestMeshQualityAnalyzer:
         # 정삼각형: 품질 = 1
         assert quality > 0.99
 
-    def test_degenerate_triangle_quality(self):
+    def test_degenerate_triangle_quality(self) -> None:
         """퇴화 삼각형 품질 테스트"""
         # 일직선상의 점들
         v1 = np.array([0.0, 0.0, 0.0])
@@ -197,7 +200,7 @@ class TestMeshQualityAnalyzer:
 class TestMeshOperations:
     """메시 조작 테스트"""
 
-    def test_translation(self):
+    def test_translation(self) -> None:
         """이동 테스트"""
         vertices = np.array([[0, 0, 0], [1, 1, 1]], dtype=float)
         translation = np.array([1.0, 2.0, 3.0])
@@ -207,7 +210,7 @@ class TestMeshOperations:
         expected = np.array([[1, 2, 3], [2, 3, 4]], dtype=float)
         assert np.allclose(translated, expected)
 
-    def test_scaling(self):
+    def test_scaling(self) -> None:
         """스케일 테스트"""
         vertices = np.array([[1, 2, 3], [4, 5, 6]], dtype=float)
 
@@ -216,7 +219,7 @@ class TestMeshOperations:
         expected = np.array([[2, 4, 6], [8, 10, 12]], dtype=float)
         assert np.allclose(scaled, expected)
 
-    def test_center_at_origin(self):
+    def test_center_at_origin(self) -> None:
         """원점 중심 이동 테스트"""
         vertices = np.array([[1, 1, 1], [3, 3, 3]], dtype=float)
 
@@ -226,7 +229,7 @@ class TestMeshOperations:
         centroid = np.mean(centered, axis=0)
         assert np.allclose(centroid, [0, 0, 0])
 
-    def test_flip_normals(self):
+    def test_flip_normals(self) -> None:
         """법선 반전 테스트"""
         faces = np.array([[0, 1, 2], [3, 4, 5]])
 
@@ -235,7 +238,7 @@ class TestMeshOperations:
         expected = np.array([[0, 2, 1], [3, 5, 4]])
         assert np.array_equal(flipped, expected)
 
-    def test_laplacian_smoothing(self):
+    def test_laplacian_smoothing(self) -> None:
         """Laplacian 스무딩 테스트"""
         # 간단한 메시
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0.5, 1, 0], [0.5, 0.5, 1]], dtype=float)
@@ -249,7 +252,7 @@ class TestMeshOperations:
         # 스무딩 후에도 형태 유지
         assert smoothed.shape == vertices.shape
 
-    def test_subdivide(self):
+    def test_subdivide(self) -> None:
         """서브디비전 테스트"""
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float)
 
@@ -262,7 +265,7 @@ class TestMeshOperations:
         # 3개 꼭짓점 + 3개 중점 = 6개
         assert len(new_vertices) == 6
 
-    def test_remove_duplicates(self):
+    def test_remove_duplicates(self) -> None:
         """중복 꼭짓점 제거 테스트"""
         # 중복 포함 꼭짓점
         vertices = np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0], [1, 1, 0]], dtype=float)  # 중복
@@ -278,7 +281,7 @@ class TestMeshOperations:
 class TestMeshTransform:
     """메시 변환 테스트"""
 
-    def test_rotation_matrix_x(self):
+    def test_rotation_matrix_x(self) -> None:
         """X축 회전 행렬 테스트"""
         matrix = MeshTransform.rotation_matrix_x(np.pi / 2)
 
@@ -289,7 +292,7 @@ class TestMeshTransform:
         expected = np.array([0, 0, 1])
         assert np.allclose(rotated, expected, atol=1e-6)
 
-    def test_rotation_matrix_z(self):
+    def test_rotation_matrix_z(self) -> None:
         """Z축 회전 행렬 테스트"""
         matrix = MeshTransform.rotation_matrix_z(np.pi / 2)
 

@@ -1,5 +1,6 @@
 """프롬프트 템플릿 및 예시 테스트"""
 
+from typing import Any
 import pytest
 import tempfile
 from pathlib import Path
@@ -11,7 +12,7 @@ from src.core.llm.prompts.examples import Example, FewShotExampleManager
 class TestPromptTemplate:
     """PromptTemplate 테스트"""
 
-    def test_create_template(self):
+    def test_create_template(self) -> None:
         """템플릿 생성 테스트"""
         template = PromptTemplate(
             template="Hello {{ name }}!",
@@ -21,7 +22,7 @@ class TestPromptTemplate:
         assert template.name == "greeting"
         assert template.template_str == "Hello {{ name }}!"
 
-    def test_format_template(self):
+    def test_format_template(self) -> None:
         """템플릿 포맷 테스트"""
         template = PromptTemplate("Hello {{ name }}!")
 
@@ -29,7 +30,7 @@ class TestPromptTemplate:
 
         assert result == "Hello World!"
 
-    def test_complex_template(self):
+    def test_complex_template(self) -> None:
         """복잡한 템플릿 테스트"""
         template = PromptTemplate(
             """
@@ -47,7 +48,7 @@ class TestPromptTemplate:
         assert "Age: 30" in result
         assert "Occupation: Engineer" in result
 
-    def test_template_from_file(self):
+    def test_template_from_file(self) -> None:
         """파일에서 템플릿 로드 테스트"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".j2", delete=False) as f:
             f.write("Test template: {{ value }}")
@@ -66,7 +67,7 @@ class TestPromptTemplate:
 class TestPromptTemplateManager:
     """PromptTemplateManager 테스트"""
 
-    def test_register_template(self):
+    def test_register_template(self) -> None:
         """템플릿 등록 테스트"""
         manager = PromptTemplateManager()
 
@@ -79,14 +80,14 @@ class TestPromptTemplateManager:
         template = manager.get("test")
         assert template.name == "test"
 
-    def test_get_nonexistent_template_raises_error(self):
+    def test_get_nonexistent_template_raises_error(self) -> None:
         """존재하지 않는 템플릿 조회 시 에러 테스트"""
         manager = PromptTemplateManager()
 
         with pytest.raises(KeyError):
             manager.get("nonexistent")
 
-    def test_format_template(self):
+    def test_format_template(self) -> None:
         """템플릿 포맷 테스트"""
         manager = PromptTemplateManager()
         manager.register("greet", "Hi {{ name }}")
@@ -95,7 +96,7 @@ class TestPromptTemplateManager:
 
         assert result == "Hi Bob"
 
-    def test_list_templates(self):
+    def test_list_templates(self) -> None:
         """템플릿 목록 조회 테스트"""
         manager = PromptTemplateManager()
         manager.register("t1", "Template 1")
@@ -106,7 +107,7 @@ class TestPromptTemplateManager:
         assert "t1" in templates
         assert "t2" in templates
 
-    def test_remove_template(self):
+    def test_remove_template(self) -> None:
         """템플릿 제거 테스트"""
         manager = PromptTemplateManager()
         manager.register("temp", "Temporary")
@@ -120,7 +121,7 @@ class TestPromptTemplateManager:
 class TestExample:
     """Example 테스트"""
 
-    def test_create_example(self):
+    def test_create_example(self) -> None:
         """예시 생성 테스트"""
         example = Example(
             input="What is 2+2?",
@@ -130,9 +131,10 @@ class TestExample:
 
         assert example.input == "What is 2+2?"
         assert example.output == "4"
+        assert example.metadata is not None
         assert example.metadata["difficulty"] == "easy"
 
-    def test_format_example(self):
+    def test_format_example(self) -> None:
         """예시 포맷 테스트"""
         example = Example(
             input="Question",
@@ -144,7 +146,7 @@ class TestExample:
         assert "Input: Question" in formatted
         assert "Output: Answer" in formatted
 
-    def test_format_with_custom_labels(self):
+    def test_format_with_custom_labels(self) -> None:
         """커스텀 라벨로 포맷 테스트"""
         example = Example(
             input="Q",
@@ -156,7 +158,7 @@ class TestExample:
         assert "Question: Q" in formatted
         assert "Answer: A" in formatted
 
-    def test_to_dict(self):
+    def test_to_dict(self) -> None:
         """딕셔너리 변환 테스트"""
         example = Example(input="in", output="out", metadata={"key": "value"})
 
@@ -164,9 +166,10 @@ class TestExample:
 
         assert data["input"] == "in"
         assert data["output"] == "out"
+        assert data["metadata"] is not None
         assert data["metadata"]["key"] == "value"
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         """딕셔너리에서 생성 테스트"""
         data = {
             "input": "test input",
@@ -178,13 +181,14 @@ class TestExample:
 
         assert example.input == "test input"
         assert example.output == "test output"
+        assert example.metadata is not None
         assert example.metadata["tag"] == "test"
 
 
 class TestFewShotExampleManager:
     """FewShotExampleManager 테스트"""
 
-    def test_add_example(self):
+    def test_add_example(self) -> None:
         """예시 추가 테스트"""
         manager = FewShotExampleManager()
 
@@ -197,7 +201,7 @@ class TestFewShotExampleManager:
         assert example.input == "2+2"
         assert example.output == "4"
 
-    def test_get_examples(self):
+    def test_get_examples(self) -> None:
         """예시 조회 테스트"""
         manager = FewShotExampleManager()
         manager.add_example("cat1", "in1", "out1")
@@ -209,7 +213,7 @@ class TestFewShotExampleManager:
         assert examples[0].input == "in1"
         assert examples[1].input == "in2"
 
-    def test_get_limited_examples(self):
+    def test_get_limited_examples(self) -> None:
         """제한된 개수 조회 테스트"""
         manager = FewShotExampleManager()
         for i in range(5):
@@ -219,7 +223,7 @@ class TestFewShotExampleManager:
 
         assert len(examples) == 2
 
-    def test_format_examples(self):
+    def test_format_examples(self) -> None:
         """예시 포맷 테스트"""
         manager = FewShotExampleManager()
         manager.add_example("format", "q1", "a1")
@@ -231,7 +235,7 @@ class TestFewShotExampleManager:
         assert "Output: a1" in formatted
         assert "Input: q2" in formatted
 
-    def test_list_categories(self):
+    def test_list_categories(self) -> None:
         """카테고리 목록 테스트"""
         manager = FewShotExampleManager()
         manager.add_example("cat1", "i1", "o1")
@@ -242,7 +246,7 @@ class TestFewShotExampleManager:
         assert "cat1" in categories
         assert "cat2" in categories
 
-    def test_count_examples(self):
+    def test_count_examples(self) -> None:
         """예시 개수 테스트"""
         manager = FewShotExampleManager()
         manager.add_example("c1", "i1", "o1")
@@ -253,7 +257,7 @@ class TestFewShotExampleManager:
         assert manager.count("c2") == 1
         assert manager.count() == 3
 
-    def test_remove_examples(self):
+    def test_remove_examples(self) -> None:
         """예시 제거 테스트"""
         manager = FewShotExampleManager()
         manager.add_example("temp", "i", "o")
@@ -262,7 +266,7 @@ class TestFewShotExampleManager:
 
         assert manager.count("temp") == 0
 
-    def test_save_and_load_from_file(self):
+    def test_save_and_load_from_file(self) -> None:
         """파일 저장 및 로드 테스트"""
         manager = FewShotExampleManager()
         manager.add_example("save_test", "input", "output")

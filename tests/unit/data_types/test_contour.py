@@ -10,7 +10,7 @@ from src.core.data_types.contour import ContourData
 class TestContourData:
     """ContourData 클래스 테스트"""
 
-    def test_create_2d_contour(self):
+    def test_create_2d_contour(self) -> None:
         """2D 컨투어 생성"""
         points = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
         contour = ContourData(points=points)
@@ -20,7 +20,7 @@ class TestContourData:
         assert len(contour.points) == 4
         assert contour.is_closed
 
-    def test_create_3d_contour(self):
+    def test_create_3d_contour(self) -> None:
         """3D 컨투어 생성"""
         points = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
         contour = ContourData(points=points)
@@ -28,12 +28,12 @@ class TestContourData:
         assert contour.is_3d()
         assert not contour.is_2d()
 
-    def test_create_with_too_few_points_raises_error(self):
+    def test_create_with_too_few_points_raises_error(self) -> None:
         """포인트가 너무 적으면 에러"""
         with pytest.raises(ValueError, match="at least 2 points"):
             ContourData(points=np.array([[0, 0]]))
 
-    def test_area_calculation_2d(self):
+    def test_area_calculation_2d(self) -> None:
         """2D 면적 계산"""
         # 단위 정사각형
         points = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
@@ -42,7 +42,7 @@ class TestContourData:
         area = contour.get_area()
         assert abs(area - 1.0) < 0.01
 
-    def test_perimeter_calculation(self):
+    def test_perimeter_calculation(self) -> None:
         """둘레 계산"""
         # 단위 정사각형
         points = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
@@ -51,7 +51,7 @@ class TestContourData:
         perimeter = contour.get_perimeter()
         assert abs(perimeter - 4.0) < 0.01
 
-    def test_serialize_deserialize(self):
+    def test_serialize_deserialize(self) -> None:
         """직렬화/역직렬화"""
         points = np.array([[0, 0], [1, 1], [2, 0]])
         contour = ContourData(points=points, value=100.0)
@@ -62,7 +62,7 @@ class TestContourData:
         assert np.allclose(restored.points, contour.points)
         assert restored.value == contour.value
 
-    def test_compress_decompress(self):
+    def test_compress_decompress(self) -> None:
         """압축/압축 해제"""
         points = np.array([[0, 0], [1, 1], [2, 0]])
         contour = ContourData(points=points)
@@ -72,7 +72,7 @@ class TestContourData:
 
         assert np.allclose(restored.points, contour.points)
 
-    def test_simplify(self):
+    def test_simplify(self) -> None:
         """단순화"""
         # 직선상의 많은 점
         points = np.array([[i, i] for i in range(10)], dtype=float)
@@ -83,7 +83,7 @@ class TestContourData:
         # 단순화 후 포인트 수가 줄어야 함
         assert len(simplified.points) < len(contour.points)
 
-    def test_resample(self):
+    def test_resample(self) -> None:
         """재샘플링"""
         points = np.array([[0, 0], [1, 1], [2, 0]])
         contour = ContourData(points=points, is_closed=False)
@@ -92,7 +92,7 @@ class TestContourData:
 
         assert len(resampled.points) == 10
 
-    def test_get_metadata(self):
+    def test_get_metadata(self) -> None:
         """메타데이터 추출"""
         points = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
         contour = ContourData(points=points)

@@ -12,34 +12,34 @@ import pytest
 class TestSimulationStatus:
     """Test SimulationStatus enum"""
 
-    def test_simulation_status_values(self):
+    def test_simulation_status_values(self) -> None:
         """Test SimulationStatus enum values"""
         from src.core.domain.entities import SimulationStatus
 
-        assert SimulationStatus.PENDING == "pending"
-        assert SimulationStatus.PROCESSING == "processing"
-        assert SimulationStatus.COMPLETED == "completed"
-        assert SimulationStatus.FAILED == "failed"
-        assert SimulationStatus.CANCELLED == "cancelled"
+        assert SimulationStatus.PENDING.value == "pending"
+        assert SimulationStatus.PROCESSING.value == "processing"
+        assert SimulationStatus.COMPLETED.value == "completed"
+        assert SimulationStatus.FAILED.value == "failed"
+        assert SimulationStatus.CANCELLED.value == "cancelled"
 
 
 class TestAnalysisStatus:
     """Test AnalysisStatus enum"""
 
-    def test_analysis_status_values(self):
+    def test_analysis_status_values(self) -> None:
         """Test AnalysisStatus enum values"""
         from src.core.domain.entities import AnalysisStatus
 
-        assert AnalysisStatus.PENDING == "pending"
-        assert AnalysisStatus.RUNNING == "running"
-        assert AnalysisStatus.COMPLETED == "completed"
-        assert AnalysisStatus.FAILED == "failed"
+        assert AnalysisStatus.PENDING.value == "pending"
+        assert AnalysisStatus.RUNNING.value == "running"
+        assert AnalysisStatus.COMPLETED.value == "completed"
+        assert AnalysisStatus.FAILED.value == "failed"
 
 
 class TestSimulationResult:
     """Test SimulationResult entity"""
 
-    def test_simulation_result_creation(self):
+    def test_simulation_result_creation(self) -> None:
         """Test creating SimulationResult entity"""
         from src.core.domain.entities import SimulationResult, SimulationStatus
 
@@ -51,7 +51,7 @@ class TestSimulationResult:
         assert isinstance(sim.id, UUID)
         assert isinstance(sim.created_at, datetime)
 
-    def test_simulation_result_with_parameters(self):
+    def test_simulation_result_with_parameters(self) -> None:
         """Test SimulationResult with parameters"""
         from src.core.domain.entities import SimulationResult
 
@@ -62,7 +62,7 @@ class TestSimulationResult:
 
         assert sim.parameters == params
 
-    def test_simulation_result_with_metadata(self):
+    def test_simulation_result_with_metadata(self) -> None:
         """Test SimulationResult with metadata"""
         from src.core.domain.entities import SimulationResult
 
@@ -73,7 +73,7 @@ class TestSimulationResult:
 
         assert sim.metadata == metadata
 
-    def test_simulation_result_with_tags(self):
+    def test_simulation_result_with_tags(self) -> None:
         """Test SimulationResult with tags"""
         from src.core.domain.entities import SimulationResult
 
@@ -84,21 +84,21 @@ class TestSimulationResult:
 
         assert sim.tags == tags
 
-    def test_simulation_result_empty_name_raises_error(self):
+    def test_simulation_result_empty_name_raises_error(self) -> None:
         """Test empty name raises ValueError"""
         from src.core.domain.entities import SimulationResult
 
         with pytest.raises(ValueError, match="name cannot be empty"):
             SimulationResult(name="", type="CFD")
 
-    def test_simulation_result_empty_type_raises_error(self):
+    def test_simulation_result_empty_type_raises_error(self) -> None:
         """Test empty type raises ValueError"""
         from src.core.domain.entities import SimulationResult
 
         with pytest.raises(ValueError, match="type cannot be empty"):
             SimulationResult(name="Test", type="")
 
-    def test_simulation_result_long_name_raises_error(self):
+    def test_simulation_result_long_name_raises_error(self) -> None:
         """Test name too long raises ValueError"""
         from src.core.domain.entities import SimulationResult
 
@@ -107,7 +107,7 @@ class TestSimulationResult:
         with pytest.raises(ValueError, match="name too long"):
             SimulationResult(name=long_name, type="CFD")
 
-    def test_mark_as_processing(self):
+    def test_mark_as_processing(self) -> None:
         """Test marking simulation as processing"""
         from src.core.domain.entities import SimulationResult, SimulationStatus
 
@@ -119,7 +119,7 @@ class TestSimulationResult:
         assert sim.status == SimulationStatus.PROCESSING
         assert sim.updated_at >= original_updated_at
 
-    def test_mark_as_processing_from_wrong_status_raises_error(self):
+    def test_mark_as_processing_from_wrong_status_raises_error(self) -> None:
         """Test marking as processing from wrong status raises error"""
         from src.core.domain.entities import SimulationResult, SimulationStatus
 
@@ -129,7 +129,7 @@ class TestSimulationResult:
         with pytest.raises(ValueError, match="Cannot mark as processing"):
             sim.mark_as_processing()
 
-    def test_mark_as_completed(self):
+    def test_mark_as_completed(self) -> None:
         """Test marking simulation as completed"""
         from src.core.domain.entities import SimulationResult, SimulationStatus
 
@@ -140,7 +140,7 @@ class TestSimulationResult:
 
         assert sim.status == SimulationStatus.COMPLETED
 
-    def test_mark_as_completed_from_wrong_status_raises_error(self):
+    def test_mark_as_completed_from_wrong_status_raises_error(self) -> None:
         """Test marking as completed from wrong status raises error"""
         from src.core.domain.entities import SimulationResult
 
@@ -149,7 +149,7 @@ class TestSimulationResult:
         with pytest.raises(ValueError, match="Cannot mark as completed"):
             sim.mark_as_completed()
 
-    def test_mark_as_failed(self):
+    def test_mark_as_failed(self) -> None:
         """Test marking simulation as failed"""
         from src.core.domain.entities import SimulationResult, SimulationStatus
 
@@ -161,7 +161,7 @@ class TestSimulationResult:
         assert sim.metadata["error"] == "Out of memory"
         assert "failed_at" in sim.metadata
 
-    def test_cancel_simulation(self):
+    def test_cancel_simulation(self) -> None:
         """Test cancelling simulation"""
         from src.core.domain.entities import SimulationResult, SimulationStatus
 
@@ -172,7 +172,7 @@ class TestSimulationResult:
 
         assert sim.status == SimulationStatus.CANCELLED
 
-    def test_cancel_completed_simulation_raises_error(self):
+    def test_cancel_completed_simulation_raises_error(self) -> None:
         """Test cancelling completed simulation raises error"""
         from src.core.domain.entities import SimulationResult
 
@@ -183,7 +183,7 @@ class TestSimulationResult:
         with pytest.raises(ValueError, match="Cannot cancel"):
             sim.cancel()
 
-    def test_add_tag(self):
+    def test_add_tag(self) -> None:
         """Test adding tag to simulation"""
         from src.core.domain.entities import SimulationResult
 
@@ -193,7 +193,7 @@ class TestSimulationResult:
 
         assert "turbulent" in sim.tags
 
-    def test_add_duplicate_tag(self):
+    def test_add_duplicate_tag(self) -> None:
         """Test adding duplicate tag doesn't duplicate"""
         from src.core.domain.entities import SimulationResult
 
@@ -203,7 +203,7 @@ class TestSimulationResult:
 
         assert sim.tags.count("turbulent") == 1
 
-    def test_simulation_result_default_values(self):
+    def test_simulation_result_default_values(self) -> None:
         """Test SimulationResult default values"""
         from src.core.domain.entities import SimulationResult, SimulationStatus
 

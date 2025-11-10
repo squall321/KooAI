@@ -15,11 +15,11 @@ class TestStructuredLogger:
     """Test StructuredLogger class"""
 
     @pytest.fixture
-    def temp_log_file(self, tmp_path):
+    def temp_log_file(self, tmp_path: Path) -> Path:
         """Create temporary log file"""
         return tmp_path / "test.log"
 
-    def test_structured_logger_creation(self, temp_log_file):
+    def test_structured_logger_creation(self, temp_log_file: Path) -> None:
         """Test StructuredLogger can be created"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -27,7 +27,7 @@ class TestStructuredLogger:
         assert logger is not None
         assert logger.logger.name == "test"
 
-    def test_logger_level_configuration(self, temp_log_file):
+    def test_logger_level_configuration(self, temp_log_file: Path) -> None:
         """Test logger level can be configured"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -37,7 +37,7 @@ class TestStructuredLogger:
         logger = StructuredLogger("test2", level="ERROR")
         assert logger.logger.level == logging.ERROR
 
-    def test_logger_creates_log_directory(self, tmp_path):
+    def test_logger_creates_log_directory(self, tmp_path: Path) -> None:
         """Test logger creates log directory if not exists"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -46,7 +46,7 @@ class TestStructuredLogger:
 
         assert log_file.parent.exists()
 
-    def test_logger_info_method(self, temp_log_file):
+    def test_logger_info_method(self, temp_log_file: Path) -> None:
         """Test logger.info() logs message"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -57,7 +57,7 @@ class TestStructuredLogger:
         content = temp_log_file.read_text()
         assert "Test message" in content
 
-    def test_logger_error_method(self, temp_log_file):
+    def test_logger_error_method(self, temp_log_file: Path) -> None:
         """Test logger.error() logs error"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -67,7 +67,7 @@ class TestStructuredLogger:
         content = temp_log_file.read_text()
         assert "Error occurred" in content
 
-    def test_logger_debug_method(self, temp_log_file):
+    def test_logger_debug_method(self, temp_log_file: Path) -> None:
         """Test logger.debug() logs debug message"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -77,7 +77,7 @@ class TestStructuredLogger:
         content = temp_log_file.read_text()
         assert "Debug info" in content
 
-    def test_logger_warning_method(self, temp_log_file):
+    def test_logger_warning_method(self, temp_log_file: Path) -> None:
         """Test logger.warning() logs warning"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -87,7 +87,7 @@ class TestStructuredLogger:
         content = temp_log_file.read_text()
         assert "Warning message" in content
 
-    def test_logger_critical_method(self, temp_log_file):
+    def test_logger_critical_method(self, temp_log_file: Path) -> None:
         """Test logger.critical() logs critical message"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -97,7 +97,7 @@ class TestStructuredLogger:
         content = temp_log_file.read_text()
         assert "Critical issue" in content
 
-    def test_logger_with_extra_fields(self, temp_log_file):
+    def test_logger_with_extra_fields(self, temp_log_file: Path) -> None:
         """Test logger accepts extra fields"""
         from src.infrastructure.logging.structured_logging import StructuredLogger
 
@@ -112,13 +112,13 @@ class TestRequestLogger:
     """Test RequestLogger class"""
 
     @pytest.fixture
-    def mock_structured_logger(self):
+    def mock_structured_logger(self) -> Mock:
         """Create mock StructuredLogger"""
         mock = Mock()
         mock.info = Mock()
         return mock
 
-    def test_request_logger_creation(self, mock_structured_logger):
+    def test_request_logger_creation(self, mock_structured_logger: Mock) -> None:
         """Test RequestLogger can be created"""
         from src.infrastructure.logging.structured_logging import RequestLogger
 
@@ -126,7 +126,7 @@ class TestRequestLogger:
         assert req_logger is not None
 
     @pytest.mark.asyncio
-    async def test_log_request_basic(self, mock_structured_logger):
+    async def test_log_request_basic(self, mock_structured_logger: Mock) -> None:
         """Test logging basic HTTP request"""
         from src.infrastructure.logging.structured_logging import RequestLogger
 
@@ -139,7 +139,7 @@ class TestRequestLogger:
         assert "/api/files" in call_args[0][0]
 
     @pytest.mark.asyncio
-    async def test_log_request_with_user(self, mock_structured_logger):
+    async def test_log_request_with_user(self, mock_structured_logger: Mock) -> None:
         """Test logging request with user ID"""
         from src.infrastructure.logging.structured_logging import RequestLogger
 
@@ -152,7 +152,7 @@ class TestRequestLogger:
         assert call_args[1]["user_id"] == "usr_123"
 
     @pytest.mark.asyncio
-    async def test_log_request_rounds_duration(self, mock_structured_logger):
+    async def test_log_request_rounds_duration(self, mock_structured_logger: Mock) -> None:
         """Test request duration is rounded"""
         from src.infrastructure.logging.structured_logging import RequestLogger
 
@@ -167,20 +167,20 @@ class TestMetricsLogger:
     """Test MetricsLogger class"""
 
     @pytest.fixture
-    def mock_structured_logger(self):
+    def mock_structured_logger(self) -> Mock:
         """Create mock StructuredLogger"""
         mock = Mock()
         mock.info = Mock()
         return mock
 
-    def test_metrics_logger_creation(self, mock_structured_logger):
+    def test_metrics_logger_creation(self, mock_structured_logger: Mock) -> None:
         """Test MetricsLogger can be created"""
         from src.infrastructure.logging.structured_logging import MetricsLogger
 
         metrics_logger = MetricsLogger(mock_structured_logger)
         assert metrics_logger is not None
 
-    def test_log_file_upload(self, mock_structured_logger):
+    def test_log_file_upload(self, mock_structured_logger: Mock) -> None:
         """Test logging file upload event"""
         from src.infrastructure.logging.structured_logging import MetricsLogger
 
@@ -197,7 +197,7 @@ class TestMetricsLogger:
         assert call_args[1]["event_type"] == "file_upload"
         assert call_args[1]["file_size_mb"] == 10.0
 
-    def test_log_llm_request(self, mock_structured_logger):
+    def test_log_llm_request(self, mock_structured_logger: Mock) -> None:
         """Test logging LLM request event"""
         from src.infrastructure.logging.structured_logging import MetricsLogger
 
@@ -215,7 +215,7 @@ class TestMetricsLogger:
         assert call_args[1]["event_type"] == "llm_request"
         assert call_args[1]["total_tokens"] == 300
 
-    def test_log_visualization_render(self, mock_structured_logger):
+    def test_log_visualization_render(self, mock_structured_logger: Mock) -> None:
         """Test logging visualization render event"""
         from src.infrastructure.logging.structured_logging import MetricsLogger
 
@@ -231,7 +231,7 @@ class TestMetricsLogger:
         assert call_args[1]["event_type"] == "visualization_render"
         assert call_args[1]["viz_type"] == "3d_mesh"
 
-    def test_log_error(self, mock_structured_logger):
+    def test_log_error(self, mock_structured_logger: Mock) -> None:
         """Test logging error event"""
         from src.infrastructure.logging.structured_logging import MetricsLogger
 
@@ -252,20 +252,20 @@ class TestAuditLogger:
     """Test AuditLogger class"""
 
     @pytest.fixture
-    def mock_structured_logger(self):
+    def mock_structured_logger(self) -> Mock:
         """Create mock StructuredLogger"""
         mock = Mock()
         mock.info = Mock()
         return mock
 
-    def test_audit_logger_creation(self, mock_structured_logger):
+    def test_audit_logger_creation(self, mock_structured_logger: Mock) -> None:
         """Test AuditLogger can be created"""
         from src.infrastructure.logging.structured_logging import AuditLogger
 
         audit_logger = AuditLogger(mock_structured_logger)
         assert audit_logger is not None
 
-    def test_log_authentication_login(self, mock_structured_logger):
+    def test_log_authentication_login(self, mock_structured_logger: Mock) -> None:
         """Test logging login authentication"""
         from src.infrastructure.logging.structured_logging import AuditLogger
 
@@ -283,7 +283,7 @@ class TestAuditLogger:
         assert call_args[1]["event_type"] == "authentication"
         assert call_args[1]["auth_event"] == "login"
 
-    def test_log_authentication_failed(self, mock_structured_logger):
+    def test_log_authentication_failed(self, mock_structured_logger: Mock) -> None:
         """Test logging failed authentication"""
         from src.infrastructure.logging.structured_logging import AuditLogger
 
@@ -300,7 +300,7 @@ class TestAuditLogger:
         call_args = mock_structured_logger.info.call_args
         assert call_args[1]["success"] is False
 
-    def test_log_authorization(self, mock_structured_logger):
+    def test_log_authorization(self, mock_structured_logger: Mock) -> None:
         """Test logging authorization event"""
         from src.infrastructure.logging.structured_logging import AuditLogger
 
@@ -317,7 +317,7 @@ class TestAuditLogger:
         assert call_args[1]["event_type"] == "authorization"
         assert call_args[1]["granted"] is True
 
-    def test_log_data_access(self, mock_structured_logger):
+    def test_log_data_access(self, mock_structured_logger: Mock) -> None:
         """Test logging data access event"""
         from src.infrastructure.logging.structured_logging import AuditLogger
 
@@ -333,7 +333,7 @@ class TestAuditLogger:
         assert call_args[1]["event_type"] == "data_access"
         assert call_args[1]["action"] == "write"
 
-    def test_log_configuration_change(self, mock_structured_logger):
+    def test_log_configuration_change(self, mock_structured_logger: Mock) -> None:
         """Test logging configuration change"""
         from src.infrastructure.logging.structured_logging import AuditLogger
 
@@ -353,7 +353,7 @@ class TestAuditLogger:
 class TestGlobalLoggerInstances:
     """Test global logger instance functions"""
 
-    def test_get_app_logger(self):
+    def test_get_app_logger(self) -> None:
         """Test get_app_logger returns logger"""
         from src.infrastructure.logging.structured_logging import get_app_logger
 
@@ -361,21 +361,21 @@ class TestGlobalLoggerInstances:
         assert logger is not None
         assert logger.logger.name == "kooai"
 
-    def test_get_request_logger(self):
+    def test_get_request_logger(self) -> None:
         """Test get_request_logger returns RequestLogger"""
         from src.infrastructure.logging.structured_logging import get_request_logger
 
         logger = get_request_logger()
         assert logger is not None
 
-    def test_get_metrics_logger(self):
+    def test_get_metrics_logger(self) -> None:
         """Test get_metrics_logger returns MetricsLogger"""
         from src.infrastructure.logging.structured_logging import get_metrics_logger
 
         logger = get_metrics_logger()
         assert logger is not None
 
-    def test_get_audit_logger(self):
+    def test_get_audit_logger(self) -> None:
         """Test get_audit_logger returns AuditLogger"""
         from src.infrastructure.logging.structured_logging import get_audit_logger
 

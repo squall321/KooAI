@@ -3,24 +3,25 @@ Tests for Adapter Plugin
 """
 
 import pytest
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 
 class TestAdapterPluginClass:
     """Test AdapterPlugin class."""
 
-    def test_init_with_correct_type(self):
+    def test_init_with_correct_type(self) -> None:
         """Test initialization with correct plugin type."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
         # Create mock adapter
-        class MockAdapter:
-            def load_model(self, model_path: str, **kwargs: Any) -> Any:
-                return "mock_model"
+        class MockAdapter(BaseModelAdapter):
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
 
-            def predict(self, inputs: Any, **kwargs: Any) -> Any:
-                return "mock_prediction"
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
 
             def get_model_info(self) -> Dict[str, Any]:
                 return {"type": "mock"}
@@ -32,7 +33,7 @@ class TestAdapterPluginClass:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test adapter plugin",
             author="Test Author",
             plugin_type=PluginType.ADAPTER,
@@ -41,12 +42,12 @@ class TestAdapterPluginClass:
         plugin = TestAdapterPlugin(metadata)
 
         assert plugin.name == "test_adapter"
-        assert plugin.version == "1.0.0"
+        assert str(plugin.version) == "1.0.0"
 
-    def test_init_with_wrong_type_raises_error(self):
+    def test_init_with_wrong_type_raises_error(self) -> None:
         """Test initialization with wrong plugin type raises error."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -54,7 +55,7 @@ class TestAdapterPluginClass:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Wrong type",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -64,14 +65,21 @@ class TestAdapterPluginClass:
             TestAdapterPlugin(metadata)
 
     @pytest.mark.asyncio
-    async def test_initialize_sets_adapter_class(self):
+    async def test_initialize_sets_adapter_class(self) -> None:
         """Test that initialize sets adapter class."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            def load_model(self, model_path: str, **kwargs: Any) -> Any:
-                return "mock_model"
+        class MockAdapter(BaseModelAdapter):
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -79,7 +87,7 @@ class TestAdapterPluginClass:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -88,16 +96,24 @@ class TestAdapterPluginClass:
         plugin = TestAdapterPlugin(metadata)
         await plugin.initialize({})
 
-        assert plugin._adapter_class == MockAdapter
+        assert plugin._adapter_class is MockAdapter
 
     @pytest.mark.asyncio
-    async def test_get_adapter_class_after_initialize(self):
+    async def test_get_adapter_class_after_initialize(self) -> None:
         """Test getting adapter class after initialization."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            pass
+        class MockAdapter(BaseModelAdapter):
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -105,7 +121,7 @@ class TestAdapterPluginClass:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -116,12 +132,12 @@ class TestAdapterPluginClass:
 
         adapter_class = plugin.get_adapter_class()
 
-        assert adapter_class == MockAdapter
+        assert adapter_class is MockAdapter
 
-    def test_get_adapter_class_before_initialize_raises_error(self):
+    def test_get_adapter_class_before_initialize_raises_error(self) -> None:
         """Test getting adapter class before initialization raises error."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -129,7 +145,7 @@ class TestAdapterPluginClass:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -141,14 +157,25 @@ class TestAdapterPluginClass:
             plugin.get_adapter_class()
 
     @pytest.mark.asyncio
-    async def test_create_adapter(self):
+    async def test_create_adapter(self) -> None:
         """Test creating adapter instance."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            def __init__(self):
+        class MockAdapter(BaseModelAdapter):
+            def __init__(self) -> None:
+                super().__init__()
                 self.name = "mock"
+
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -156,7 +183,7 @@ class TestAdapterPluginClass:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -174,7 +201,7 @@ class TestAdapterPluginClass:
 class TestAdapterPluginRegistry:
     """Test AdapterPluginRegistry class."""
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test registry initialization."""
         from src.core.plugins.types.adapter_plugin import AdapterPluginRegistry
 
@@ -183,13 +210,21 @@ class TestAdapterPluginRegistry:
         assert registry.list_adapters() == []
 
     @pytest.mark.asyncio
-    async def test_register(self):
+    async def test_register(self) -> None:
         """Test registering plugin."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin, AdapterPluginRegistry
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            pass
+        class MockAdapter(BaseModelAdapter):
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -199,7 +234,7 @@ class TestAdapterPluginRegistry:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -212,13 +247,21 @@ class TestAdapterPluginRegistry:
         assert "test_adapter" in registry.list_adapters()
 
     @pytest.mark.asyncio
-    async def test_get(self):
+    async def test_get(self) -> None:
         """Test getting registered plugin."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin, AdapterPluginRegistry
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            pass
+        class MockAdapter(BaseModelAdapter):
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -228,7 +271,7 @@ class TestAdapterPluginRegistry:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -242,7 +285,7 @@ class TestAdapterPluginRegistry:
 
         assert retrieved == plugin
 
-    def test_get_nonexistent_raises_error(self):
+    def test_get_nonexistent_raises_error(self) -> None:
         """Test getting nonexistent plugin raises error."""
         from src.core.plugins.types.adapter_plugin import AdapterPluginRegistry
 
@@ -252,13 +295,21 @@ class TestAdapterPluginRegistry:
             registry.get("nonexistent")
 
     @pytest.mark.asyncio
-    async def test_unregister(self):
+    async def test_unregister(self) -> None:
         """Test unregistering plugin."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin, AdapterPluginRegistry
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            pass
+        class MockAdapter(BaseModelAdapter):
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -268,7 +319,7 @@ class TestAdapterPluginRegistry:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -283,7 +334,7 @@ class TestAdapterPluginRegistry:
 
         assert "test_adapter" not in registry.list_adapters()
 
-    def test_unregister_nonexistent_no_error(self):
+    def test_unregister_nonexistent_no_error(self) -> None:
         """Test unregistering nonexistent plugin doesn't raise error."""
         from src.core.plugins.types.adapter_plugin import AdapterPluginRegistry
 
@@ -292,14 +343,25 @@ class TestAdapterPluginRegistry:
         registry.unregister("nonexistent")  # Should not raise
 
     @pytest.mark.asyncio
-    async def test_create_adapter_from_registry(self):
+    async def test_create_adapter_from_registry(self) -> None:
         """Test creating adapter from registry."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin, AdapterPluginRegistry
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            def __init__(self):
+        class MockAdapter(BaseModelAdapter):
+            def __init__(self) -> None:
+                super().__init__()
                 self.name = "registry_adapter"
+
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -309,7 +371,7 @@ class TestAdapterPluginRegistry:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -325,13 +387,21 @@ class TestAdapterPluginRegistry:
         assert adapter.name == "registry_adapter"
 
     @pytest.mark.asyncio
-    async def test_has(self):
+    async def test_has(self) -> None:
         """Test checking if plugin exists."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin, AdapterPluginRegistry
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            pass
+        class MockAdapter(BaseModelAdapter):
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -341,7 +411,7 @@ class TestAdapterPluginRegistry:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -356,13 +426,21 @@ class TestAdapterPluginRegistry:
         assert registry.has("test_adapter")
 
     @pytest.mark.asyncio
-    async def test_list_adapters(self):
+    async def test_list_adapters(self) -> None:
         """Test listing all adapters."""
         from src.core.plugins.types.adapter_plugin import AdapterPlugin, AdapterPluginRegistry
-        from src.core.plugins.base import PluginMetadata, PluginType
+        from src.core.plugins.base import PluginMetadata, PluginType, PluginVersion
+        from src.core.ai_models.adapters.base import BaseModelAdapter, ModelConfig, InferenceResult
 
-        class MockAdapter:
-            pass
+        class MockAdapter(BaseModelAdapter):
+            def load(self, config: ModelConfig) -> None:
+                self._is_loaded = True
+
+            def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
+                return InferenceResult(output="mock_prediction")
+
+            def get_model_info(self) -> Dict[str, Any]:
+                return {"type": "mock"}
 
         class TestAdapterPlugin(AdapterPlugin):
             async def _on_initialize(self, config: Dict[str, Any]) -> None:
@@ -371,10 +449,18 @@ class TestAdapterPluginRegistry:
         registry = AdapterPluginRegistry()
 
         meta1 = PluginMetadata(
-            name="adapter1", version="1.0.0", description="Test", author="Test", plugin_type=PluginType.ADAPTER
+            name="adapter1",
+            version=PluginVersion.from_string("1.0.0"),
+            description="Test",
+            author="Test",
+            plugin_type=PluginType.ADAPTER,
         )
         meta2 = PluginMetadata(
-            name="adapter2", version="1.0.0", description="Test", author="Test", plugin_type=PluginType.ADAPTER
+            name="adapter2",
+            version=PluginVersion.from_string("1.0.0"),
+            description="Test",
+            author="Test",
+            plugin_type=PluginType.ADAPTER,
         )
 
         plugin1 = TestAdapterPlugin(meta1)

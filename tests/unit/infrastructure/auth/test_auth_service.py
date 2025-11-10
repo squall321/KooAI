@@ -5,8 +5,12 @@ Tests JWT-based authentication, password hashing, and RBAC.
 """
 
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock, patch
 import pytest
+
+if TYPE_CHECKING:
+    from src.infrastructure.auth.service import AuthService, User
 
 # Check for optional dependencies
 try:
@@ -16,8 +20,9 @@ try:
 except ImportError:
     AUTH_DEPS_AVAILABLE = False
     # Create a mock JWTError for testing if jose is not installed
-    class JWTError(Exception):
+    class MockJWTError(Exception):
         pass
+    JWTError = MockJWTError
 
 # Skip all tests if auth dependencies are not available
 pytestmark = pytest.mark.skipif(
@@ -29,30 +34,30 @@ pytestmark = pytest.mark.skipif(
 class TestUserRole:
     """Test UserRole enum"""
 
-    def test_user_role_values(self):
+    def test_user_role_values(self) -> None:
         """Test UserRole enum values"""
         from src.infrastructure.auth.service import UserRole
 
-        assert UserRole.ADMIN == "admin"
-        assert UserRole.USER == "user"
-        assert UserRole.READONLY == "readonly"
+        assert UserRole.ADMIN.value == "admin"
+        assert UserRole.USER.value == "user"
+        assert UserRole.READONLY.value == "readonly"
 
 
 class TestTokenType:
     """Test TokenType enum"""
 
-    def test_token_type_values(self):
+    def test_token_type_values(self) -> None:
         """Test TokenType enum values"""
         from src.infrastructure.auth.service import TokenType
 
-        assert TokenType.ACCESS == "access"
-        assert TokenType.REFRESH == "refresh"
+        assert TokenType.ACCESS.value == "access"
+        assert TokenType.REFRESH.value == "refresh"
 
 
 class TestUserModels:
     """Test User models"""
 
-    def test_user_model_creation(self):
+    def test_user_model_creation(self) -> None:
         """Test User model can be created"""
         from src.infrastructure.auth.service import User, UserRole
 
@@ -70,7 +75,7 @@ class TestUserModels:
         assert user.role == UserRole.USER
         assert user.is_active is True
 
-    def test_user_in_db_model(self):
+    def test_user_in_db_model(self) -> None:
         """Test UserInDB model includes password hash"""
         from src.infrastructure.auth.service import UserInDB, UserRole
 
@@ -90,7 +95,7 @@ class TestUserModels:
 class TestAuthConfig:
     """Test AuthConfig"""
 
-    def test_auth_config_defaults(self):
+    def test_auth_config_defaults(self) -> None:
         """Test AuthConfig default values"""
         from src.infrastructure.auth.service import AuthConfig
 
@@ -105,7 +110,7 @@ class TestAuthService:
     """Test AuthService class"""
 
     @pytest.fixture
-    def auth_service(self):
+    def auth_service(self) -> "AuthService":
         """Create AuthService instance"""
         from src.infrastructure.auth.service import AuthService, AuthConfig
 
@@ -115,11 +120,11 @@ class TestAuthService:
 
         return AuthService(config)
 
-    def test_auth_service_creation(self, auth_service):
+    def test_auth_service_creation(self, auth_service: "AuthService") -> None:
         """Test AuthService can be created"""
         assert auth_service is not None
 
-    def test_hash_password(self, auth_service):
+    def test_hash_password(self, auth_service: "AuthService") -> None:
         """Test password hashing"""
         password = "my_secret_password"
         hashed = auth_service.hash_password(password)
@@ -127,21 +132,21 @@ class TestAuthService:
         assert hashed != password
         assert hashed.startswith("$2b$")
 
-    def test_verify_password_success(self, auth_service):
+    def test_verify_password_success(self, auth_service: "AuthService") -> None:
         """Test password verification succeeds with correct password"""
         password = "my_secret_password"
         hashed = auth_service.hash_password(password)
 
         assert auth_service.verify_password(password, hashed) is True
 
-    def test_verify_password_failure(self, auth_service):
+    def test_verify_password_failure(self, auth_service: "AuthService") -> None:
         """Test password verification fails with wrong password"""
         password = "my_secret_password"
         hashed = auth_service.hash_password(password)
 
         assert auth_service.verify_password("wrong_password", hashed) is False
 
-    def test_create_access_token(self, auth_service):
+    def test_create_access_token(self, auth_service: "AuthService") -> None:
         """Test creating access token"""
         from src.infrastructure.auth.service import UserRole
 
@@ -152,7 +157,7 @@ class TestAuthService:
         assert isinstance(token, str)
         assert len(token) > 0
 
-    def test_create_refresh_token(self, auth_service):
+    def test_create_refresh_token(self, auth_service: "AuthService") -> None:
         """Test creating refresh token"""
         from src.infrastructure.auth.service import UserRole
 
@@ -163,7 +168,7 @@ class TestAuthService:
         assert isinstance(token, str)
         assert len(token) > 0
 
-    def test_create_tokens(self, auth_service):
+    def test_create_tokens(self, auth_service: "AuthService") -> None:
         """Test creating both tokens"""
         from src.infrastructure.auth.service import UserRole
 
@@ -176,7 +181,7 @@ class TestAuthService:
         assert tokens.token_type == "bearer"
         assert tokens.expires_in > 0
 
-    def test_decode_access_token_success(self, auth_service):
+    def test_decode_access_token_success(self, auth_service: "AuthService") -> None:
         """Test decoding valid access token"""
         from src.infrastructure.auth.service import UserRole, TokenType
 
@@ -191,12 +196,12 @@ class TestAuthService:
         assert token_data.role == UserRole.USER
         assert token_data.token_type == TokenType.ACCESS
 
-    def test_decode_access_token_invalid(self, auth_service):
+    def test_decode_access_token_invalid(self, auth_service: "AuthService") -> None:
         """Test decoding invalid token raises error"""
         with pytest.raises(JWTError):
             auth_service.decode_access_token("invalid.token.here")
 
-    def test_decode_refresh_token_success(self, auth_service):
+    def test_decode_refresh_token_success(self, auth_service: "AuthService") -> None:
         """Test decoding valid refresh token"""
         from src.infrastructure.auth.service import UserRole, TokenType
 
@@ -209,12 +214,12 @@ class TestAuthService:
         assert token_data.user_id == "usr_123"
         assert token_data.token_type == TokenType.REFRESH
 
-    def test_decode_refresh_token_invalid(self, auth_service):
+    def test_decode_refresh_token_invalid(self, auth_service: "AuthService") -> None:
         """Test decoding invalid refresh token raises error"""
         with pytest.raises(JWTError):
             auth_service.decode_refresh_token("invalid.token.here")
 
-    def test_refresh_access_token(self, auth_service):
+    def test_refresh_access_token(self, auth_service: "AuthService") -> None:
         """Test refreshing access token"""
         from src.infrastructure.auth.service import UserRole
 
@@ -229,7 +234,7 @@ class TestAuthService:
         assert new_tokens.access_token != original_tokens.access_token
         assert new_tokens.refresh_token != original_tokens.refresh_token
 
-    def test_authenticate_user_success(self, auth_service):
+    def test_authenticate_user_success(self, auth_service: "AuthService") -> None:
         """Test successful user authentication"""
         from src.infrastructure.auth.service import UserInDB, UserRole
 
@@ -248,7 +253,7 @@ class TestAuthService:
 
         assert auth_service.authenticate_user(user, password) is True
 
-    def test_authenticate_user_wrong_password(self, auth_service):
+    def test_authenticate_user_wrong_password(self, auth_service: "AuthService") -> None:
         """Test authentication fails with wrong password"""
         from src.infrastructure.auth.service import UserInDB, UserRole
 
@@ -267,7 +272,7 @@ class TestAuthService:
 
         assert auth_service.authenticate_user(user, "wrong_password") is False
 
-    def test_authenticate_user_inactive(self, auth_service):
+    def test_authenticate_user_inactive(self, auth_service: "AuthService") -> None:
         """Test authentication fails for inactive user"""
         from src.infrastructure.auth.service import UserInDB, UserRole
 
@@ -286,7 +291,7 @@ class TestAuthService:
 
         assert auth_service.authenticate_user(user, password) is False
 
-    def test_token_expiration(self, auth_service):
+    def test_token_expiration(self, auth_service: "AuthService") -> None:
         """Test token with custom expiration"""
         from src.infrastructure.auth.service import UserRole
 
@@ -307,7 +312,7 @@ class TestRBACHelpers:
     """Test RBAC helper functions"""
 
     @pytest.fixture
-    def admin_user(self):
+    def admin_user(self) -> "User":
         """Create admin user"""
         from src.infrastructure.auth.service import User, UserRole
 
@@ -321,7 +326,7 @@ class TestRBACHelpers:
         )
 
     @pytest.fixture
-    def regular_user(self):
+    def regular_user(self) -> "User":
         """Create regular user"""
         from src.infrastructure.auth.service import User, UserRole
 
@@ -335,7 +340,7 @@ class TestRBACHelpers:
         )
 
     @pytest.fixture
-    def readonly_user(self):
+    def readonly_user(self) -> "User":
         """Create readonly user"""
         from src.infrastructure.auth.service import User, UserRole
 
@@ -348,7 +353,7 @@ class TestRBACHelpers:
             created_at=datetime.now(),
         )
 
-    def test_has_role(self, admin_user, regular_user):
+    def test_has_role(self, admin_user: "User", regular_user: "User") -> None:
         """Test has_role function"""
         from src.infrastructure.auth.service import has_role, UserRole
 
@@ -356,14 +361,14 @@ class TestRBACHelpers:
         assert has_role(admin_user, [UserRole.USER]) is False
         assert has_role(regular_user, [UserRole.ADMIN, UserRole.USER]) is True
 
-    def test_is_admin(self, admin_user, regular_user):
+    def test_is_admin(self, admin_user: "User", regular_user: "User") -> None:
         """Test is_admin function"""
         from src.infrastructure.auth.service import is_admin
 
         assert is_admin(admin_user) is True
         assert is_admin(regular_user) is False
 
-    def test_can_read(self, admin_user, regular_user, readonly_user):
+    def test_can_read(self, admin_user: "User", regular_user: "User", readonly_user: "User") -> None:
         """Test can_read function"""
         from src.infrastructure.auth.service import can_read
 
@@ -371,7 +376,7 @@ class TestRBACHelpers:
         assert can_read(regular_user) is True
         assert can_read(readonly_user) is True
 
-    def test_can_write(self, admin_user, regular_user, readonly_user):
+    def test_can_write(self, admin_user: "User", regular_user: "User", readonly_user: "User") -> None:
         """Test can_write function"""
         from src.infrastructure.auth.service import can_write
 
@@ -379,7 +384,7 @@ class TestRBACHelpers:
         assert can_write(regular_user) is True
         assert can_write(readonly_user) is False
 
-    def test_can_delete(self, admin_user, regular_user, readonly_user):
+    def test_can_delete(self, admin_user: "User", regular_user: "User", readonly_user: "User") -> None:
         """Test can_delete function"""
         from src.infrastructure.auth.service import can_delete
 

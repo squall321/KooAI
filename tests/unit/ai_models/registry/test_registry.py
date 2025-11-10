@@ -7,20 +7,21 @@ import tempfile
 import json
 from pathlib import Path
 from uuid import UUID
+from typing import Any, Generator
 
 from src.core.ai_models.registry import AIModelRegistry, ModelMetadata
 from src.core.ai_models.adapters.base import ModelFramework
 
 
 @pytest.fixture
-def temp_registry_dir():
+def temp_registry_dir() -> Generator[Path, None, None]:
     """임시 레지스트리 디렉토리"""
     with tempfile.TemporaryDirectory() as tmpdir:
         yield Path(tmpdir)
 
 
 @pytest.fixture
-def temp_model_file():
+def temp_model_file() -> Generator[Path, None, None]:
     """임시 모델 파일"""
     with tempfile.NamedTemporaryFile(suffix=".pth", delete=False) as f:
         f.write(b"fake model data")
@@ -29,7 +30,7 @@ def temp_model_file():
 
 
 @pytest.fixture
-def registry(temp_registry_dir):
+def registry(temp_registry_dir: Path) -> AIModelRegistry:
     """레지스트리 인스턴스"""
     return AIModelRegistry(temp_registry_dir)
 
@@ -37,7 +38,7 @@ def registry(temp_registry_dir):
 class TestModelMetadata:
     """ModelMetadata 테스트"""
 
-    def test_create_metadata(self, temp_model_file):
+    def test_create_metadata(self, temp_model_file: Path) -> None:
         """메타데이터 생성 테스트"""
         metadata = ModelMetadata(
             name="test_model",
@@ -55,7 +56,7 @@ class TestModelMetadata:
         assert metadata.model_type == "vae"
         assert "test" in metadata.tags
 
-    def test_get_full_name(self, temp_model_file):
+    def test_get_full_name(self, temp_model_file: Path) -> None:
         """전체 이름 테스트"""
         metadata = ModelMetadata(
             name="model",
@@ -67,7 +68,7 @@ class TestModelMetadata:
 
         assert metadata.get_full_name() == "model:2.0"
 
-    def test_to_dict(self, temp_model_file):
+    def test_to_dict(self, temp_model_file: Path) -> None:
         """딕셔너리 변환 테스트"""
         metadata = ModelMetadata(
             name="model",
@@ -88,7 +89,7 @@ class TestModelMetadata:
         assert "id" in data
         assert "registered_at" in data
 
-    def test_from_dict(self, temp_model_file):
+    def test_from_dict(self, temp_model_file: Path) -> None:
         """딕셔너리에서 생성 테스트"""
         original = ModelMetadata(
             name="model",
@@ -111,7 +112,7 @@ class TestModelMetadata:
 class TestAIModelRegistry:
     """AIModelRegistry 테스트"""
 
-    def test_register_model(self, registry, temp_model_file):
+    def test_register_model(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """모델 등록 테스트"""
         metadata = registry.register(
             name="test_model",
@@ -125,7 +126,7 @@ class TestAIModelRegistry:
         assert metadata.name == "test_model"
         assert metadata.version == "1.0.0"
 
-    def test_register_duplicate_raises_error(self, registry, temp_model_file):
+    def test_register_duplicate_raises_error(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """중복 등록 시 에러 테스트"""
         registry.register(
             name="model",
@@ -144,7 +145,7 @@ class TestAIModelRegistry:
                 model_type="vae",
             )
 
-    def test_register_with_overwrite(self, registry, temp_model_file):
+    def test_register_with_overwrite(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """덮어쓰기 등록 테스트"""
         registry.register(
             name="model",
@@ -167,7 +168,7 @@ class TestAIModelRegistry:
         assert metadata.framework == ModelFramework.ONNX
         assert metadata.model_type == "classifier"
 
-    def test_register_nonexistent_file_raises_error(self, registry):
+    def test_register_nonexistent_file_raises_error(self, registry: AIModelRegistry) -> None:
         """존재하지 않는 파일 등록 시 에러 테스트"""
         fake_path = Path("/nonexistent/model.pth")
 
@@ -180,7 +181,7 @@ class TestAIModelRegistry:
                 model_type="vae",
             )
 
-    def test_unregister_model(self, registry, temp_model_file):
+    def test_unregister_model(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """모델 등록 해제 테스트"""
         registry.register(
             name="model",
@@ -195,12 +196,12 @@ class TestAIModelRegistry:
         with pytest.raises(KeyError):
             registry.get_metadata("model", "1.0")
 
-    def test_unregister_nonexistent_raises_error(self, registry):
+    def test_unregister_nonexistent_raises_error(self, registry: AIModelRegistry) -> None:
         """존재하지 않는 모델 삭제 시 에러 테스트"""
         with pytest.raises(KeyError):
             registry.unregister("nonexistent", "1.0")
 
-    def test_get_metadata(self, registry, temp_model_file):
+    def test_get_metadata(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """메타데이터 조회 테스트"""
         registry.register(
             name="model",
@@ -217,7 +218,7 @@ class TestAIModelRegistry:
         assert metadata.version == "1.0"
         assert metadata.description == "Test"
 
-    def test_get_metadata_latest_version(self, registry, temp_model_file):
+    def test_get_metadata_latest_version(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """최신 버전 조회 테스트"""
         registry.register(
             name="model",
@@ -238,7 +239,7 @@ class TestAIModelRegistry:
 
         assert metadata.version == "2.0"
 
-    def test_list_models(self, registry, temp_model_file):
+    def test_list_models(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """모델 목록 조회 테스트"""
         registry.register(
             name="model1",
@@ -262,7 +263,7 @@ class TestAIModelRegistry:
         assert "model1" in model_names
         assert "model2" in model_names
 
-    def test_list_models_with_framework_filter(self, registry, temp_model_file):
+    def test_list_models_with_framework_filter(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """프레임워크 필터링 테스트"""
         registry.register(
             name="pytorch_model",
@@ -284,7 +285,7 @@ class TestAIModelRegistry:
         assert len(pytorch_models) == 1
         assert pytorch_models[0].name == "pytorch_model"
 
-    def test_list_models_with_tags_filter(self, registry, temp_model_file):
+    def test_list_models_with_tags_filter(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """태그 필터링 테스트"""
         registry.register(
             name="model1",
@@ -308,7 +309,7 @@ class TestAIModelRegistry:
         assert len(production_models) == 1
         assert production_models[0].name == "model1"
 
-    def test_list_versions(self, registry, temp_model_file):
+    def test_list_versions(self, registry: AIModelRegistry, temp_model_file: Path) -> None:
         """버전 목록 조회 테스트"""
         registry.register(
             name="model",
@@ -339,7 +340,7 @@ class TestAIModelRegistry:
         assert versions[1] == "1.1"
         assert versions[2] == "1.0"
 
-    def test_registry_persistence(self, temp_registry_dir, temp_model_file):
+    def test_registry_persistence(self, temp_registry_dir: Path, temp_model_file: Path) -> None:
         """레지스트리 영속성 테스트"""
         # 첫 번째 레지스트리: 모델 등록
         registry1 = AIModelRegistry(temp_registry_dir)

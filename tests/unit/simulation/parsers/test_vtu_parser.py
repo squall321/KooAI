@@ -6,13 +6,14 @@ import pytest
 import tempfile
 from pathlib import Path
 import numpy as np
+from typing import Generator
 
 from src.core.simulation.parsers.vtu_parser import VTUParser
 from src.core.simulation.models import FieldType, DataLocation
 
 
 @pytest.fixture
-def sample_vtu_file():
+def sample_vtu_file() -> Generator[Path, None, None]:
     """샘플 VTU 파일 생성"""
     content = """<?xml version="1.0"?>
 <VTKFile type="UnstructuredGrid" version="0.1" byte_order="LittleEndian">
@@ -72,20 +73,20 @@ def sample_vtu_file():
         temp_path.unlink()
 
 
-def test_vtu_parser_can_parse(sample_vtu_file):
+def test_vtu_parser_can_parse(sample_vtu_file: Path) -> None:
     """VTU 파일 인식 테스트"""
     parser = VTUParser()
     assert parser.can_parse(sample_vtu_file) is True
 
 
-def test_vtu_parser_supported_extensions():
+def test_vtu_parser_supported_extensions() -> None:
     """지원 확장자 테스트"""
     parser = VTUParser()
     extensions = parser.get_supported_extensions()
     assert ".vtu" in extensions
 
 
-def test_vtu_parser_parse(sample_vtu_file):
+def test_vtu_parser_parse(sample_vtu_file: Path) -> None:
     """VTU 파일 파싱 테스트"""
     parser = VTUParser()
     result = parser.parse(sample_vtu_file, name="Test VTU")
@@ -123,7 +124,7 @@ def test_vtu_parser_parse(sample_vtu_file):
     assert np.allclose(velocity.data[0], [1.0, 0.0, 0.0])
 
 
-def test_vtu_parser_invalid_file():
+def test_vtu_parser_invalid_file() -> None:
     """잘못된 VTU 파일 테스트"""
     content = """<?xml version="1.0"?>
 <InvalidRoot>
@@ -143,7 +144,7 @@ def test_vtu_parser_invalid_file():
             temp_path.unlink()
 
 
-def test_vtu_parser_non_vtu_file():
+def test_vtu_parser_non_vtu_file() -> None:
     """VTU가 아닌 파일 테스트"""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         f.write("Not a VTU file")

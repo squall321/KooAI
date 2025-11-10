@@ -5,6 +5,7 @@ Tests TenantService business logic.
 """
 
 from datetime import datetime, timedelta
+from typing import Any, Generator
 from unittest.mock import Mock, MagicMock, patch
 import pytest
 
@@ -26,7 +27,7 @@ class TestTenantService:
     """Test TenantService class"""
 
     @pytest.fixture
-    def mock_db(self):
+    def mock_db(self) -> Any:
         """Create mock database session"""
         db = Mock()
         db.query = Mock()
@@ -37,13 +38,13 @@ class TestTenantService:
         return db
 
     @pytest.fixture
-    def tenant_service(self, mock_db):
+    def tenant_service(self, mock_db: Any) -> Any:
         """Create TenantService instance"""
         from src.infrastructure.tenancy.service import TenantService
 
         return TenantService(mock_db)
 
-    def test_tenant_service_creation(self, mock_db):
+    def test_tenant_service_creation(self, mock_db: Any) -> None:
         """Test TenantService can be created"""
         from src.infrastructure.tenancy.service import TenantService
 
@@ -51,7 +52,7 @@ class TestTenantService:
         assert service is not None
         assert service.db == mock_db
 
-    def test_create_tenant_basic(self, tenant_service, mock_db):
+    def test_create_tenant_basic(self, tenant_service: Any, mock_db: Any) -> None:
         """Test creating a basic tenant"""
         tenant = tenant_service.create_tenant(
             name="Acme Corp", slug="acme-corp", owner_user_id="usr_123"
@@ -61,7 +62,7 @@ class TestTenantService:
         assert mock_db.add.called
         assert mock_db.commit.called
 
-    def test_create_tenant_with_plan(self, tenant_service, mock_db):
+    def test_create_tenant_with_plan(self, tenant_service: Any, mock_db: Any) -> None:
         """Test creating tenant with specific plan"""
         tenant = tenant_service.create_tenant(
             name="Acme Corp",
@@ -73,7 +74,7 @@ class TestTenantService:
         # Verify plan was set
         assert mock_db.add.called
 
-    def test_create_tenant_with_domain(self, tenant_service, mock_db):
+    def test_create_tenant_with_domain(self, tenant_service: Any, mock_db: Any) -> None:
         """Test creating tenant with custom domain"""
         tenant = tenant_service.create_tenant(
             name="Acme Corp",
@@ -84,7 +85,7 @@ class TestTenantService:
 
         assert mock_db.add.called
 
-    def test_get_tenant_by_id(self, tenant_service, mock_db):
+    def test_get_tenant_by_id(self, tenant_service: Any, mock_db: Any) -> None:
         """Test getting tenant by ID"""
         from src.infrastructure.tenancy.models import Tenant
 
@@ -102,7 +103,7 @@ class TestTenantService:
         mock_db.query.assert_called_once()
         assert result == mock_result
 
-    def test_get_tenant_by_slug(self, tenant_service, mock_db):
+    def test_get_tenant_by_slug(self, tenant_service: Any, mock_db: Any) -> None:
         """Test getting tenant by slug"""
         from src.infrastructure.tenancy.models import Tenant
 
@@ -119,7 +120,7 @@ class TestTenantService:
         mock_db.query.assert_called_once()
         assert result == mock_result
 
-    def test_get_tenant_not_found(self, tenant_service, mock_db):
+    def test_get_tenant_not_found(self, tenant_service: Any, mock_db: Any) -> None:
         """Test getting nonexistent tenant returns None"""
         mock_query = Mock()
         mock_filter = Mock()
@@ -132,7 +133,7 @@ class TestTenantService:
 
         assert result is None
 
-    def test_update_tenant(self, tenant_service, mock_db):
+    def test_update_tenant(self, tenant_service: Any, mock_db: Any) -> None:
         """Test updating tenant"""
         from src.infrastructure.tenancy.models import Tenant
 
@@ -152,7 +153,7 @@ class TestTenantService:
         assert mock_db.commit.called
         assert result == mock_tenant
 
-    def test_update_tenant_not_found(self, tenant_service, mock_db):
+    def test_update_tenant_not_found(self, tenant_service: Any, mock_db: Any) -> None:
         """Test updating nonexistent tenant returns None"""
         mock_query = Mock()
         mock_filter = Mock()
@@ -166,7 +167,7 @@ class TestTenantService:
         assert result is None
         assert not mock_db.commit.called
 
-    def test_delete_tenant(self, tenant_service, mock_db):
+    def test_delete_tenant(self, tenant_service: Any, mock_db: Any) -> None:
         """Test deleting tenant"""
         from src.infrastructure.tenancy.models import Tenant
 
@@ -185,7 +186,7 @@ class TestTenantService:
         assert mock_db.delete.called
         assert mock_db.commit.called
 
-    def test_delete_tenant_not_found(self, tenant_service, mock_db):
+    def test_delete_tenant_not_found(self, tenant_service: Any, mock_db: Any) -> None:
         """Test deleting nonexistent tenant returns False"""
         mock_query = Mock()
         mock_filter = Mock()
@@ -199,7 +200,7 @@ class TestTenantService:
         assert result is False
         assert not mock_db.delete.called
 
-    def test_invite_user(self, tenant_service, mock_db):
+    def test_invite_user(self, tenant_service: Any, mock_db: Any) -> None:
         """Test inviting user to tenant"""
         invitation = tenant_service.invite_user(
             tenant_id="ten_123",
@@ -211,7 +212,7 @@ class TestTenantService:
         assert mock_db.add.called
         assert mock_db.commit.called
 
-    def test_invite_user_custom_expiration(self, tenant_service, mock_db):
+    def test_invite_user_custom_expiration(self, tenant_service: Any, mock_db: Any) -> None:
         """Test inviting user with custom expiration"""
         invitation = tenant_service.invite_user(
             tenant_id="ten_123",
@@ -223,7 +224,7 @@ class TestTenantService:
 
         assert mock_db.add.called
 
-    def test_accept_invitation_success(self, tenant_service, mock_db):
+    def test_accept_invitation_success(self, tenant_service: Any, mock_db: Any) -> None:
         """Test accepting valid invitation"""
         from src.infrastructure.tenancy.models import TenantInvitation
 
@@ -250,7 +251,7 @@ class TestTenantService:
         assert mock_db.add.called
         assert mock_db.commit.called
 
-    def test_accept_invitation_expired(self, tenant_service, mock_db):
+    def test_accept_invitation_expired(self, tenant_service: Any, mock_db: Any) -> None:
         """Test accepting expired invitation"""
         from src.infrastructure.tenancy.models import TenantInvitation
 
@@ -271,7 +272,7 @@ class TestTenantService:
 
         assert result is False
 
-    def test_accept_invitation_not_found(self, tenant_service, mock_db):
+    def test_accept_invitation_not_found(self, tenant_service: Any, mock_db: Any) -> None:
         """Test accepting nonexistent invitation"""
         mock_query = Mock()
         mock_filter = Mock()
@@ -284,7 +285,7 @@ class TestTenantService:
 
         assert result is False
 
-    def test_log_activity_basic(self, tenant_service, mock_db):
+    def test_log_activity_basic(self, tenant_service: Any, mock_db: Any) -> None:
         """Test logging basic activity"""
         tenant_service.log_activity(
             tenant_id="ten_123", action="user.created", user_id="usr_123"
@@ -293,7 +294,7 @@ class TestTenantService:
         assert mock_db.add.called
         assert mock_db.commit.called
 
-    def test_log_activity_with_resource(self, tenant_service, mock_db):
+    def test_log_activity_with_resource(self, tenant_service: Any, mock_db: Any) -> None:
         """Test logging activity with resource"""
         tenant_service.log_activity(
             tenant_id="ten_123",
@@ -305,7 +306,7 @@ class TestTenantService:
 
         assert mock_db.add.called
 
-    def test_log_activity_with_metadata(self, tenant_service, mock_db):
+    def test_log_activity_with_metadata(self, tenant_service: Any, mock_db: Any) -> None:
         """Test logging activity with extra data"""
         tenant_service.log_activity(
             tenant_id="ten_123",

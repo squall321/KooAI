@@ -2,6 +2,8 @@
 Tests for ReportGenerator
 """
 
+from typing import Any, Callable, Dict
+
 import pytest
 from pathlib import Path
 
@@ -12,18 +14,18 @@ from src.application.reporting.generator import (
 
 
 @pytest.fixture
-def temp_dir(tmp_path):
+def temp_dir(tmp_path: Path) -> Path:
     """Create temporary directory for test outputs"""
     return tmp_path
 
 
 @pytest.fixture
-def generator():
+def generator() -> ReportGenerator:
     """Create report generator instance"""
     return ReportGenerator(title="Test Report")
 
 
-def test_report_section_creation():
+def test_report_section_creation() -> None:
     """Test ReportSection creation"""
     section = ReportSection(
         title="Test Section",
@@ -36,7 +38,7 @@ def test_report_section_creation():
     assert section.level == 2
 
 
-def test_report_section_to_markdown():
+def test_report_section_to_markdown() -> None:
     """Test ReportSection markdown conversion"""
     section = ReportSection(
         title="Test Section",
@@ -50,7 +52,7 @@ def test_report_section_to_markdown():
     assert "Test content" in markdown
 
 
-def test_generator_initialization():
+def test_generator_initialization() -> None:
     """Test ReportGenerator initialization"""
     generator = ReportGenerator(title="Custom Title")
 
@@ -59,7 +61,7 @@ def test_generator_initialization():
     assert "generated_at" in generator.metadata
 
 
-def test_add_section(generator):
+def test_add_section(generator: ReportGenerator) -> None:
     """Test adding sections"""
     generator.add_section("Section 1", "Content 1")
     generator.add_section("Section 2", "Content 2", level=3)
@@ -69,7 +71,7 @@ def test_add_section(generator):
     assert generator.sections[1].level == 3
 
 
-def test_add_section_chaining(generator):
+def test_add_section_chaining(generator: ReportGenerator) -> None:
     """Test method chaining"""
     result = generator.add_section("Section 1", "Content 1").add_section("Section 2", "Content 2")
 
@@ -77,7 +79,7 @@ def test_add_section_chaining(generator):
     assert len(generator.sections) == 2
 
 
-def test_add_summary(generator):
+def test_add_summary(generator: ReportGenerator) -> None:
     """Test adding simulation summary"""
     generator.add_summary(
         simulation_name="Test Sim",
@@ -97,7 +99,7 @@ def test_add_summary(generator):
     assert "temperature" in section.content
 
 
-def test_add_statistics_table(generator):
+def test_add_statistics_table(generator: ReportGenerator) -> None:
     """Test adding statistics table"""
     stats = {
         "mean": 42.5,
@@ -116,7 +118,7 @@ def test_add_statistics_table(generator):
     assert "42.500000" in section.content
 
 
-def test_add_comparison_summary(generator):
+def test_add_comparison_summary(generator: ReportGenerator) -> None:
     """Test adding comparison summary"""
     comparison_results = {
         "simulation_ids": ["sim1", "sim2"],
@@ -137,7 +139,7 @@ def test_add_comparison_summary(generator):
     assert "0.9876" in section.content
 
 
-def test_add_batch_results(generator):
+def test_add_batch_results(generator: ReportGenerator) -> None:
     """Test adding batch processing results"""
     batch_results = {
         "total_jobs": 10,
@@ -163,7 +165,7 @@ def test_add_batch_results(generator):
     assert "Parse error" in section.content
 
 
-def test_generate_markdown(generator):
+def test_generate_markdown(generator: ReportGenerator) -> None:
     """Test markdown generation"""
     generator.add_section("Introduction", "This is a test report").add_section(
         "Results", "Test results here"
@@ -178,7 +180,7 @@ def test_generate_markdown(generator):
     assert "This is a test report" in markdown
 
 
-def test_generate_text(generator):
+def test_generate_text(generator: ReportGenerator) -> None:
     """Test plain text generation"""
     generator.add_section("Introduction", "This is a test report")
 
@@ -191,7 +193,7 @@ def test_generate_text(generator):
     assert "This is a test report" in text
 
 
-def test_generate_html(generator):
+def test_generate_html(generator: ReportGenerator) -> None:
     """Test HTML generation"""
     generator.add_section("Introduction", "This is a test report", level=2)
 
@@ -206,7 +208,7 @@ def test_generate_html(generator):
     assert "</html>" in html
 
 
-def test_save_markdown(generator, temp_dir):
+def test_save_markdown(generator: ReportGenerator, temp_dir: Path) -> None:
     """Test saving report as markdown"""
     output_path = temp_dir / "report.md"
 
@@ -222,7 +224,7 @@ def test_save_markdown(generator, temp_dir):
     assert "## Test" in content
 
 
-def test_save_html(generator, temp_dir):
+def test_save_html(generator: ReportGenerator, temp_dir: Path) -> None:
     """Test saving report as HTML"""
     output_path = temp_dir / "report.html"
 
@@ -238,7 +240,7 @@ def test_save_html(generator, temp_dir):
     assert "<h1>Test Report</h1>" in content
 
 
-def test_save_text(generator, temp_dir):
+def test_save_text(generator: ReportGenerator, temp_dir: Path) -> None:
     """Test saving report as plain text"""
     output_path = temp_dir / "report.txt"
 
@@ -254,7 +256,7 @@ def test_save_text(generator, temp_dir):
     assert "Test" in content
 
 
-def test_save_with_md_extension(generator, temp_dir):
+def test_save_with_md_extension(generator: ReportGenerator, temp_dir: Path) -> None:
     """Test saving with md format"""
     output_path = temp_dir / "report.md"
 
@@ -264,7 +266,7 @@ def test_save_with_md_extension(generator, temp_dir):
     assert output_path.exists()
 
 
-def test_save_with_txt_extension(generator, temp_dir):
+def test_save_with_txt_extension(generator: ReportGenerator, temp_dir: Path) -> None:
     """Test saving with txt format"""
     output_path = temp_dir / "report.txt"
 
@@ -274,7 +276,7 @@ def test_save_with_txt_extension(generator, temp_dir):
     assert output_path.exists()
 
 
-def test_save_unsupported_format(generator, temp_dir):
+def test_save_unsupported_format(generator: ReportGenerator, temp_dir: Path) -> None:
     """Test unsupported format raises error"""
     output_path = temp_dir / "report.xyz"
 
@@ -282,7 +284,7 @@ def test_save_unsupported_format(generator, temp_dir):
         generator.save(output_path, format="xyz")
 
 
-def test_add_custom_section(generator):
+def test_add_custom_section(generator: ReportGenerator) -> None:
     """Test adding custom section"""
     data = {"key1": "value1", "key2": 42}
 
@@ -295,11 +297,11 @@ def test_add_custom_section(generator):
     assert "value1" in section.content
 
 
-def test_add_custom_section_with_format_func(generator):
+def test_add_custom_section_with_format_func(generator: ReportGenerator) -> None:
     """Test custom section with formatting function"""
     data = {"temperature": 25.5, "pressure": 101.3}
 
-    def format_func(d):
+    def format_func(d: Dict[str, Any]) -> str:
         return f"Temperature: {d['temperature']}°C\nPressure: {d['pressure']} kPa"
 
     generator.add_custom_section("Conditions", data, format_func=format_func)
@@ -310,7 +312,7 @@ def test_add_custom_section_with_format_func(generator):
     assert "Pressure: 101.3 kPa" in section.content
 
 
-def test_empty_report(generator):
+def test_empty_report(generator: ReportGenerator) -> None:
     """Test generating empty report"""
     markdown = generator.generate_markdown()
 
@@ -318,7 +320,7 @@ def test_empty_report(generator):
     assert "Generated:" in markdown
 
 
-def test_multiple_sections_different_levels(generator):
+def test_multiple_sections_different_levels(generator: ReportGenerator) -> None:
     """Test multiple sections with different heading levels"""
     generator.add_section("Level 1", "Content 1", level=1).add_section(
         "Level 2", "Content 2", level=2
@@ -331,7 +333,7 @@ def test_multiple_sections_different_levels(generator):
     assert "### Level 3" in markdown
 
 
-def test_section_content_with_newlines(generator):
+def test_section_content_with_newlines(generator: ReportGenerator) -> None:
     """Test section with multi-line content"""
     content = "Line 1\nLine 2\nLine 3"
 
@@ -344,7 +346,7 @@ def test_section_content_with_newlines(generator):
     assert "Line 3" in markdown
 
 
-def test_comprehensive_report(generator, temp_dir):
+def test_comprehensive_report(generator: ReportGenerator, temp_dir: Path) -> None:
     """Test creating a comprehensive report"""
     # Add various sections
     generator.add_summary(

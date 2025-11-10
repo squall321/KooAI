@@ -6,13 +6,14 @@ Tests JSONParser, HierarchicalExtractor, and related functionality.
 
 import json
 from pathlib import Path
+from typing import Any
 import pytest
 
 
 class TestJSONParser:
     """Test JSONParser basic functionality"""
 
-    def test_json_parser_creation(self):
+    def test_json_parser_creation(self) -> None:
         """Test creating JSONParser"""
         from src.core.json_processing.parser import JSONParser
 
@@ -21,7 +22,7 @@ class TestJSONParser:
         assert parser is not None
         assert parser.validate is True
 
-    def test_json_parser_creation_without_validation(self):
+    def test_json_parser_creation_without_validation(self) -> None:
         """Test creating JSONParser without validation"""
         from src.core.json_processing.parser import JSONParser
 
@@ -29,7 +30,7 @@ class TestJSONParser:
 
         assert parser.validate is False
 
-    def test_parse_file(self, tmp_path):
+    def test_parse_file(self, tmp_path: Path) -> None:
         """Test parsing JSON file"""
         from src.core.json_processing.parser import JSONParser
 
@@ -45,7 +46,7 @@ class TestJSONParser:
         assert result["name"] == "Test"
         assert result["value"] == 42
 
-    def test_parse_file_raises_error_for_missing_file(self):
+    def test_parse_file_raises_error_for_missing_file(self) -> None:
         """Test parse_file raises FileNotFoundError for missing file"""
         from src.core.json_processing.parser import JSONParser
 
@@ -54,7 +55,7 @@ class TestJSONParser:
         with pytest.raises(FileNotFoundError, match="not found"):
             parser.parse_file("/nonexistent/file.json")
 
-    def test_parse_file_raises_error_for_invalid_json(self, tmp_path):
+    def test_parse_file_raises_error_for_invalid_json(self, tmp_path: Path) -> None:
         """Test parse_file raises JSONDecodeError for invalid JSON"""
         from src.core.json_processing.parser import JSONParser
 
@@ -66,7 +67,7 @@ class TestJSONParser:
         with pytest.raises(json.JSONDecodeError):
             parser.parse_file(json_file)
 
-    def test_parse_string(self):
+    def test_parse_string(self) -> None:
         """Test parsing JSON string"""
         from src.core.json_processing.parser import JSONParser
 
@@ -78,7 +79,7 @@ class TestJSONParser:
         assert result["name"] == "Test"
         assert result["value"] == 42
 
-    def test_parse_string_invalid_json_raises_error(self):
+    def test_parse_string_invalid_json_raises_error(self) -> None:
         """Test parse_string raises JSONDecodeError for invalid JSON"""
         from src.core.json_processing.parser import JSONParser
 
@@ -88,7 +89,7 @@ class TestJSONParser:
         with pytest.raises(json.JSONDecodeError):
             parser.parse_string(invalid_json)
 
-    def test_parse_nested_json(self):
+    def test_parse_nested_json(self) -> None:
         """Test parsing nested JSON structure"""
         from src.core.json_processing.parser import JSONParser
 
@@ -105,7 +106,7 @@ class TestJSONParser:
 class TestHierarchicalExtractor:
     """Test HierarchicalExtractor"""
 
-    def test_extract_by_path_simple(self):
+    def test_extract_by_path_simple(self) -> None:
         """Test extracting value by simple path"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -114,7 +115,7 @@ class TestHierarchicalExtractor:
 
         assert result == "Test"
 
-    def test_extract_by_path_nested(self):
+    def test_extract_by_path_nested(self) -> None:
         """Test extracting value by nested path"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -123,7 +124,7 @@ class TestHierarchicalExtractor:
 
         assert result == "CFD Sim"
 
-    def test_extract_by_path_deeply_nested(self):
+    def test_extract_by_path_deeply_nested(self) -> None:
         """Test extracting value by deeply nested path"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -132,7 +133,7 @@ class TestHierarchicalExtractor:
 
         assert result == "deep value"
 
-    def test_extract_by_path_returns_none_for_missing(self):
+    def test_extract_by_path_returns_none_for_missing(self) -> None:
         """Test extract_by_path returns None for missing path"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -141,7 +142,7 @@ class TestHierarchicalExtractor:
 
         assert result is None
 
-    def test_extract_by_path_from_list(self):
+    def test_extract_by_path_from_list(self) -> None:
         """Test extracting value from list by index"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -150,7 +151,7 @@ class TestHierarchicalExtractor:
 
         assert result == "second"
 
-    def test_extract_by_path_from_list_out_of_bounds(self):
+    def test_extract_by_path_from_list_out_of_bounds(self) -> None:
         """Test extract_by_path returns None for out of bounds list index"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -159,7 +160,7 @@ class TestHierarchicalExtractor:
 
         assert result is None
 
-    def test_extract_by_path_custom_separator(self):
+    def test_extract_by_path_custom_separator(self) -> None:
         """Test extract_by_path with custom separator"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -168,7 +169,7 @@ class TestHierarchicalExtractor:
 
         assert result == "Test"
 
-    def test_extract_multiple(self):
+    def test_extract_multiple(self) -> None:
         """Test extracting multiple paths at once"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -181,7 +182,7 @@ class TestHierarchicalExtractor:
         assert result["metadata.version"] == "1.0"
         assert result["status"] == "complete"
 
-    def test_extract_multiple_with_missing_paths(self):
+    def test_extract_multiple_with_missing_paths(self) -> None:
         """Test extract_multiple includes None for missing paths"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -193,7 +194,7 @@ class TestHierarchicalExtractor:
         assert result["name"] == "Test"
         assert result["missing.path"] is None
 
-    def test_set_by_path_simple(self):
+    def test_set_by_path_simple(self) -> None:
         """Test setting value by simple path"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -202,7 +203,7 @@ class TestHierarchicalExtractor:
 
         assert data["name"] == "New"
 
-    def test_set_by_path_nested(self):
+    def test_set_by_path_nested(self) -> None:
         """Test setting value by nested path"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -211,34 +212,34 @@ class TestHierarchicalExtractor:
 
         assert data["metadata"]["name"] == "New"
 
-    def test_set_by_path_creates_missing_keys(self):
+    def test_set_by_path_creates_missing_keys(self) -> None:
         """Test set_by_path creates missing intermediate keys"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
-        data = {}
+        data: dict[str, Any] = {}
         HierarchicalExtractor.set_by_path(data, "metadata.name", "Test")
 
         assert data["metadata"]["name"] == "Test"
 
-    def test_set_by_path_deeply_nested(self):
+    def test_set_by_path_deeply_nested(self) -> None:
         """Test set_by_path with deeply nested path"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
-        data = {}
+        data: dict[str, Any] = {}
         HierarchicalExtractor.set_by_path(data, "a.b.c.d", "value")
 
         assert data["a"]["b"]["c"]["d"] == "value"
 
-    def test_set_by_path_custom_separator(self):
+    def test_set_by_path_custom_separator(self) -> None:
         """Test set_by_path with custom separator"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
-        data = {}
+        data: dict[str, Any] = {}
         HierarchicalExtractor.set_by_path(data, "metadata/name", "Test", separator="/")
 
         assert data["metadata"]["name"] == "Test"
 
-    def test_flatten_simple(self):
+    def test_flatten_simple(self) -> None:
         """Test flattening simple nested dictionary"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -247,7 +248,7 @@ class TestHierarchicalExtractor:
 
         assert result == {"a.b": 1, "c": 2}
 
-    def test_flatten_deeply_nested(self):
+    def test_flatten_deeply_nested(self) -> None:
         """Test flattening deeply nested dictionary"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -256,7 +257,7 @@ class TestHierarchicalExtractor:
 
         assert result == {"a.b.c": 1, "d": 2}
 
-    def test_flatten_with_custom_separator(self):
+    def test_flatten_with_custom_separator(self) -> None:
         """Test flatten with custom separator"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -265,16 +266,16 @@ class TestHierarchicalExtractor:
 
         assert result == {"a/b": 1}
 
-    def test_flatten_empty_dict(self):
+    def test_flatten_empty_dict(self) -> None:
         """Test flattening empty dictionary"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
-        data = {}
+        data: dict[str, Any] = {}
         result = HierarchicalExtractor.flatten(data)
 
         assert result == {}
 
-    def test_unflatten_simple(self):
+    def test_unflatten_simple(self) -> None:
         """Test unflattening simple flat dictionary"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -283,7 +284,7 @@ class TestHierarchicalExtractor:
 
         assert result == {"a": {"b": 1}, "c": 2}
 
-    def test_unflatten_deeply_nested(self):
+    def test_unflatten_deeply_nested(self) -> None:
         """Test unflattening deeply nested paths"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -292,7 +293,7 @@ class TestHierarchicalExtractor:
 
         assert result == {"a": {"b": {"c": 1}}, "d": 2}
 
-    def test_unflatten_with_custom_separator(self):
+    def test_unflatten_with_custom_separator(self) -> None:
         """Test unflatten with custom separator"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -301,7 +302,7 @@ class TestHierarchicalExtractor:
 
         assert result == {"a": {"b": 1}}
 
-    def test_flatten_unflatten_roundtrip(self):
+    def test_flatten_unflatten_roundtrip(self) -> None:
         """Test flatten and unflatten preserve data"""
         from src.core.json_processing.parser import HierarchicalExtractor
 
@@ -316,7 +317,7 @@ class TestHierarchicalExtractor:
 class TestChunkedJSONWriter:
     """Test ChunkedJSONWriter"""
 
-    def test_chunked_writer_context_manager(self, tmp_path):
+    def test_chunked_writer_context_manager(self, tmp_path: Path) -> None:
         """Test ChunkedJSONWriter as context manager"""
         from src.core.json_processing.parser import ChunkedJSONWriter
 
@@ -328,7 +329,7 @@ class TestChunkedJSONWriter:
         # File should be created
         assert output_file.exists()
 
-    def test_write_simple_object(self, tmp_path):
+    def test_write_simple_object(self, tmp_path: Path) -> None:
         """Test writing simple JSON object"""
         from src.core.json_processing.parser import ChunkedJSONWriter
 
@@ -347,7 +348,7 @@ class TestChunkedJSONWriter:
         assert data["name"] == "Test"
         assert data["value"] == 42
 
-    def test_write_array(self, tmp_path):
+    def test_write_array(self, tmp_path: Path) -> None:
         """Test writing JSON array"""
         from src.core.json_processing.parser import ChunkedJSONWriter
 
@@ -368,7 +369,7 @@ class TestChunkedJSONWriter:
 
         assert data["items"] == [1, 2, 3]
 
-    def test_write_nested_objects(self, tmp_path):
+    def test_write_nested_objects(self, tmp_path: Path) -> None:
         """Test writing nested JSON objects"""
         from src.core.json_processing.parser import ChunkedJSONWriter
 
@@ -386,7 +387,7 @@ class TestChunkedJSONWriter:
         assert data["metadata"]["name"] == "Test"
         assert data["metadata"]["version"] == "1.0"
 
-    def test_write_multiple_fields(self, tmp_path):
+    def test_write_multiple_fields(self, tmp_path: Path) -> None:
         """Test writing multiple fields"""
         from src.core.json_processing.parser import ChunkedJSONWriter
 
@@ -411,7 +412,7 @@ class TestChunkedJSONWriter:
 class TestJSONParserIntegration:
     """Integration tests for JSON parsing"""
 
-    def test_parse_and_extract(self, tmp_path):
+    def test_parse_and_extract(self, tmp_path: Path) -> None:
         """Test parsing file and extracting nested data"""
         from src.core.json_processing.parser import JSONParser, HierarchicalExtractor
 
@@ -441,7 +442,7 @@ class TestJSONParserIntegration:
         assert name == "CFD Simulation"
         assert max_temp == 373.15
 
-    def test_modify_and_write(self, tmp_path):
+    def test_modify_and_write(self, tmp_path: Path) -> None:
         """Test modifying JSON data and writing back"""
         from src.core.json_processing.parser import (
             JSONParser, HierarchicalExtractor, ChunkedJSONWriter

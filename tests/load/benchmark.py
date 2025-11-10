@@ -8,8 +8,8 @@ import time
 import statistics
 import sys
 from pathlib import Path
-from typing import List, Dict, Any
-import requests
+from typing import List, Dict, Any, Callable, Tuple
+import requests  # type: ignore[import-untyped]
 from io import BytesIO
 
 # Add project root to path
@@ -21,16 +21,16 @@ class PerformanceBenchmark:
 
     def __init__(self, base_url: str = "http://localhost:8000"):
         self.base_url = base_url
-        self.results = {}
+        self.results: Dict[str, Any] = {}
 
-    def run_all_benchmarks(self):
+    def run_all_benchmarks(self) -> None:
         """Run all benchmark tests"""
         print("=" * 60)
         print("PERFORMANCE BENCHMARKS")
         print("=" * 60)
         print()
 
-        benchmarks = [
+        benchmarks: List[Tuple[str, Callable[[], Dict[str, Any]]]] = [
             ("Health Check", self.benchmark_health_check),
             ("List Simulations", self.benchmark_list_simulations),
             ("Upload Small File (50 points)", lambda: self.benchmark_upload(50)),
@@ -154,11 +154,11 @@ class PerformanceBenchmark:
 
         return self._calculate_stats(times, errors, iterations)
 
-    def benchmark_concurrent_requests(self, concurrent: int = 10) -> Dict[str, Any]:
+    def benchmark_concurrent_requests(self, num_concurrent: int = 10) -> Dict[str, Any]:
         """Benchmark concurrent requests"""
         import concurrent.futures
 
-        def make_request():
+        def make_request() -> Tuple[float, bool]:
             start = time.time()
             try:
                 response = requests.get(f"{self.base_url}/health", timeout=5)
@@ -167,12 +167,12 @@ class PerformanceBenchmark:
             except Exception:
                 return 5000, False
 
-        times = []
+        times: List[float] = []
         errors = 0
 
         start_all = time.time()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent) as executor:
-            futures = [executor.submit(make_request) for _ in range(concurrent)]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_concurrent) as executor:
+            futures = [executor.submit(make_request) for _ in range(num_concurrent)]
             for future in concurrent.futures.as_completed(futures):
                 elapsed, success = future.result()
                 times.append(elapsed)
@@ -180,9 +180,9 @@ class PerformanceBenchmark:
                     errors += 1
         total_elapsed = (time.time() - start_all) * 1000
 
-        stats = self._calculate_stats(times, errors, concurrent)
+        stats = self._calculate_stats(times, errors, num_concurrent)
         stats["total_time"] = total_elapsed
-        stats["throughput"] = (concurrent / total_elapsed) * 1000  # req/sec
+        stats["throughput"] = (num_concurrent / total_elapsed) * 1000  # req/sec
         return stats
 
     def _generate_csv(self, points: int) -> BytesIO:
@@ -193,7 +193,7 @@ class PerformanceBenchmark:
         return BytesIO("\n".join(lines).encode("utf-8"))
 
     def _calculate_stats(
-        self, times: List[float], errors: int, total: int, extra: Dict = None
+        self, times: List[float], errors: int, total: int, extra: Dict[str, Any] | None = None
     ) -> Dict[str, Any]:
         """Calculate statistics"""
         if not times:
@@ -223,7 +223,7 @@ class PerformanceBenchmark:
         index = int((percentile / 100) * len(sorted_data))
         return sorted_data[min(index, len(sorted_data) - 1)]
 
-    def _print_stats(self, stats: Dict[str, Any]):
+    def _print_stats(self, stats: Dict[str, Any]) -> None:
         """Print statistics"""
         if "error" in stats:
             print(f"  Error: {stats['error']}")
@@ -245,7 +245,7 @@ class PerformanceBenchmark:
         if "points" in stats:
             print(f"  Data Points: {stats['points']}")
 
-    def _print_summary(self):
+    def _print_summary(self) -> None:
         """Print summary of all benchmarks"""
         for name, result in self.results.items():
             if "error" in result:

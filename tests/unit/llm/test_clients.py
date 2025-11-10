@@ -17,14 +17,14 @@ from src.core.llm.clients.base import (
 class TestMessage:
     """Message 테스트"""
 
-    def test_create_message(self):
+    def test_create_message(self) -> None:
         """메시지 생성 테스트"""
         msg = Message(role=MessageRole.USER, content="Hello")
 
         assert msg.role == MessageRole.USER
         assert msg.content == "Hello"
 
-    def test_message_to_dict(self):
+    def test_message_to_dict(self) -> None:
         """메시지 딕셔너리 변환 테스트"""
         msg = Message(role=MessageRole.SYSTEM, content="You are helpful")
 
@@ -33,21 +33,21 @@ class TestMessage:
         assert data["role"] == "system"
         assert data["content"] == "You are helpful"
 
-    def test_system_message_factory(self):
+    def test_system_message_factory(self) -> None:
         """시스템 메시지 팩토리 테스트"""
         msg = Message.system("System prompt")
 
         assert msg.role == MessageRole.SYSTEM
         assert msg.content == "System prompt"
 
-    def test_user_message_factory(self):
+    def test_user_message_factory(self) -> None:
         """사용자 메시지 팩토리 테스트"""
         msg = Message.user("User query")
 
         assert msg.role == MessageRole.USER
         assert msg.content == "User query"
 
-    def test_assistant_message_factory(self):
+    def test_assistant_message_factory(self) -> None:
         """어시스턴트 메시지 팩토리 테스트"""
         msg = Message.assistant("Response")
 
@@ -58,7 +58,7 @@ class TestMessage:
 class TestTokenUsage:
     """TokenUsage 테스트"""
 
-    def test_create_token_usage(self):
+    def test_create_token_usage(self) -> None:
         """토큰 사용량 생성 테스트"""
         usage = TokenUsage(
             prompt_tokens=10,
@@ -70,7 +70,7 @@ class TestTokenUsage:
         assert usage.completion_tokens == 20
         assert usage.total_tokens == 30
 
-    def test_token_usage_addition(self):
+    def test_token_usage_addition(self) -> None:
         """토큰 사용량 합산 테스트"""
         usage1 = TokenUsage(10, 20, 30)
         usage2 = TokenUsage(5, 15, 20)
@@ -85,7 +85,7 @@ class TestTokenUsage:
 class TestLLMResponse:
     """LLMResponse 테스트"""
 
-    def test_create_response(self):
+    def test_create_response(self) -> None:
         """응답 생성 테스트"""
         response = LLMResponse(
             content="Generated text",
@@ -97,13 +97,13 @@ class TestLLMResponse:
         assert response.model == "gpt-4"
         assert response.finish_reason == "stop"
 
-    def test_get_text(self):
+    def test_get_text(self) -> None:
         """텍스트 가져오기 테스트"""
         response = LLMResponse(content="Hello", model="test")
 
         assert response.get_text() == "Hello"
 
-    def test_get_metadata(self):
+    def test_get_metadata(self) -> None:
         """메타데이터 조회 테스트"""
         response = LLMResponse(
             content="Text",
@@ -119,7 +119,7 @@ class TestLLMResponse:
 class TestLLMConfig:
     """LLMConfig 테스트"""
 
-    def test_create_config(self):
+    def test_create_config(self) -> None:
         """설정 생성 테스트"""
         config = LLMConfig(
             provider=LLMProvider.OPENAI,
@@ -134,7 +134,7 @@ class TestLLMConfig:
         assert config.temperature == 0.8
         assert config.max_tokens == 1000
 
-    def test_config_to_dict(self):
+    def test_config_to_dict(self) -> None:
         """설정 딕셔너리 변환 테스트"""
         config = LLMConfig(
             provider=LLMProvider.ANTHROPIC,
@@ -152,14 +152,14 @@ class TestLLMConfig:
 class TestLLMClientFactory:
     """LLMClientFactory 테스트"""
 
-    def test_list_providers(self):
+    def test_list_providers(self) -> None:
         """제공자 목록 조회 테스트"""
         providers = LLMClientFactory.list_providers()
 
         # 자동 등록된 제공자가 있어야 함
         assert isinstance(providers, list)
 
-    def test_create_unsupported_provider_raises_error(self):
+    def test_create_unsupported_provider_raises_error(self) -> None:
         """지원하지 않는 제공자 생성 시 에러 테스트"""
         config = LLMConfig(provider=LLMProvider.CUSTOM, model="test")
 
@@ -173,13 +173,13 @@ class TestLLMClientFactory:
 class TestLLMProvider:
     """LLMProvider Enum 테스트"""
 
-    def test_provider_values(self):
+    def test_provider_values(self) -> None:
         """제공자 값 테스트"""
         assert LLMProvider.OPENAI.value == "openai"
         assert LLMProvider.ANTHROPIC.value == "anthropic"
         assert LLMProvider.LOCAL.value == "local"
 
-    def test_provider_from_string(self):
+    def test_provider_from_string(self) -> None:
         """문자열에서 제공자 생성 테스트"""
         provider = LLMProvider("openai")
         assert provider == LLMProvider.OPENAI
@@ -188,7 +188,7 @@ class TestLLMProvider:
 class TestMessageRole:
     """MessageRole Enum 테스트"""
 
-    def test_role_values(self):
+    def test_role_values(self) -> None:
         """역할 값 테스트"""
         assert MessageRole.SYSTEM.value == "system"
         assert MessageRole.USER.value == "user"

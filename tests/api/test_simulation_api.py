@@ -2,6 +2,7 @@
 
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,7 +13,7 @@ client = TestClient(app)
 
 
 @pytest.fixture
-def sample_csv_content():
+def sample_csv_content() -> str:
     """테스트용 CSV 내용"""
     return """x,y,z,temperature
 0.0,0.0,0.0,300.0
@@ -24,13 +25,13 @@ def sample_csv_content():
 class TestHealthCheck:
     """헬스 체크 테스트"""
 
-    def test_health_check(self):
+    def test_health_check(self) -> None:
         """헬스 체크 엔드포인트"""
         response = client.get("/health")
         assert response.status_code == 200
         assert response.json()["status"] == "healthy"
 
-    def test_root(self):
+    def test_root(self) -> None:
         """루트 엔드포인트"""
         response = client.get("/")
         assert response.status_code == 200
@@ -40,7 +41,7 @@ class TestHealthCheck:
 class TestSimulationAPI:
     """시뮬레이션 API 테스트"""
 
-    def test_upload_simulation(self, sample_csv_content):
+    def test_upload_simulation(self, sample_csv_content: str) -> None:
         """시뮬레이션 업로드"""
         # 임시 CSV 파일 생성
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
@@ -66,7 +67,7 @@ class TestSimulationAPI:
         finally:
             csv_path.unlink()
 
-    def test_get_simulation(self, sample_csv_content):
+    def test_get_simulation(self, sample_csv_content: str) -> None:
         """시뮬레이션 조회"""
         # 먼저 업로드
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
@@ -92,13 +93,13 @@ class TestSimulationAPI:
         finally:
             csv_path.unlink()
 
-    def test_get_nonexistent_simulation(self):
+    def test_get_nonexistent_simulation(self) -> None:
         """존재하지 않는 시뮬레이션 조회"""
         response = client.get("/api/v1/simulations/nonexistent")
         assert response.status_code == 404
         assert "error" in response.json()
 
-    def test_list_simulations(self, sample_csv_content):
+    def test_list_simulations(self, sample_csv_content: str) -> None:
         """시뮬레이션 목록 조회"""
         # 업로드
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
@@ -123,7 +124,7 @@ class TestSimulationAPI:
         finally:
             csv_path.unlink()
 
-    def test_analyze_field(self, sample_csv_content):
+    def test_analyze_field(self, sample_csv_content: str) -> None:
         """필드 분석"""
         # 업로드
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
@@ -161,7 +162,7 @@ class TestSimulationAPI:
         finally:
             csv_path.unlink()
 
-    def test_delete_simulation(self, sample_csv_content):
+    def test_delete_simulation(self, sample_csv_content: str) -> None:
         """시뮬레이션 삭제"""
         # 업로드
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
@@ -193,7 +194,7 @@ class TestSimulationAPI:
 class TestConvergenceAPI:
     """수렴성 분석 API 테스트"""
 
-    def test_compute_convergence_single_timestep(self, sample_csv_content):
+    def test_compute_convergence_single_timestep(self, sample_csv_content: str) -> None:
         """단일 타임스텝 - 수렴성 계산 불가"""
         # 업로드
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
@@ -227,7 +228,7 @@ class TestConvergenceAPI:
 class TestSpatialAnalysisAPI:
     """공간 분석 API 테스트"""
 
-    def test_spatial_analysis(self, sample_csv_content):
+    def test_spatial_analysis(self, sample_csv_content: str) -> None:
         """공간 영역 분석"""
         # 업로드
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:

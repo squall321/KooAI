@@ -3,6 +3,8 @@ API integration tests
 """
 
 import pytest
+from typing import Any, Callable
+from pathlib import Path
 from fastapi.testclient import TestClient
 from io import BytesIO
 
@@ -10,7 +12,7 @@ from io import BytesIO
 class TestSimulationAPI:
     """Test simulation API endpoints"""
 
-    def test_upload_simulation_csv(self, api_client, sample_csv_file):
+    def test_upload_simulation_csv(self, api_client: TestClient, sample_csv_file: Path) -> None:
         """Test uploading CSV simulation file"""
         with open(sample_csv_file, "rb") as f:
             response = api_client.post(
@@ -25,7 +27,7 @@ class TestSimulationAPI:
         assert data["name"] == "Test Upload"
         assert data["simulation_type"] == "CSV"
 
-    def test_get_simulation(self, api_client, simulation_factory):
+    def test_get_simulation(self, api_client: TestClient, simulation_factory: Callable[..., Any]) -> None:
         """Test getting simulation by ID"""
         # Create test simulation
         simulation = simulation_factory("Test Simulation")
@@ -38,7 +40,7 @@ class TestSimulationAPI:
         assert data["simulation_id"] == simulation.simulation_id
         assert data["name"] == "Test Simulation"
 
-    def test_list_simulations(self, api_client, simulation_factory):
+    def test_list_simulations(self, api_client: TestClient, simulation_factory: Callable[..., Any]) -> None:
         """Test listing simulations"""
         # Create multiple simulations
         simulation_factory("Sim 1")
@@ -52,7 +54,7 @@ class TestSimulationAPI:
         data = response.json()
         assert len(data) >= 3
 
-    def test_analyze_field(self, api_client, simulation_factory):
+    def test_analyze_field(self, api_client: TestClient, simulation_factory: Callable[..., Any]) -> None:
         """Test field analysis endpoint"""
         # Create test simulation
         simulation = simulation_factory("Test Analysis")
@@ -74,7 +76,7 @@ class TestSimulationAPI:
         assert "max" in data["statistics"]
         assert "mean" in data["statistics"]
 
-    def test_convergence_analysis(self, api_client, simulation_factory):
+    def test_convergence_analysis(self, api_client: TestClient, simulation_factory: Callable[..., Any]) -> None:
         """Test convergence analysis endpoint"""
         # Create test simulation
         simulation = simulation_factory("Convergence Test")
@@ -89,7 +91,7 @@ class TestSimulationAPI:
         data = response.json()
         assert "field_name" in data
 
-    def test_spatial_analysis(self, api_client, simulation_factory):
+    def test_spatial_analysis(self, api_client: TestClient, simulation_factory: Callable[..., Any]) -> None:
         """Test spatial analysis endpoint"""
         # Create test simulation
         simulation = simulation_factory("Spatial Test")
@@ -109,7 +111,7 @@ class TestSimulationAPI:
         assert "field_name" in data
         assert "region_count" in data
 
-    def test_delete_simulation(self, api_client, simulation_factory):
+    def test_delete_simulation(self, api_client: TestClient, simulation_factory: Callable[..., Any]) -> None:
         """Test deleting simulation"""
         # Create test simulation
         simulation = simulation_factory("Delete Test")
@@ -124,7 +126,7 @@ class TestSimulationAPI:
         response = api_client.get(f"/api/simulations/{sim_id}")
         assert response.status_code == 404
 
-    def test_upload_invalid_file(self, api_client):
+    def test_upload_invalid_file(self, api_client: TestClient) -> None:
         """Test uploading invalid file"""
         # Create invalid file content
         invalid_content = b"This is not a valid simulation file"
@@ -138,13 +140,13 @@ class TestSimulationAPI:
         # Should return error
         assert response.status_code in [400, 422, 500]
 
-    def test_get_nonexistent_simulation(self, api_client):
+    def test_get_nonexistent_simulation(self, api_client: TestClient) -> None:
         """Test getting non-existent simulation"""
         response = api_client.get("/api/simulations/nonexistent-id")
 
         assert response.status_code == 404
 
-    def test_analyze_nonexistent_field(self, api_client, simulation_factory):
+    def test_analyze_nonexistent_field(self, api_client: TestClient, simulation_factory: Callable[..., Any]) -> None:
         """Test analyzing non-existent field"""
         simulation = simulation_factory("Field Test")
 
@@ -159,7 +161,7 @@ class TestSimulationAPI:
 class TestHealthCheck:
     """Test health check endpoints"""
 
-    def test_health_check(self, api_client):
+    def test_health_check(self, api_client: TestClient) -> None:
         """Test health check endpoint"""
         response = api_client.get("/health")
 
@@ -167,7 +169,7 @@ class TestHealthCheck:
         data = response.json()
         assert data["status"] == "healthy"
 
-    def test_readiness_check(self, api_client):
+    def test_readiness_check(self, api_client: TestClient) -> None:
         """Test readiness check endpoint"""
         response = api_client.get("/ready")
 
@@ -177,7 +179,7 @@ class TestHealthCheck:
 class TestAPIValidation:
     """Test API input validation"""
 
-    def test_upload_without_file(self, api_client):
+    def test_upload_without_file(self, api_client: TestClient) -> None:
         """Test upload without file"""
         response = api_client.post(
             "/api/simulations/upload",
@@ -186,7 +188,7 @@ class TestAPIValidation:
 
         assert response.status_code == 422
 
-    def test_analyze_without_field_name(self, api_client, simulation_factory):
+    def test_analyze_without_field_name(self, api_client: TestClient, simulation_factory: Callable[..., Any]) -> None:
         """Test analysis without field name"""
         simulation = simulation_factory("Validation Test")
 
@@ -197,7 +199,7 @@ class TestAPIValidation:
 
         assert response.status_code == 422
 
-    def test_invalid_simulation_id_format(self, api_client):
+    def test_invalid_simulation_id_format(self, api_client: TestClient) -> None:
         """Test invalid simulation ID format"""
         response = api_client.get("/api/simulations/invalid-id-format-123-456")
 

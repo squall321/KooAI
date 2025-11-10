@@ -2,17 +2,18 @@
 Database integration tests
 """
 
+from typing import Any, Callable, Generator
 import pytest
 from datetime import datetime
 from src.core.domain.simulation import SimulationResult, SimulationMetadata
-from src.core.simulation.models import SimulationData, SimulationMesh
+from src.core.simulation.models import SimulationData, SimulationMesh  # type: ignore[attr-defined]
 import numpy as np
 
 
 class TestSimulationRepository:
     """Test simulation repository with real database"""
 
-    def test_save_and_get_simulation(self, simulation_repository):
+    def test_save_and_get_simulation(self, simulation_repository: Any) -> None:
         """Test saving and retrieving simulation"""
         # Create simulation
         mesh = SimulationMesh(vertices=np.random.rand(10, 3).astype(np.float32))
@@ -43,7 +44,7 @@ class TestSimulationRepository:
         assert retrieved.name == "Test Simulation"
         assert retrieved.simulation_type == "CSV"
 
-    def test_list_simulations(self, simulation_repository, simulation_factory):
+    def test_list_simulations(self, simulation_repository: Any, simulation_factory: Callable[[str], SimulationResult]) -> None:
         """Test listing simulations"""
         # Create multiple simulations
         simulation_factory("Sim 1")
@@ -60,7 +61,7 @@ class TestSimulationRepository:
         assert "Sim 2" in names
         assert "Sim 3" in names
 
-    def test_delete_simulation(self, simulation_repository, simulation_factory):
+    def test_delete_simulation(self, simulation_repository: Any, simulation_factory: Callable[[str], SimulationResult]) -> None:
         """Test deleting simulation"""
         # Create simulation
         simulation = simulation_factory("To Delete")
@@ -74,7 +75,7 @@ class TestSimulationRepository:
         retrieved = simulation_repository.get_by_id(sim_id)
         assert retrieved is None
 
-    def test_update_simulation(self, simulation_repository, simulation_factory):
+    def test_update_simulation(self, simulation_repository: Any, simulation_factory: Callable[[str], SimulationResult]) -> None:
         """Test updating simulation"""
         # Create simulation
         simulation = simulation_factory("Original Name")
@@ -88,7 +89,7 @@ class TestSimulationRepository:
         retrieved = simulation_repository.get_by_id(sim_id)
         assert retrieved.name == "Updated Name"
 
-    def test_get_by_name(self, simulation_repository, simulation_factory):
+    def test_get_by_name(self, simulation_repository: Any, simulation_factory: Callable[[str], SimulationResult]) -> None:
         """Test getting simulation by name"""
         # Create simulation with unique name
         unique_name = f"Unique_{datetime.now().timestamp()}"
@@ -99,7 +100,7 @@ class TestSimulationRepository:
         assert len(simulations) > 0
         assert simulations[0].name == unique_name
 
-    def test_save_with_large_data(self, simulation_repository):
+    def test_save_with_large_data(self, simulation_repository: Any) -> None:
         """Test saving simulation with large dataset"""
         # Create large simulation
         num_points = 10000
@@ -137,7 +138,7 @@ class TestSimulationRepository:
         assert retrieved.metadata.num_vertices == num_points
         assert len(retrieved.data.fields) == 5
 
-    def test_transaction_rollback(self, db_session, simulation_repository):
+    def test_transaction_rollback(self, db_session: Any, simulation_repository: Any) -> None:
         """Test transaction rollback"""
         # Create simulation
         mesh = SimulationMesh(vertices=np.random.rand(5, 3).astype(np.float32))
@@ -168,7 +169,7 @@ class TestSimulationRepository:
         # Note: This behavior depends on session management
         # In some cases, the save might auto-commit
 
-    def test_concurrent_saves(self, simulation_repository):
+    def test_concurrent_saves(self, simulation_repository: Any) -> None:
         """Test saving multiple simulations concurrently"""
         simulations = []
 
@@ -202,12 +203,12 @@ class TestSimulationRepository:
             retrieved = simulation_repository.get_by_id(sim.simulation_id)
             assert retrieved is not None
 
-    def test_get_nonexistent(self, simulation_repository):
+    def test_get_nonexistent(self, simulation_repository: Any) -> None:
         """Test getting non-existent simulation"""
         result = simulation_repository.get_by_id("nonexistent-id-12345")
         assert result is None
 
-    def test_delete_nonexistent(self, simulation_repository):
+    def test_delete_nonexistent(self, simulation_repository: Any) -> None:
         """Test deleting non-existent simulation"""
         result = simulation_repository.delete("nonexistent-id-12345")
         assert result is False
@@ -216,18 +217,18 @@ class TestSimulationRepository:
 class TestDatabaseConstraints:
     """Test database constraints and validations"""
 
-    def test_unique_constraints(self, simulation_repository):
+    def test_unique_constraints(self, simulation_repository: Any) -> None:
         """Test unique constraints (if any)"""
         # This depends on your schema
         # Example: test that simulation_id is unique
         pass
 
-    def test_foreign_key_constraints(self, simulation_repository):
+    def test_foreign_key_constraints(self, simulation_repository: Any) -> None:
         """Test foreign key constraints (if any)"""
         # Example: test that analysis results reference valid simulations
         pass
 
-    def test_null_constraints(self, simulation_repository):
+    def test_null_constraints(self, simulation_repository: Any) -> None:
         """Test null constraints"""
         # Example: test that required fields cannot be null
         pass
@@ -236,7 +237,7 @@ class TestDatabaseConstraints:
 class TestDatabasePerformance:
     """Test database performance"""
 
-    def test_bulk_insert_performance(self, simulation_repository):
+    def test_bulk_insert_performance(self, simulation_repository: Any) -> None:
         """Test bulk insert performance"""
         import time
 
@@ -268,7 +269,7 @@ class TestDatabasePerformance:
         # Should complete in reasonable time (< 10 seconds for 50 simulations)
         assert elapsed < 10.0
 
-    def test_query_performance(self, simulation_repository, simulation_factory):
+    def test_query_performance(self, simulation_repository: Any, simulation_factory: Callable[[str], SimulationResult]) -> None:
         """Test query performance"""
         import time
 

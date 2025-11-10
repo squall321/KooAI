@@ -13,7 +13,7 @@ import numpy as np
 class TestFieldType:
     """Test FieldType enum"""
 
-    def test_field_type_values(self):
+    def test_field_type_values(self) -> None:
         """Test FieldType enum values"""
         from src.core.simulation.models import FieldType
 
@@ -25,7 +25,7 @@ class TestFieldType:
 class TestDataLocation:
     """Test DataLocation enum"""
 
-    def test_data_location_values(self):
+    def test_data_location_values(self) -> None:
         """Test DataLocation enum values"""
         from src.core.simulation.models import DataLocation
 
@@ -37,7 +37,7 @@ class TestDataLocation:
 class TestFieldData:
     """Test FieldData model"""
 
-    def test_field_data_creation_scalar(self):
+    def test_field_data_creation_scalar(self) -> None:
         """Test creating scalar FieldData"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -54,7 +54,7 @@ class TestFieldData:
         assert field.location == DataLocation.POINT
         assert field.size == 4
 
-    def test_field_data_creation_vector(self):
+    def test_field_data_creation_vector(self) -> None:
         """Test creating vector FieldData"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -70,7 +70,7 @@ class TestFieldData:
         assert field.field_type == FieldType.VECTOR
         assert field.data.shape == (2, 3)
 
-    def test_field_data_with_unit(self):
+    def test_field_data_with_unit(self) -> None:
         """Test FieldData with unit"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -85,7 +85,7 @@ class TestFieldData:
 
         assert field.unit == "K"
 
-    def test_field_data_with_description(self):
+    def test_field_data_with_description(self) -> None:
         """Test FieldData with description"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -100,7 +100,7 @@ class TestFieldData:
 
         assert field.description == "Static pressure"
 
-    def test_field_data_scalar_validation_fails_for_2d(self):
+    def test_field_data_scalar_validation_fails_for_2d(self) -> None:
         """Test scalar field validation fails for 2D data"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -114,7 +114,7 @@ class TestFieldData:
                 data=data
             )
 
-    def test_field_data_vector_validation_fails_for_1d(self):
+    def test_field_data_vector_validation_fails_for_1d(self) -> None:
         """Test vector field validation fails for 1D data"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -128,7 +128,7 @@ class TestFieldData:
                 data=data
             )
 
-    def test_field_data_vector_validation_fails_for_wrong_shape(self):
+    def test_field_data_vector_validation_fails_for_wrong_shape(self) -> None:
         """Test vector field validation fails for wrong shape"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -142,7 +142,7 @@ class TestFieldData:
                 data=data
             )
 
-    def test_field_data_get_min(self):
+    def test_field_data_get_min(self) -> None:
         """Test get_min method"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -156,7 +156,7 @@ class TestFieldData:
 
         assert field.get_min() == 3.0
 
-    def test_field_data_get_max(self):
+    def test_field_data_get_max(self) -> None:
         """Test get_max method"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -170,7 +170,7 @@ class TestFieldData:
 
         assert field.get_max() == 20.0
 
-    def test_field_data_get_mean(self):
+    def test_field_data_get_mean(self) -> None:
         """Test get_mean method"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -184,7 +184,7 @@ class TestFieldData:
 
         assert field.get_mean() == 20.0
 
-    def test_field_data_get_std(self):
+    def test_field_data_get_std(self) -> None:
         """Test get_std method"""
         from src.core.simulation.models import FieldData, FieldType, DataLocation
 
@@ -203,7 +203,7 @@ class TestFieldData:
 class TestMeshData:
     """Test MeshData model"""
 
-    def test_mesh_data_creation(self):
+    def test_mesh_data_creation(self) -> None:
         """Test creating MeshData"""
         from src.core.simulation.models import MeshData
 
@@ -213,7 +213,7 @@ class TestMeshData:
         assert mesh.num_vertices == 3
         assert mesh.vertices.shape == (3, 3)
 
-    def test_mesh_data_with_cells(self):
+    def test_mesh_data_with_cells(self) -> None:
         """Test MeshData with cells"""
         from src.core.simulation.models import MeshData
 
@@ -223,7 +223,7 @@ class TestMeshData:
 
         assert mesh.num_cells == 1
 
-    def test_mesh_data_with_faces(self):
+    def test_mesh_data_with_faces(self) -> None:
         """Test MeshData with faces"""
         from src.core.simulation.models import MeshData
 
@@ -233,7 +233,7 @@ class TestMeshData:
 
         assert mesh.num_faces == 1
 
-    def test_mesh_data_validation_fails_for_wrong_shape(self):
+    def test_mesh_data_validation_fails_for_wrong_shape(self) -> None:
         """Test MeshData validation fails for wrong vertex shape"""
         from src.core.simulation.models import MeshData
 
@@ -242,7 +242,7 @@ class TestMeshData:
         with pytest.raises(ValueError, match="Vertices must be Nx3"):
             MeshData(vertices=vertices)
 
-    def test_mesh_data_get_bounds(self):
+    def test_mesh_data_get_bounds(self) -> None:
         """Test get_bounds method"""
         from src.core.simulation.models import MeshData
 
@@ -258,7 +258,7 @@ class TestMeshData:
         assert np.allclose(min_point, [-1.0, -2.0, -3.0])
         assert np.allclose(max_point, [1.0, 2.0, 3.0])
 
-    def test_mesh_data_num_cells_zero_when_none(self):
+    def test_mesh_data_num_cells_zero_when_none(self) -> None:
         """Test num_cells returns 0 when cells is None"""
         from src.core.simulation.models import MeshData
 
@@ -267,7 +267,7 @@ class TestMeshData:
 
         assert mesh.num_cells == 0
 
-    def test_mesh_data_num_faces_zero_when_none(self):
+    def test_mesh_data_num_faces_zero_when_none(self) -> None:
         """Test num_faces returns 0 when faces is None"""
         from src.core.simulation.models import MeshData
 
@@ -280,7 +280,7 @@ class TestMeshData:
 class TestTimeStepData:
     """Test TimeStepData model"""
 
-    def test_timestep_data_creation(self):
+    def test_timestep_data_creation(self) -> None:
         """Test creating TimeStepData"""
         from src.core.simulation.models import TimeStepData
 
@@ -290,7 +290,7 @@ class TestTimeStepData:
         assert timestep.step == 10
         assert len(timestep.fields) == 0
 
-    def test_timestep_add_field(self):
+    def test_timestep_add_field(self) -> None:
         """Test adding field to timestep"""
         from src.core.simulation.models import (
             TimeStepData, FieldData, FieldType, DataLocation
@@ -309,7 +309,7 @@ class TestTimeStepData:
         assert len(timestep.fields) == 1
         assert "temperature" in timestep.fields
 
-    def test_timestep_get_field(self):
+    def test_timestep_get_field(self) -> None:
         """Test getting field from timestep"""
         from src.core.simulation.models import (
             TimeStepData, FieldData, FieldType, DataLocation
@@ -329,7 +329,7 @@ class TestTimeStepData:
         assert retrieved is not None
         assert retrieved.name == "pressure"
 
-    def test_timestep_get_field_returns_none_if_not_found(self):
+    def test_timestep_get_field_returns_none_if_not_found(self) -> None:
         """Test get_field returns None for non-existent field"""
         from src.core.simulation.models import TimeStepData
 
@@ -339,7 +339,7 @@ class TestTimeStepData:
 
         assert result is None
 
-    def test_timestep_has_field(self):
+    def test_timestep_has_field(self) -> None:
         """Test has_field method"""
         from src.core.simulation.models import (
             TimeStepData, FieldData, FieldType, DataLocation
@@ -357,7 +357,7 @@ class TestTimeStepData:
         assert timestep.has_field("velocity") is True
         assert timestep.has_field("nonexistent") is False
 
-    def test_timestep_list_fields(self):
+    def test_timestep_list_fields(self) -> None:
         """Test list_fields method"""
         from src.core.simulation.models import (
             TimeStepData, FieldData, FieldType, DataLocation
@@ -377,7 +377,7 @@ class TestTimeStepData:
         assert "temp" in fields
         assert "pressure" in fields
 
-    def test_timestep_metadata(self):
+    def test_timestep_metadata(self) -> None:
         """Test timestep metadata"""
         from src.core.simulation.models import TimeStepData
 
@@ -394,7 +394,7 @@ class TestTimeStepData:
 class TestSimulationResult:
     """Test SimulationResult model"""
 
-    def test_simulation_result_creation(self):
+    def test_simulation_result_creation(self) -> None:
         """Test creating SimulationResult"""
         from src.core.simulation.models import SimulationResult, MeshData
 
@@ -411,7 +411,7 @@ class TestSimulationResult:
         assert result.simulation_type == "CFD"
         assert result.num_timesteps == 0
 
-    def test_simulation_result_add_timestep(self):
+    def test_simulation_result_add_timestep(self) -> None:
         """Test adding timestep to simulation"""
         from src.core.simulation.models import SimulationResult, MeshData, TimeStepData
 
@@ -424,7 +424,7 @@ class TestSimulationResult:
 
         assert result.num_timesteps == 1
 
-    def test_simulation_result_get_timestep_by_step(self):
+    def test_simulation_result_get_timestep_by_step(self) -> None:
         """Test getting timestep by step number"""
         from src.core.simulation.models import SimulationResult, MeshData, TimeStepData
 
@@ -443,7 +443,7 @@ class TestSimulationResult:
         assert retrieved.step == 1
         assert retrieved.time == 0.5
 
-    def test_simulation_result_get_timestep_returns_none_if_not_found(self):
+    def test_simulation_result_get_timestep_returns_none_if_not_found(self) -> None:
         """Test get_timestep returns None for non-existent step"""
         from src.core.simulation.models import SimulationResult, MeshData
 
@@ -455,7 +455,7 @@ class TestSimulationResult:
 
         assert retrieved is None
 
-    def test_simulation_result_get_timestep_by_time(self):
+    def test_simulation_result_get_timestep_by_time(self) -> None:
         """Test getting timestep by time value"""
         from src.core.simulation.models import SimulationResult, MeshData, TimeStepData
 
@@ -471,7 +471,7 @@ class TestSimulationResult:
         assert retrieved is not None
         assert retrieved.time == 1.5
 
-    def test_simulation_result_get_timestep_by_time_with_tolerance(self):
+    def test_simulation_result_get_timestep_by_time_with_tolerance(self) -> None:
         """Test getting timestep by time with tolerance"""
         from src.core.simulation.models import SimulationResult, MeshData, TimeStepData
 
@@ -487,7 +487,7 @@ class TestSimulationResult:
 
         assert retrieved is not None
 
-    def test_simulation_result_time_range(self):
+    def test_simulation_result_time_range(self) -> None:
         """Test time_range property"""
         from src.core.simulation.models import SimulationResult, MeshData, TimeStepData
 
@@ -504,7 +504,7 @@ class TestSimulationResult:
         assert min_time == 0.0
         assert max_time == 1.0
 
-    def test_simulation_result_time_range_empty(self):
+    def test_simulation_result_time_range_empty(self) -> None:
         """Test time_range with no timesteps"""
         from src.core.simulation.models import SimulationResult, MeshData
 
@@ -517,7 +517,7 @@ class TestSimulationResult:
         assert min_time == 0.0
         assert max_time == 0.0
 
-    def test_simulation_result_with_metadata(self):
+    def test_simulation_result_with_metadata(self) -> None:
         """Test SimulationResult with metadata"""
         from src.core.simulation.models import SimulationResult, MeshData
 
@@ -535,7 +535,7 @@ class TestSimulationResult:
         assert result.metadata["solver"] == "OpenFOAM"
         assert result.metadata["version"] == "8.0"
 
-    def test_simulation_result_with_source_file(self):
+    def test_simulation_result_with_source_file(self) -> None:
         """Test SimulationResult with source file"""
         from src.core.simulation.models import SimulationResult, MeshData
 
@@ -552,7 +552,7 @@ class TestSimulationResult:
 
         assert result.source_file == source
 
-    def test_simulation_result_created_at_is_datetime(self):
+    def test_simulation_result_created_at_is_datetime(self) -> None:
         """Test created_at is datetime"""
         from src.core.simulation.models import SimulationResult, MeshData
 

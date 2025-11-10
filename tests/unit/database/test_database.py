@@ -12,7 +12,7 @@ from src.infrastructure.database.models import Base, SimulationModel
 from src.core.domain.entities import SimulationStatus
 
 
-def test_database_config_creation():
+def test_database_config_creation() -> None:
     """Test DatabaseConfig creation"""
     config = DatabaseConfig(
         host="testhost",
@@ -35,7 +35,7 @@ def test_database_config_creation():
     assert config.max_overflow == 20
 
 
-def test_database_config_defaults():
+def test_database_config_defaults() -> None:
     """Test DatabaseConfig default values"""
     config = DatabaseConfig()
 
@@ -48,7 +48,7 @@ def test_database_config_defaults():
     assert config.max_overflow == 10
 
 
-def test_database_config_test_mode():
+def test_database_config_test_mode() -> None:
     """Test DatabaseConfig in test mode"""
     config = DatabaseConfig(use_test_db=True)
 
@@ -56,7 +56,7 @@ def test_database_config_test_mode():
     assert ":memory:" in config.database_url
 
 
-def test_database_config_postgresql_url():
+def test_database_config_postgresql_url() -> None:
     """Test DatabaseConfig PostgreSQL URL"""
     config = DatabaseConfig(
         host="myhost",
@@ -74,7 +74,7 @@ def test_database_config_postgresql_url():
     assert "myuser" in url
 
 
-def test_simulation_model_creation():
+def test_simulation_model_creation() -> None:
     """Test SimulationModel creation"""
     model = SimulationModel(
         name="Test Simulation",
@@ -92,7 +92,7 @@ def test_simulation_model_creation():
     assert model.meta_data["vertices"] == 1000
 
 
-def test_simulation_model_in_memory():
+def test_simulation_model_in_memory() -> None:
     """Test SimulationModel with in-memory SQLite"""
     # Create in-memory database
     engine = create_engine("sqlite:///:memory:")
@@ -105,7 +105,7 @@ def test_simulation_model_in_memory():
     assert "simulations" in tables
 
 
-def test_simulation_model_repr():
+def test_simulation_model_repr() -> None:
     """Test SimulationModel string representation"""
     model = SimulationModel(name="Test", type="FEA", status=SimulationStatus.PENDING)
 

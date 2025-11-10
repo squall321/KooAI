@@ -4,12 +4,13 @@ Tests for Stage Plugin
 
 import pytest
 from typing import Any, Dict
+from src.core.plugins.base import PluginVersion
 
 
 class TestStagePluginClass:
     """Test StagePlugin class."""
 
-    def test_init_with_correct_type(self):
+    def test_init_with_correct_type(self) -> None:
         """Test initialization with correct plugin type."""
         from src.core.plugins.types.stage_plugin import StagePlugin
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -27,7 +28,7 @@ class TestStagePluginClass:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test stage plugin",
             author="Test Author",
             plugin_type=PluginType.STAGE,
@@ -36,9 +37,9 @@ class TestStagePluginClass:
         plugin = TestStagePlugin(metadata)
 
         assert plugin.name == "test_stage"
-        assert plugin.version == "1.0.0"
+        assert str(plugin.version) == "1.0.0"
 
-    def test_init_with_wrong_type_raises_error(self):
+    def test_init_with_wrong_type_raises_error(self) -> None:
         """Test initialization with wrong plugin type raises error."""
         from src.core.plugins.types.stage_plugin import StagePlugin
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -49,7 +50,7 @@ class TestStagePluginClass:
 
         metadata = PluginMetadata(
             name="test_adapter",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Wrong type",
             author="Test",
             plugin_type=PluginType.ADAPTER,
@@ -59,7 +60,7 @@ class TestStagePluginClass:
             TestStagePlugin(metadata)
 
     @pytest.mark.asyncio
-    async def test_initialize_sets_stage_class(self):
+    async def test_initialize_sets_stage_class(self) -> None:
         """Test that initialize sets stage class."""
         from src.core.plugins.types.stage_plugin import StagePlugin
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -75,7 +76,7 @@ class TestStagePluginClass:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -87,7 +88,7 @@ class TestStagePluginClass:
         assert plugin._stage_class == MockStage
 
     @pytest.mark.asyncio
-    async def test_get_stage_class_without_setting_raises_error(self):
+    async def test_get_stage_class_without_setting_raises_error(self) -> None:
         """Test that using stage without setting stage class raises error."""
         from src.core.plugins.types.stage_plugin import StagePlugin
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -99,7 +100,7 @@ class TestStagePluginClass:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -113,7 +114,7 @@ class TestStagePluginClass:
             plugin.get_stage_class()
 
     @pytest.mark.asyncio
-    async def test_get_stage_class_after_initialize(self):
+    async def test_get_stage_class_after_initialize(self) -> None:
         """Test getting stage class after initialization."""
         from src.core.plugins.types.stage_plugin import StagePlugin
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -129,7 +130,7 @@ class TestStagePluginClass:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -142,7 +143,7 @@ class TestStagePluginClass:
 
         assert stage_class == MockStage
 
-    def test_get_stage_class_before_initialize_raises_error(self):
+    def test_get_stage_class_before_initialize_raises_error(self) -> None:
         """Test getting stage class before initialization raises error."""
         from src.core.plugins.types.stage_plugin import StagePlugin
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -153,7 +154,7 @@ class TestStagePluginClass:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -165,14 +166,14 @@ class TestStagePluginClass:
             plugin.get_stage_class()
 
     @pytest.mark.asyncio
-    async def test_create_stage(self):
+    async def test_create_stage(self) -> None:
         """Test creating stage instance."""
         from src.core.plugins.types.stage_plugin import StagePlugin
         from src.core.plugins.base import PluginMetadata, PluginType
         from src.core.pipeline.base import ProcessingStage, PipelineContext
 
         class MockStage(ProcessingStage):
-            def __init__(self, custom_param: str = "default"):
+            def __init__(self, custom_param: str = "default") -> None:
                 super().__init__()
                 self.custom_param = custom_param
 
@@ -185,7 +186,7 @@ class TestStagePluginClass:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -203,7 +204,7 @@ class TestStagePluginClass:
 class TestStagePluginRegistry:
     """Test StagePluginRegistry class."""
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test registry initialization."""
         from src.core.plugins.types.stage_plugin import StagePluginRegistry
 
@@ -212,7 +213,7 @@ class TestStagePluginRegistry:
         assert registry.list_stages() == []
 
     @pytest.mark.asyncio
-    async def test_register(self):
+    async def test_register(self) -> None:
         """Test registering plugin."""
         from src.core.plugins.types.stage_plugin import StagePlugin, StagePluginRegistry
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -230,7 +231,7 @@ class TestStagePluginRegistry:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -243,7 +244,7 @@ class TestStagePluginRegistry:
         assert "test_stage" in registry.list_stages()
 
     @pytest.mark.asyncio
-    async def test_get(self):
+    async def test_get(self) -> None:
         """Test getting registered plugin."""
         from src.core.plugins.types.stage_plugin import StagePlugin, StagePluginRegistry
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -261,7 +262,7 @@ class TestStagePluginRegistry:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -275,7 +276,7 @@ class TestStagePluginRegistry:
 
         assert retrieved == plugin
 
-    def test_get_nonexistent_raises_error(self):
+    def test_get_nonexistent_raises_error(self) -> None:
         """Test getting nonexistent plugin raises error."""
         from src.core.plugins.types.stage_plugin import StagePluginRegistry
 
@@ -285,7 +286,7 @@ class TestStagePluginRegistry:
             registry.get("nonexistent")
 
     @pytest.mark.asyncio
-    async def test_unregister(self):
+    async def test_unregister(self) -> None:
         """Test unregistering plugin."""
         from src.core.plugins.types.stage_plugin import StagePlugin, StagePluginRegistry
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -303,7 +304,7 @@ class TestStagePluginRegistry:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -318,7 +319,7 @@ class TestStagePluginRegistry:
 
         assert "test_stage" not in registry.list_stages()
 
-    def test_unregister_nonexistent_no_error(self):
+    def test_unregister_nonexistent_no_error(self) -> None:
         """Test unregistering nonexistent plugin doesn't raise error."""
         from src.core.plugins.types.stage_plugin import StagePluginRegistry
 
@@ -327,14 +328,14 @@ class TestStagePluginRegistry:
         registry.unregister("nonexistent")  # Should not raise
 
     @pytest.mark.asyncio
-    async def test_create_stage_from_registry(self):
+    async def test_create_stage_from_registry(self) -> None:
         """Test creating stage from registry."""
         from src.core.plugins.types.stage_plugin import StagePlugin, StagePluginRegistry
         from src.core.plugins.base import PluginMetadata, PluginType
         from src.core.pipeline.base import ProcessingStage, PipelineContext
 
         class MockStage(ProcessingStage):
-            def __init__(self, param: str = "default"):
+            def __init__(self, param: str = "default") -> None:
                 super().__init__()
                 self.param = param
 
@@ -349,7 +350,7 @@ class TestStagePluginRegistry:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -365,7 +366,7 @@ class TestStagePluginRegistry:
         assert stage.param == "registry_param"
 
     @pytest.mark.asyncio
-    async def test_has(self):
+    async def test_has(self) -> None:
         """Test checking if plugin exists."""
         from src.core.plugins.types.stage_plugin import StagePlugin, StagePluginRegistry
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -383,7 +384,7 @@ class TestStagePluginRegistry:
 
         metadata = PluginMetadata(
             name="test_stage",
-            version="1.0.0",
+            version=PluginVersion.from_string("1.0.0"),
             description="Test",
             author="Test",
             plugin_type=PluginType.STAGE,
@@ -398,7 +399,7 @@ class TestStagePluginRegistry:
         assert registry.has("test_stage")
 
     @pytest.mark.asyncio
-    async def test_list_stages(self):
+    async def test_list_stages(self) -> None:
         """Test listing all stages."""
         from src.core.plugins.types.stage_plugin import StagePlugin, StagePluginRegistry
         from src.core.plugins.base import PluginMetadata, PluginType
@@ -415,10 +416,10 @@ class TestStagePluginRegistry:
         registry = StagePluginRegistry()
 
         meta1 = PluginMetadata(
-            name="stage1", version="1.0.0", description="Test", author="Test", plugin_type=PluginType.STAGE
+            name="stage1", version=PluginVersion.from_string("1.0.0"), description="Test", author="Test", plugin_type=PluginType.STAGE
         )
         meta2 = PluginMetadata(
-            name="stage2", version="1.0.0", description="Test", author="Test", plugin_type=PluginType.STAGE
+            name="stage2", version=PluginVersion.from_string("1.0.0"), description="Test", author="Test", plugin_type=PluginType.STAGE
         )
 
         plugin1 = TestStagePlugin(meta1)

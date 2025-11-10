@@ -12,13 +12,13 @@ from click.testing import CliRunner
 class TestCLIGroup:
     """Test main CLI group"""
 
-    def test_cli_group_exists(self):
+    def test_cli_group_exists(self) -> None:
         """Test CLI group can be imported"""
         from src.presentation.cli.commands import cli
 
         assert cli is not None
 
-    def test_cli_version(self):
+    def test_cli_version(self) -> None:
         """Test CLI shows version"""
         from src.presentation.cli.commands import cli
 
@@ -28,7 +28,7 @@ class TestCLIGroup:
         assert result.exit_code == 0
         assert "version" in result.output.lower() or "1.0.0" in result.output
 
-    def test_cli_help(self):
+    def test_cli_help(self) -> None:
         """Test CLI shows help"""
         from src.presentation.cli.commands import cli
 
@@ -42,13 +42,13 @@ class TestCLIGroup:
 class TestGetService:
     """Test get_service function"""
 
-    def test_get_service_function_exists(self):
+    def test_get_service_function_exists(self) -> None:
         """Test get_service function exists"""
         from src.presentation.cli.commands import get_service
 
         assert get_service is not None
 
-    def test_get_service_returns_service(self):
+    def test_get_service_returns_service(self) -> None:
         """Test get_service returns SimulationService"""
         from src.presentation.cli.commands import get_service
         from src.application.services import SimulationService
@@ -57,7 +57,7 @@ class TestGetService:
 
         assert isinstance(service, SimulationService)
 
-    def test_get_service_is_singleton(self):
+    def test_get_service_is_singleton(self) -> None:
         """Test get_service returns same instance"""
         from src.presentation.cli.commands import get_service
 
@@ -70,13 +70,13 @@ class TestGetService:
 class TestUploadCommand:
     """Test upload command"""
 
-    def test_upload_command_exists(self):
+    def test_upload_command_exists(self) -> None:
         """Test upload command exists"""
         from src.presentation.cli.commands import upload
 
         assert upload is not None
 
-    def test_upload_command_requires_file(self):
+    def test_upload_command_requires_file(self) -> None:
         """Test upload command requires file argument"""
         from src.presentation.cli.commands import cli
 
@@ -87,7 +87,7 @@ class TestUploadCommand:
         assert result.exit_code != 0
 
     @pytest.mark.skip(reason="Requires file system and mocking")
-    def test_upload_command_with_file(self):
+    def test_upload_command_with_file(self) -> None:
         """Test upload command with file"""
         from src.presentation.cli.commands import cli
 
@@ -119,7 +119,7 @@ class TestUploadCommand:
 class TestCLIIntegration:
     """Test CLI integration"""
 
-    def test_cli_runner_works(self):
+    def test_cli_runner_works(self) -> None:
         """Test Click CLI runner works"""
         from src.presentation.cli.commands import cli
 
@@ -128,7 +128,7 @@ class TestCLIIntegration:
 
         assert isinstance(result.exit_code, int)
 
-    def test_cli_has_commands(self):
+    def test_cli_has_commands(self) -> None:
         """Test CLI has registered commands"""
         from src.presentation.cli.commands import cli
 

@@ -10,8 +10,10 @@ import os
 import json
 import random
 from io import BytesIO
+from typing import Any
 from locust import HttpUser, task, between, events
 from locust.contrib.fasthttp import FastHttpUser
+from locust.env import Environment
 
 
 class SimulationAPIUser(FastHttpUser):
@@ -26,13 +28,13 @@ class SimulationAPIUser(FastHttpUser):
 
     wait_time = between(1, 3)  # Wait 1-3 seconds between tasks
 
-    def on_start(self):
+    def on_start(self) -> None:
         """Called when a simulated user starts"""
-        self.simulation_ids = []
+        self.simulation_ids: list[str] = []
         self.uploaded_count = 0
 
     @task(3)
-    def list_simulations(self):
+    def list_simulations(self) -> None:
         """List all simulations (high frequency task)"""
         with self.client.get(
             "/api/v1/simulations", catch_response=True, name="/api/v1/simulations [LIST]"
@@ -52,7 +54,7 @@ class SimulationAPIUser(FastHttpUser):
                 response.failure(f"Got status code {response.status_code}")
 
     @task(2)
-    def get_simulation_details(self):
+    def get_simulation_details(self) -> None:
         """Get details of a specific simulation"""
         if not self.simulation_ids:
             return
@@ -74,7 +76,7 @@ class SimulationAPIUser(FastHttpUser):
                 response.failure(f"Got status code {response.status_code}")
 
     @task(1)
-    def upload_simulation(self):
+    def upload_simulation(self) -> None:
         """Upload a new simulation (lower frequency)"""
         # Generate small CSV data
         csv_data = self._generate_csv_data(points=50)
@@ -103,7 +105,7 @@ class SimulationAPIUser(FastHttpUser):
                 response.failure(f"Got status code {response.status_code}")
 
     @task(2)
-    def analyze_field(self):
+    def analyze_field(self) -> None:
         """Analyze a field of a simulation"""
         if not self.simulation_ids:
             return
@@ -132,7 +134,7 @@ class SimulationAPIUser(FastHttpUser):
                 response.failure(f"Got status code {response.status_code}")
 
     @task(1)
-    def convergence_analysis(self):
+    def convergence_analysis(self) -> None:
         """Run convergence analysis"""
         if not self.simulation_ids:
             return
@@ -153,7 +155,7 @@ class SimulationAPIUser(FastHttpUser):
                 response.failure(f"Got status code {response.status_code}")
 
     @task(1)
-    def spatial_analysis(self):
+    def spatial_analysis(self) -> None:
         """Run spatial analysis"""
         if not self.simulation_ids:
             return
@@ -174,7 +176,7 @@ class SimulationAPIUser(FastHttpUser):
                 response.failure(f"Got status code {response.status_code}")
 
     @task(1)
-    def health_check(self):
+    def health_check(self) -> None:
         """Check API health"""
         with self.client.get("/health", catch_response=True, name="/health [GET]") as response:
             if response.status_code == 200:
@@ -207,13 +209,13 @@ class ReadOnlyUser(FastHttpUser):
 
     wait_time = between(0.5, 2)
 
-    def on_start(self):
-        self.simulation_ids = []
+    def on_start(self) -> None:
+        self.simulation_ids: list[str] = []
         # Get initial list of simulations
         self.list_simulations()
 
     @task(5)
-    def list_simulations(self):
+    def list_simulations(self) -> None:
         """List simulations frequently"""
         response = self.client.get("/api/v1/simulations")
         if response.status_code == 200:
@@ -224,14 +226,14 @@ class ReadOnlyUser(FastHttpUser):
                 ]
 
     @task(3)
-    def get_simulation(self):
+    def get_simulation(self) -> None:
         """Get simulation details"""
         if self.simulation_ids:
             sim_id = random.choice(self.simulation_ids)
             self.client.get(f"/api/v1/simulations/{sim_id}")
 
     @task(2)
-    def analyze_field(self):
+    def analyze_field(self) -> None:
         """Analyze field"""
         if self.simulation_ids:
             sim_id = random.choice(self.simulation_ids)
@@ -240,7 +242,7 @@ class ReadOnlyUser(FastHttpUser):
             )
 
     @task(1)
-    def health_check(self):
+    def health_check(self) -> None:
         """Health check"""
         self.client.get("/health")
 
@@ -254,11 +256,11 @@ class WriteHeavyUser(FastHttpUser):
 
     wait_time = between(2, 5)
 
-    def on_start(self):
+    def on_start(self) -> None:
         self.upload_count = 0
 
     @task(5)
-    def upload_simulation(self):
+    def upload_simulation(self) -> None:
         """Upload simulation frequently"""
         csv_data = self._generate_csv_data(points=100)
 
@@ -271,7 +273,7 @@ class WriteHeavyUser(FastHttpUser):
             self.upload_count += 1
 
     @task(1)
-    def list_simulations(self):
+    def list_simulations(self) -> None:
         """Check simulations occasionally"""
         self.client.get("/api/v1/simulations")
 
@@ -285,13 +287,13 @@ class WriteHeavyUser(FastHttpUser):
 
 # Event listeners for custom metrics
 @events.test_start.add_listener
-def on_test_start(environment, **kwargs):
+def on_test_start(environment: Environment, **kwargs: Any) -> None:
     """Called when test starts"""
     print("Load test starting...")
 
 
 @events.test_stop.add_listener
-def on_test_stop(environment, **kwargs):
+def on_test_stop(environment: Environment, **kwargs: Any) -> None:
     """Called when test stops"""
     print("Load test completed!")
     print(f"Total requests: {environment.stats.total.num_requests}")

@@ -17,7 +17,7 @@ from src.core.json_processing.schema import CoordinateSystem
 class TestUnitConverter:
     """UnitConverter 테스트"""
 
-    def test_convert_length(self):
+    def test_convert_length(self) -> None:
         """길이 단위 변환 테스트"""
         # 1 km = 1000 m
         result = UnitConverter.convert_length(1, "km", "m")
@@ -31,7 +31,7 @@ class TestUnitConverter:
         result = UnitConverter.convert_length(1, "m", "cm")
         assert result == pytest.approx(100.0)
 
-    def test_convert_temperature(self):
+    def test_convert_temperature(self) -> None:
         """온도 단위 변환 테스트"""
         # 0°C = 273.15 K
         result = UnitConverter.convert_temperature(0, "C", "K")
@@ -49,7 +49,7 @@ class TestUnitConverter:
         result = UnitConverter.convert_temperature(212, "F", "C")
         assert result == pytest.approx(100.0)
 
-    def test_convert_pressure(self):
+    def test_convert_pressure(self) -> None:
         """압력 단위 변환 테스트"""
         # 1 bar = 100000 Pa
         result = UnitConverter.convert_pressure(1, "bar", "Pa")
@@ -59,7 +59,7 @@ class TestUnitConverter:
         result = UnitConverter.convert_pressure(1, "atm", "Pa")
         assert result == pytest.approx(101325.0)
 
-    def test_convert_velocity(self):
+    def test_convert_velocity(self) -> None:
         """속도 단위 변환 테스트"""
         # 1 m/s = 3.6 km/h
         result = UnitConverter.convert_velocity(1, "m/s", "km/h")
@@ -69,7 +69,7 @@ class TestUnitConverter:
         result = UnitConverter.convert_velocity(10, "km/h", "m/s")
         assert result == pytest.approx(10.0 / 3.6)
 
-    def test_convert_time(self):
+    def test_convert_time(self) -> None:
         """시간 단위 변환 테스트"""
         # 1 min = 60 s
         result = UnitConverter.convert_time(1, "min", "s")
@@ -79,7 +79,7 @@ class TestUnitConverter:
         result = UnitConverter.convert_time(1, "h", "s")
         assert result == pytest.approx(3600.0)
 
-    def test_convert_mass(self):
+    def test_convert_mass(self) -> None:
         """질량 단위 변환 테스트"""
         # 1 kg = 1000 g
         result = UnitConverter.convert_mass(1, "kg", "g")
@@ -89,7 +89,7 @@ class TestUnitConverter:
         result = UnitConverter.convert_mass(1, "ton", "kg")
         assert result == pytest.approx(1000.0)
 
-    def test_convert_energy(self):
+    def test_convert_energy(self) -> None:
         """에너지 단위 변환 테스트"""
         # 1 kJ = 1000 J
         result = UnitConverter.convert_energy(1, "kJ", "J")
@@ -99,7 +99,7 @@ class TestUnitConverter:
         result = UnitConverter.convert_energy(1, "kWh", "MJ")
         assert result == pytest.approx(3.6)
 
-    def test_general_convert(self):
+    def test_general_convert(self) -> None:
         """일반 변환 함수 테스트"""
         result = UnitConverter.convert(1000, "mm", "m", "length")
         assert result == pytest.approx(1.0)
@@ -107,12 +107,12 @@ class TestUnitConverter:
         result = UnitConverter.convert(273.15, "K", "C", "temperature")
         assert result == pytest.approx(0.0)
 
-    def test_invalid_unit(self):
+    def test_invalid_unit(self) -> None:
         """잘못된 단위 변환 시 에러"""
         with pytest.raises(ValueError):
             UnitConverter.convert_length(1, "invalid", "m")
 
-    def test_invalid_quantity_type(self):
+    def test_invalid_quantity_type(self) -> None:
         """잘못된 물리량 타입"""
         with pytest.raises(ValueError):
             UnitConverter.convert(1, "m", "km", "invalid_type")
@@ -121,7 +121,7 @@ class TestUnitConverter:
 class TestCoordinateTransformer:
     """CoordinateTransformer 테스트"""
 
-    def test_cartesian_to_cylindrical(self):
+    def test_cartesian_to_cylindrical(self) -> None:
         """Cartesian → Cylindrical 변환 테스트"""
         r, theta, z = CoordinateTransformer.cartesian_to_cylindrical(1.0, 1.0, 2.0)
 
@@ -129,7 +129,7 @@ class TestCoordinateTransformer:
         assert theta == pytest.approx(math.pi / 4)
         assert z == pytest.approx(2.0)
 
-    def test_cylindrical_to_cartesian(self):
+    def test_cylindrical_to_cartesian(self) -> None:
         """Cylindrical → Cartesian 변환 테스트"""
         x, y, z = CoordinateTransformer.cylindrical_to_cartesian(math.sqrt(2.0), math.pi / 4, 2.0)
 
@@ -137,14 +137,14 @@ class TestCoordinateTransformer:
         assert y == pytest.approx(1.0)
         assert z == pytest.approx(2.0)
 
-    def test_cartesian_to_spherical(self):
+    def test_cartesian_to_spherical(self) -> None:
         """Cartesian → Spherical 변환 테스트"""
         r, theta, phi = CoordinateTransformer.cartesian_to_spherical(1.0, 1.0, 1.0)
 
         assert r == pytest.approx(math.sqrt(3.0))
         assert theta == pytest.approx(math.pi / 4)
 
-    def test_spherical_to_cartesian(self):
+    def test_spherical_to_cartesian(self) -> None:
         """Spherical → Cartesian 변환 테스트"""
         # (r=1, theta=0, phi=0) → (0, 0, 1)
         x, y, z = CoordinateTransformer.spherical_to_cartesian(1.0, 0.0, 0.0)
@@ -153,7 +153,7 @@ class TestCoordinateTransformer:
         assert y == pytest.approx(0.0, abs=1e-10)
         assert z == pytest.approx(1.0)
 
-    def test_coordinate_roundtrip(self):
+    def test_coordinate_roundtrip(self) -> None:
         """좌표 변환 왕복 테스트"""
         # Cartesian → Cylindrical → Cartesian
         x_orig, y_orig, z_orig = 3.0, 4.0, 5.0
@@ -165,7 +165,7 @@ class TestCoordinateTransformer:
         assert y == pytest.approx(y_orig)
         assert z == pytest.approx(z_orig)
 
-    def test_transform_points_identity(self):
+    def test_transform_points_identity(self) -> None:
         """동일 좌표계 변환 (항등 변환)"""
         points = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
 
@@ -175,7 +175,7 @@ class TestCoordinateTransformer:
 
         np.testing.assert_array_almost_equal(result, points)
 
-    def test_transform_points_cartesian_to_cylindrical(self):
+    def test_transform_points_cartesian_to_cylindrical(self) -> None:
         """좌표 배열 변환: Cartesian → Cylindrical"""
         points = np.array([[1.0, 0.0, 2.0], [0.0, 1.0, 3.0]])
 
@@ -197,7 +197,7 @@ class TestCoordinateTransformer:
 class TestDataNormalizer:
     """DataNormalizer 테스트"""
 
-    def test_min_max_normalize(self):
+    def test_min_max_normalize(self) -> None:
         """Min-Max 정규화 테스트"""
         data = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
@@ -208,7 +208,7 @@ class TestDataNormalizer:
         assert metadata["min"] == 1.0
         assert metadata["max"] == 5.0
 
-    def test_min_max_with_custom_range(self):
+    def test_min_max_with_custom_range(self) -> None:
         """커스텀 범위로 Min-Max 정규화"""
         data = np.array([0.0, 10.0, 20.0])
 
@@ -217,7 +217,7 @@ class TestDataNormalizer:
         assert normalized.min() == pytest.approx(-1.0)
         assert normalized.max() == pytest.approx(1.0)
 
-    def test_denormalize_min_max(self):
+    def test_denormalize_min_max(self) -> None:
         """Min-Max 정규화 역변환 테스트"""
         data = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
@@ -226,7 +226,7 @@ class TestDataNormalizer:
 
         np.testing.assert_array_almost_equal(denormalized, data)
 
-    def test_standardize(self):
+    def test_standardize(self) -> None:
         """Z-score 표준화 테스트"""
         data = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
@@ -240,7 +240,7 @@ class TestDataNormalizer:
         assert "mean" in metadata
         assert "std" in metadata
 
-    def test_destandardize(self):
+    def test_destandardize(self) -> None:
         """표준화 역변환 테스트"""
         data = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
 
@@ -249,7 +249,7 @@ class TestDataNormalizer:
 
         np.testing.assert_array_almost_equal(destandardized, data)
 
-    def test_log_normalize(self):
+    def test_log_normalize(self) -> None:
         """로그 정규화 테스트"""
         data = np.array([1.0, 10.0, 100.0, 1000.0])
 
@@ -259,7 +259,7 @@ class TestDataNormalizer:
         expected = np.log(data + 1e-8)
         np.testing.assert_array_almost_equal(log_normalized, expected)
 
-    def test_robust_scale(self):
+    def test_robust_scale(self) -> None:
         """Robust 스케일링 테스트"""
         # 이상치가 포함된 데이터
         data = np.array([1, 2, 3, 4, 5, 100])  # 100이 이상치
@@ -273,7 +273,7 @@ class TestDataNormalizer:
         median = np.median(data)
         assert metadata["median"] == median
 
-    def test_normalize_constant_data(self):
+    def test_normalize_constant_data(self) -> None:
         """상수 데이터 정규화"""
         data = np.array([5.0, 5.0, 5.0, 5.0])
 
@@ -291,7 +291,7 @@ class TestDataNormalizer:
 class TestNormalizerIntegration:
     """정규화 통합 테스트"""
 
-    def test_unit_and_coordinate_transform(self):
+    def test_unit_and_coordinate_transform(self) -> None:
         """단위 변환 + 좌표 변환 통합"""
         # mm 단위의 Cartesian 좌표
         points_mm = np.array([[1000.0, 0.0, 2000.0]])  # 1m, 0, 2m
@@ -309,7 +309,7 @@ class TestNormalizerIntegration:
         assert points_cyl[0, 1] == pytest.approx(0.0)
         assert points_cyl[0, 2] == pytest.approx(2.0)
 
-    def test_normalize_physical_data(self):
+    def test_normalize_physical_data(self) -> None:
         """물리량 정규화 통합"""
         # 온도 데이터 (Celsius)
         temps_celsius = np.array([0.0, 25.0, 50.0, 100.0])

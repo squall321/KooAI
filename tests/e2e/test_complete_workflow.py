@@ -8,6 +8,7 @@ import pytest
 from pathlib import Path
 import tempfile
 import csv
+from typing import Generator
 
 from src.application.services import SimulationService
 from src.infrastructure.repositories.memory_simulation_repository import (
@@ -16,14 +17,14 @@ from src.infrastructure.repositories.memory_simulation_repository import (
 
 
 @pytest.fixture
-def service():
+def service() -> SimulationService:
     """Create simulation service for testing."""
     repository = InMemorySimulationResultRepository()
     return SimulationService(repository)
 
 
 @pytest.fixture
-def sample_csv_file():
+def sample_csv_file() -> Generator[Path, None, None]:
     """Create a sample CSV simulation file."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
         writer = csv.writer(f)
@@ -63,7 +64,7 @@ class TestCompleteSimulationWorkflow:
     8. Delete simulation
     """
 
-    def test_complete_workflow(self, service, sample_csv_file):
+    def test_complete_workflow(self, service: SimulationService, sample_csv_file: Path) -> None:
         """Test complete simulation workflow from upload to deletion."""
 
         # Step 1: Upload and analyze simulation
@@ -133,7 +134,7 @@ class TestCompleteSimulationWorkflow:
 class TestMultipleSimulationsWorkflow:
     """Test workflows involving multiple simulations."""
 
-    def test_upload_and_compare_simulations(self, service, sample_csv_file):
+    def test_upload_and_compare_simulations(self, service: SimulationService, sample_csv_file: Path) -> None:
         """Test uploading and comparing multiple simulations."""
 
         # Upload first simulation
@@ -164,7 +165,7 @@ class TestMultipleSimulationsWorkflow:
 class TestAnalysisWorkflows:
     """Test various analysis workflows."""
 
-    def test_progressive_analysis_workflow(self, service, sample_csv_file):
+    def test_progressive_analysis_workflow(self, service: SimulationService, sample_csv_file: Path) -> None:
         """Test progressive analysis from basic to advanced."""
 
         # Upload
@@ -209,12 +210,12 @@ class TestAnalysisWorkflows:
 class TestErrorHandling:
     """Test error handling in workflows."""
 
-    def test_invalid_simulation_id(self, service):
+    def test_invalid_simulation_id(self, service: SimulationService) -> None:
         """Test handling of invalid simulation ID."""
         with pytest.raises(Exception):
             service.get_simulation("invalid-id")
 
-    def test_invalid_field_name(self, service, sample_csv_file):
+    def test_invalid_field_name(self, service: SimulationService, sample_csv_file: Path) -> None:
         """Test handling of invalid field name."""
         result = service.upload_and_analyze(
             file_path=sample_csv_file, name="Invalid Field Test"
@@ -229,7 +230,7 @@ class TestErrorHandling:
         # Cleanup
         service.delete_simulation(sim_id)
 
-    def test_invalid_timestep(self, service, sample_csv_file):
+    def test_invalid_timestep(self, service: SimulationService, sample_csv_file: Path) -> None:
         """Test handling of invalid timestep."""
         result = service.upload_and_analyze(
             file_path=sample_csv_file, name="Invalid Timestep Test"
@@ -247,7 +248,7 @@ class TestErrorHandling:
 class TestConcurrentWorkflows:
     """Test concurrent operations (async workflows)."""
 
-    async def test_concurrent_uploads(self, service, sample_csv_file):
+    async def test_concurrent_uploads(self, service: SimulationService, sample_csv_file: Path) -> None:
         """Test concurrent simulation uploads."""
         # Note: This is a placeholder for future async support
         # Current implementation is synchronous

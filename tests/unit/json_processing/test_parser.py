@@ -2,6 +2,7 @@
 JSON 파서 테스트
 """
 
+from typing import Any
 import pytest
 import json
 import tempfile
@@ -18,7 +19,7 @@ from src.core.json_processing.schema import SimulationMetadata
 class TestJSONParser:
     """JSONParser 테스트"""
 
-    def test_parse_string(self):
+    def test_parse_string(self) -> None:
         """JSON 문자열 파싱 테스트"""
         parser = JSONParser(validate=False)
         json_str = '{"name": "test", "value": 123}'
@@ -28,7 +29,7 @@ class TestJSONParser:
         assert result["name"] == "test"
         assert result["value"] == 123
 
-    def test_parse_file(self, tmp_path):
+    def test_parse_file(self, tmp_path: Path) -> None:
         """JSON 파일 파싱 테스트"""
         # 임시 JSON 파일 생성
         json_file = tmp_path / "test.json"
@@ -44,7 +45,7 @@ class TestJSONParser:
         assert result["name"] == "CFD Sim"
         assert result["solver"] == "OpenFOAM"
 
-    def test_parse_with_validation(self, tmp_path):
+    def test_parse_with_validation(self, tmp_path: Path) -> None:
         """스키마 검증과 함께 파싱"""
         json_file = tmp_path / "metadata.json"
         data = {
@@ -62,14 +63,14 @@ class TestJSONParser:
         assert isinstance(result, SimulationMetadata)
         assert result.name == "Test Simulation"
 
-    def test_parse_invalid_file(self):
+    def test_parse_invalid_file(self) -> None:
         """존재하지 않는 파일 파싱 시 에러"""
         parser = JSONParser()
 
         with pytest.raises(FileNotFoundError):
             parser.parse_file("nonexistent.json")
 
-    def test_parse_invalid_json(self):
+    def test_parse_invalid_json(self) -> None:
         """잘못된 JSON 파싱 시 에러"""
         parser = JSONParser()
 
@@ -80,7 +81,7 @@ class TestJSONParser:
 class TestHierarchicalExtractor:
     """HierarchicalExtractor 테스트"""
 
-    def test_extract_by_path(self):
+    def test_extract_by_path(self) -> None:
         """경로로 데이터 추출 테스트"""
         data = {"metadata": {"name": "CFD", "version": "1.0"}, "solver": "OpenFOAM"}
 
@@ -90,21 +91,21 @@ class TestHierarchicalExtractor:
         result = HierarchicalExtractor.extract_by_path(data, "solver")
         assert result == "OpenFOAM"
 
-    def test_extract_nested_path(self):
+    def test_extract_nested_path(self) -> None:
         """깊이 중첩된 경로 추출"""
         data = {"a": {"b": {"c": {"d": 42}}}}
 
         result = HierarchicalExtractor.extract_by_path(data, "a.b.c.d")
         assert result == 42
 
-    def test_extract_nonexistent_path(self):
+    def test_extract_nonexistent_path(self) -> None:
         """존재하지 않는 경로 추출 (None 반환)"""
         data = {"a": {"b": 1}}
 
         result = HierarchicalExtractor.extract_by_path(data, "a.c")
         assert result is None
 
-    def test_extract_array_index(self):
+    def test_extract_array_index(self) -> None:
         """배열 인덱스 추출"""
         data = {"items": [10, 20, 30, 40]}
 
@@ -114,7 +115,7 @@ class TestHierarchicalExtractor:
         result = HierarchicalExtractor.extract_by_path(data, "items.2")
         assert result == 30
 
-    def test_extract_multiple(self):
+    def test_extract_multiple(self) -> None:
         """여러 경로 한 번에 추출"""
         data = {
             "metadata": {"name": "Sim1", "version": "1.0"},
@@ -128,21 +129,21 @@ class TestHierarchicalExtractor:
         assert result["metadata.version"] == "1.0"
         assert result["mesh.num_vertices"] == 1000
 
-    def test_set_by_path(self):
+    def test_set_by_path(self) -> None:
         """경로로 값 설정 테스트"""
         data = {"metadata": {"name": "Old"}}
 
         HierarchicalExtractor.set_by_path(data, "metadata.name", "New")
         assert data["metadata"]["name"] == "New"
 
-    def test_set_create_path(self):
+    def test_set_create_path(self) -> None:
         """존재하지 않는 경로 생성 및 설정"""
-        data = {}
+        data: dict[str, Any] = {}
 
         HierarchicalExtractor.set_by_path(data, "a.b.c", 123)
         assert data["a"]["b"]["c"] == 123
 
-    def test_flatten(self):
+    def test_flatten(self) -> None:
         """딕셔너리 평탄화 테스트"""
         data = {"a": {"b": {"c": 1}}, "d": 2, "e": {"f": 3}}
 
@@ -152,7 +153,7 @@ class TestHierarchicalExtractor:
         assert flat["d"] == 2
         assert flat["e.f"] == 3
 
-    def test_unflatten(self):
+    def test_unflatten(self) -> None:
         """평탄화 역변환 테스트"""
         flat = {"a.b.c": 1, "d": 2, "e.f": 3}
 
@@ -162,7 +163,7 @@ class TestHierarchicalExtractor:
         assert nested["d"] == 2
         assert nested["e"]["f"] == 3
 
-    def test_flatten_unflatten_roundtrip(self):
+    def test_flatten_unflatten_roundtrip(self) -> None:
         """평탄화 → 역변환 왕복 테스트"""
         original = {"metadata": {"name": "Test", "version": "1.0"}, "value": 42}
 
@@ -175,7 +176,7 @@ class TestHierarchicalExtractor:
 class TestChunkedJSONWriter:
     """ChunkedJSONWriter 테스트"""
 
-    def test_write_simple_object(self, tmp_path):
+    def test_write_simple_object(self, tmp_path: Path) -> None:
         """단순 객체 작성 테스트"""
         output_file = tmp_path / "output.json"
 
@@ -192,7 +193,7 @@ class TestChunkedJSONWriter:
         assert data["name"] == "Test"
         assert data["value"] == 123
 
-    def test_write_array(self, tmp_path):
+    def test_write_array(self, tmp_path: Path) -> None:
         """배열 작성 테스트"""
         output_file = tmp_path / "array.json"
 
@@ -210,7 +211,7 @@ class TestChunkedJSONWriter:
 
         assert data["items"] == [10, 20, 30]
 
-    def test_write_complex_structure(self, tmp_path):
+    def test_write_complex_structure(self, tmp_path: Path) -> None:
         """복잡한 구조 작성 테스트"""
         output_file = tmp_path / "complex.json"
 
@@ -235,7 +236,7 @@ class TestChunkedJSONWriter:
 
 
 # 스트리밍 파서 테스트는 ijson이 설치되어 있어야 하므로 선택적으로 실행
-pytest_plugins = []
+pytest_plugins: list[str] = []
 
 try:
     import ijson
@@ -249,7 +250,7 @@ except ImportError:
 class TestStreamingJSONParser:
     """StreamingJSONParser 테스트 (ijson 필요)"""
 
-    def test_stream_array_items(self, tmp_path):
+    def test_stream_array_items(self, tmp_path: Path) -> None:
         """배열 아이템 스트리밍 테스트"""
         from src.core.json_processing.parser import StreamingJSONParser
 
@@ -264,7 +265,7 @@ class TestStreamingJSONParser:
 
         assert items == [1, 2, 3, 4, 5]
 
-    def test_extract_field(self, tmp_path):
+    def test_extract_field(self, tmp_path: Path) -> None:
         """필드 추출 테스트"""
         from src.core.json_processing.parser import StreamingJSONParser
 
@@ -279,7 +280,7 @@ class TestStreamingJSONParser:
 
         assert name == "CFD Sim"
 
-    def test_stream_large_array_batches(self, tmp_path):
+    def test_stream_large_array_batches(self, tmp_path: Path) -> None:
         """대용량 배열 배치 스트리밍 테스트"""
         from src.core.json_processing.parser import StreamingJSONParser
 

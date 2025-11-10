@@ -3,6 +3,7 @@ Tests for cache decorators
 """
 
 import asyncio
+from typing import Any, Optional
 from unittest.mock import Mock, patch, MagicMock
 import pytest
 import time
@@ -16,7 +17,7 @@ from src.infrastructure.cache.decorators import (
 
 
 @pytest.fixture
-def mock_cache():
+def mock_cache() -> MagicMock:
     """Create mock cache"""
     cache = MagicMock()
     cache.config.cache_enabled = True
@@ -26,12 +27,12 @@ def mock_cache():
     return cache
 
 
-def test_cache_result_basic(mock_cache):
+def test_cache_result_basic(mock_cache: MagicMock) -> None:
     """Test basic cache_result decorator"""
     call_count = 0
 
     @cache_result()
-    def expensive_function(x, y):
+    def expensive_function(x: int, y: int) -> int:
         nonlocal call_count
         call_count += 1
         return x + y
@@ -55,11 +56,11 @@ def test_cache_result_basic(mock_cache):
             assert call_count == 1  # Function not called again
 
 
-def test_cache_result_with_kwargs(mock_cache):
+def test_cache_result_with_kwargs(mock_cache: MagicMock) -> None:
     """Test cache_result with keyword arguments"""
 
     @cache_result()
-    def function_with_kwargs(a, b=10, c=20):
+    def function_with_kwargs(a: int, b: int = 10, c: int = 20) -> int:
         return a + b + c
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -76,11 +77,11 @@ def test_cache_result_with_kwargs(mock_cache):
             assert mock_cache.set.called
 
 
-def test_cache_result_custom_ttl(mock_cache):
+def test_cache_result_custom_ttl(mock_cache: MagicMock) -> None:
     """Test cache_result with custom TTL"""
 
     @cache_result(ttl=120)
-    def cached_function(x):
+    def cached_function(x: int) -> int:
         return x * 2
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -98,11 +99,11 @@ def test_cache_result_custom_ttl(mock_cache):
             assert call_args[1]["ttl"] == 120
 
 
-def test_cache_result_custom_prefix(mock_cache):
+def test_cache_result_custom_prefix(mock_cache: MagicMock) -> None:
     """Test cache_result with custom prefix"""
 
     @cache_result(prefix="custom:")
-    def cached_function(x):
+    def cached_function(x: int) -> int:
         return x * 2
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -120,13 +121,13 @@ def test_cache_result_custom_prefix(mock_cache):
             assert call_args[1]["prefix"] == "custom:"
 
 
-def test_cache_result_disabled(mock_cache):
+def test_cache_result_disabled(mock_cache: MagicMock) -> None:
     """Test cache_result when cache is disabled"""
     mock_cache.config.cache_enabled = False
     call_count = 0
 
     @cache_result()
-    def uncached_function(x):
+    def uncached_function(x: int) -> int:
         nonlocal call_count
         call_count += 1
         return x * 2
@@ -148,11 +149,11 @@ def test_cache_result_disabled(mock_cache):
             mock_cache.set.assert_not_called()
 
 
-def test_cache_analysis_decorator(mock_cache):
+def test_cache_analysis_decorator(mock_cache: MagicMock) -> None:
     """Test cache_analysis decorator"""
 
     @cache_analysis()
-    def analyze_field(simulation_id, field_name, options=None):
+    def analyze_field(simulation_id: str, field_name: str, options: Optional[Any] = None) -> str:
         return f"Analysis of {simulation_id}:{field_name}"
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -171,11 +172,11 @@ def test_cache_analysis_decorator(mock_cache):
             assert call_args[1]["ttl"] == 600  # analysis_ttl
 
 
-def test_cache_analysis_custom_args(mock_cache):
+def test_cache_analysis_custom_args(mock_cache: MagicMock) -> None:
     """Test cache_analysis with custom argument names"""
 
     @cache_analysis(simulation_id_arg="sim_id", field_name_arg="field")
-    def custom_analysis(sim_id, field, threshold=0.5):
+    def custom_analysis(sim_id: str, field: str, threshold: float = 0.5) -> str:
         return f"Analysis of {sim_id}:{field}"
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -195,11 +196,11 @@ def test_cache_analysis_custom_args(mock_cache):
             assert "pressure" in cache_key
 
 
-def test_invalidate_cache_decorator(mock_cache):
+def test_invalidate_cache_decorator(mock_cache: MagicMock) -> None:
     """Test invalidate_cache decorator"""
 
     @invalidate_cache(patterns=["key1", "key2"])
-    def update_function(value):
+    def update_function(value: str) -> str:
         return f"Updated: {value}"
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -210,11 +211,11 @@ def test_invalidate_cache_decorator(mock_cache):
         assert mock_cache.delete.call_count == 2
 
 
-def test_invalidate_cache_with_prefix(mock_cache):
+def test_invalidate_cache_with_prefix(mock_cache: MagicMock) -> None:
     """Test invalidate_cache with prefix"""
 
     @invalidate_cache(prefix="user:")
-    def update_user(user_id):
+    def update_user(user_id: int) -> str:
         return f"Updated user {user_id}"
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -225,11 +226,11 @@ def test_invalidate_cache_with_prefix(mock_cache):
         mock_cache.clear_prefix.assert_called_once_with("user:")
 
 
-def test_invalidate_cache_both_keys_and_prefix(mock_cache):
+def test_invalidate_cache_both_keys_and_prefix(mock_cache: MagicMock) -> None:
     """Test invalidate_cache with both patterns and prefix"""
 
     @invalidate_cache(patterns=["key1"], prefix="data:")
-    def update_data():
+    def update_data() -> str:
         return "Updated"
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -242,11 +243,11 @@ def test_invalidate_cache_both_keys_and_prefix(mock_cache):
 
 
 @pytest.mark.asyncio
-async def test_cache_async_result(mock_cache):
+async def test_cache_async_result(mock_cache: MagicMock) -> None:
     """Test cache_async_result decorator for async functions"""
 
     @cache_async_result()
-    async def async_expensive_function(x, y):
+    async def async_expensive_function(x: int, y: int) -> int:
         await asyncio.sleep(0.01)  # Simulate async work
         return x + y
 
@@ -267,11 +268,11 @@ async def test_cache_async_result(mock_cache):
             assert result2 == 3
 
 
-def test_cache_key_generation(mock_cache):
+def test_cache_key_generation(mock_cache: MagicMock) -> None:
     """Test cache key generation from function arguments"""
 
     @cache_result()
-    def function_with_many_args(a, b, c=10, d=20):
+    def function_with_many_args(a: int, b: int, c: int = 10, d: int = 20) -> int:
         return a + b + c + d
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -293,11 +294,11 @@ def test_cache_key_generation(mock_cache):
             assert key1 != key2
 
 
-def test_cache_result_with_none_return(mock_cache):
+def test_cache_result_with_none_return(mock_cache: MagicMock) -> None:
     """Test caching when function returns None"""
 
     @cache_result()
-    def function_returning_none():
+    def function_returning_none() -> None:
         return None
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -316,11 +317,11 @@ def test_cache_result_with_none_return(mock_cache):
             assert call_args[0][1] is None
 
 
-def test_cache_result_with_exception(mock_cache):
+def test_cache_result_with_exception(mock_cache: MagicMock) -> None:
     """Test cache behavior when function raises exception"""
 
     @cache_result()
-    def function_with_error():
+    def function_with_error() -> None:
         raise ValueError("Test error")
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -337,15 +338,15 @@ def test_cache_result_with_exception(mock_cache):
             mock_cache.set.assert_not_called()
 
 
-def test_different_functions_different_keys(mock_cache):
+def test_different_functions_different_keys(mock_cache: MagicMock) -> None:
     """Test that different functions generate different cache keys"""
 
     @cache_result()
-    def function1(x):
+    def function1(x: int) -> int:
         return x * 2
 
     @cache_result()
-    def function2(x):
+    def function2(x: int) -> int:
         return x * 3
 
     with patch("src.infrastructure.cache.decorators.get_cache", return_value=mock_cache):
@@ -368,11 +369,11 @@ def test_different_functions_different_keys(mock_cache):
             assert "function2" in key2
 
 
-def test_cache_result_preserves_function_metadata():
+def test_cache_result_preserves_function_metadata() -> None:
     """Test that decorator preserves function metadata"""
 
     @cache_result()
-    def documented_function(x):
+    def documented_function(x: int) -> int:
         """This is a documented function"""
         return x * 2
 
@@ -381,11 +382,11 @@ def test_cache_result_preserves_function_metadata():
 
 
 @pytest.mark.asyncio
-async def test_cache_async_preserves_function_metadata():
+async def test_cache_async_preserves_function_metadata() -> None:
     """Test that async decorator preserves function metadata"""
 
     @cache_async_result()
-    async def async_documented_function(x):
+    async def async_documented_function(x: int) -> int:
         """This is an async documented function"""
         return x * 2
 
@@ -393,11 +394,11 @@ async def test_cache_async_preserves_function_metadata():
     assert async_documented_function.__doc__ == "This is an async documented function"
 
 
-def test_complex_data_types(mock_cache):
+def test_complex_data_types(mock_cache: MagicMock) -> None:
     """Test caching with complex data types"""
 
     @cache_result()
-    def function_with_complex_return():
+    def function_with_complex_return() -> dict[str, Any]:
         return {
             "list": [1, 2, 3],
             "dict": {"nested": "value"},

@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime
 import tempfile
 import time
+from typing import Generator, Any
 
 from src.application.batch.processor import (
     BatchProcessor,
@@ -17,22 +18,22 @@ from src.application.batch.processor import (
 
 
 @pytest.fixture
-def temp_dir():
+def temp_dir() -> Generator[Path, None, None]:
     """Create temporary directory with test files"""
     with tempfile.TemporaryDirectory() as tmpdir:
-        tmpdir = Path(tmpdir)
+        temp_path = Path(tmpdir)
 
         # Create test files
-        (tmpdir / "file1.txt").write_text("content1")
-        (tmpdir / "file2.txt").write_text("content2")
-        (tmpdir / "file3.txt").write_text("content3")
-        (tmpdir / "subdir").mkdir()
-        (tmpdir / "subdir" / "file4.txt").write_text("content4")
+        (temp_path / "file1.txt").write_text("content1")
+        (temp_path / "file2.txt").write_text("content2")
+        (temp_path / "file3.txt").write_text("content3")
+        (temp_path / "subdir").mkdir()
+        (temp_path / "subdir" / "file4.txt").write_text("content4")
 
-        yield tmpdir
+        yield temp_path
 
 
-def test_batch_job_creation():
+def test_batch_job_creation() -> None:
     """Test BatchJob creation"""
     job = BatchJob(
         job_id="job1",
@@ -47,7 +48,7 @@ def test_batch_job_creation():
     assert job.result is None
 
 
-def test_batch_job_mark_running():
+def test_batch_job_mark_running() -> None:
     """Test marking job as running"""
     job = BatchJob(job_id="job1", file_path=Path("/test/file.txt"))
 
@@ -57,7 +58,7 @@ def test_batch_job_mark_running():
     assert job.started_at is not None
 
 
-def test_batch_job_mark_completed():
+def test_batch_job_mark_completed() -> None:
     """Test marking job as completed"""
     job = BatchJob(job_id="job1", file_path=Path("/test/file.txt"))
     job.mark_running()
@@ -70,7 +71,7 @@ def test_batch_job_mark_completed():
     assert job.result == result
 
 
-def test_batch_job_mark_failed():
+def test_batch_job_mark_failed() -> None:
     """Test marking job as failed"""
     job = BatchJob(job_id="job1", file_path=Path("/test/file.txt"))
     job.mark_running()
@@ -82,7 +83,7 @@ def test_batch_job_mark_failed():
     assert job.error == "Test error"
 
 
-def test_batch_job_duration():
+def test_batch_job_duration() -> None:
     """Test job duration calculation"""
     job = BatchJob(job_id="job1", file_path=Path("/test/file.txt"))
 
@@ -99,7 +100,7 @@ def test_batch_job_duration():
     assert duration > 0
 
 
-def test_batch_result_success_rate():
+def test_batch_result_success_rate() -> None:
     """Test BatchResult success rate calculation"""
     jobs = [
         BatchJob(job_id="job1", file_path=Path("/test/file1.txt"), status=JobStatus.COMPLETED),
@@ -120,7 +121,7 @@ def test_batch_result_success_rate():
     assert result.success_rate() == pytest.approx(66.67, abs=0.1)
 
 
-def test_batch_result_to_dict():
+def test_batch_result_to_dict() -> None:
     """Test BatchResult to_dict conversion"""
     jobs = [
         BatchJob(job_id="job1", file_path=Path("/test/file1.txt"), status=JobStatus.COMPLETED),
@@ -152,7 +153,7 @@ def test_batch_result_to_dict():
     assert result_dict["failed_jobs"][0]["error"] == "Test error"
 
 
-def test_batch_processor_initialization():
+def test_batch_processor_initialization() -> None:
     """Test BatchProcessor initialization"""
     processor = BatchProcessor(max_workers=8, stop_on_error=True, skip_existing=False)
 
@@ -162,7 +163,7 @@ def test_batch_processor_initialization():
     assert len(processor.jobs) == 0
 
 
-def test_batch_processor_add_files(temp_dir):
+def test_batch_processor_add_files(temp_dir: Path) -> None:
     """Test adding files to batch"""
     processor = BatchProcessor()
 
@@ -177,7 +178,7 @@ def test_batch_processor_add_files(temp_dir):
     assert processor.jobs[0].status == JobStatus.PENDING
 
 
-def test_batch_processor_add_directory(temp_dir):
+def test_batch_processor_add_directory(temp_dir: Path) -> None:
     """Test adding directory to batch"""
     processor = BatchProcessor()
 
@@ -187,7 +188,7 @@ def test_batch_processor_add_directory(temp_dir):
     assert len(processor.jobs) == 3
 
 
-def test_batch_processor_process(temp_dir):
+def test_batch_processor_process(temp_dir: Path) -> None:
     """Test sequential processing"""
     processor = BatchProcessor(max_workers=1)
 
@@ -202,7 +203,7 @@ def test_batch_processor_process(temp_dir):
 
     call_count = 0
 
-    def processor_func(file_path):
+    def processor_func(file_path: Path) -> str:
         nonlocal call_count
         call_count += 1
         return f"processed_{file_path.name}"
@@ -215,7 +216,7 @@ def test_batch_processor_process(temp_dir):
     assert result.failed == 0
 
 
-def test_batch_processor_process_with_error(temp_dir):
+def test_batch_processor_process_with_error(temp_dir: Path) -> None:
     """Test processing with errors"""
     processor = BatchProcessor(stop_on_error=False)
 
@@ -228,7 +229,7 @@ def test_batch_processor_process_with_error(temp_dir):
 
     processor.add_files(files)
 
-    def processor_func(file_path):
+    def processor_func(file_path: Path) -> str:
         if "error_file1" in str(file_path):
             raise ValueError("Test error")
         return f"processed_{file_path.name}"
@@ -240,7 +241,7 @@ def test_batch_processor_process_with_error(temp_dir):
     assert result.failed == 1
 
 
-def test_batch_processor_stop_on_error(temp_dir):
+def test_batch_processor_stop_on_error(temp_dir: Path) -> None:
     """Test stop_on_error behavior"""
     processor = BatchProcessor(stop_on_error=True)
 
@@ -253,7 +254,7 @@ def test_batch_processor_stop_on_error(temp_dir):
 
     processor.add_files(files)
 
-    def processor_func(file_path):
+    def processor_func(file_path: Path) -> str:
         if "stop_file1" in str(file_path):
             raise ValueError("Test error")
         return f"processed_{file_path.name}"
@@ -264,7 +265,7 @@ def test_batch_processor_stop_on_error(temp_dir):
     assert result.failed > 0
 
 
-def test_batch_processor_parallel(temp_dir):
+def test_batch_processor_parallel(temp_dir: Path) -> None:
     """Test parallel processing"""
     processor = BatchProcessor(max_workers=2)
 
@@ -277,7 +278,7 @@ def test_batch_processor_parallel(temp_dir):
 
     processor.add_files(files)
 
-    def processor_func(file_path):
+    def processor_func(file_path: Path) -> str:
         time.sleep(0.01)  # Simulate work
         return f"processed_{file_path.name}"
 
@@ -289,7 +290,7 @@ def test_batch_processor_parallel(temp_dir):
     assert result.failed == 0
 
 
-def test_batch_processor_progress_callback(temp_dir):
+def test_batch_processor_progress_callback(temp_dir: Path) -> None:
     """Test progress callback"""
     processor = BatchProcessor()
 
@@ -302,12 +303,12 @@ def test_batch_processor_progress_callback(temp_dir):
 
     processor.add_files(files)
 
-    progress_updates = []
+    progress_updates: list[tuple[int, int]] = []
 
-    def progress_callback(current, total):
+    def progress_callback(current: int, total: int) -> None:
         progress_updates.append((current, total))
 
-    def processor_func(file_path):
+    def processor_func(file_path: Path) -> str:
         return f"processed_{file_path.name}"
 
     processor.process_parallel(processor_func, progress_callback=progress_callback)
@@ -317,11 +318,11 @@ def test_batch_processor_progress_callback(temp_dir):
     assert progress_updates[-1] == (3, 3)  # Final update
 
 
-def test_batch_processor_empty_batch():
+def test_batch_processor_empty_batch() -> None:
     """Test processing empty batch"""
     processor = BatchProcessor()
 
-    def processor_func(file_path):
+    def processor_func(file_path: Path) -> str:
         return "processed"
 
     result = processor.process(processor_func)
@@ -331,7 +332,7 @@ def test_batch_processor_empty_batch():
     assert result.failed == 0
 
 
-def test_batch_processor_metadata():
+def test_batch_processor_metadata() -> None:
     """Test job metadata"""
     processor = BatchProcessor()
 

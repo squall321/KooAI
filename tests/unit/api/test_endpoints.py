@@ -12,12 +12,12 @@ from src.presentation.api.main import app
 
 
 @pytest.fixture
-def client():
+def client() -> TestClient:
     """Test client"""
     return TestClient(app)
 
 
-def test_root_endpoint(client):
+def test_root_endpoint(client: TestClient) -> None:
     """Test root endpoint"""
     response = client.get("/")
 
@@ -28,7 +28,7 @@ def test_root_endpoint(client):
     assert data["docs"] == "/docs"
 
 
-def test_health_check(client):
+def test_health_check(client: TestClient) -> None:
     """Test health check endpoint"""
     response = client.get("/health")
 
@@ -38,19 +38,19 @@ def test_health_check(client):
     assert data["version"] == "1.0.0"
 
 
-def test_openapi_docs_available(client):
+def test_openapi_docs_available(client: TestClient) -> None:
     """Test OpenAPI docs are available"""
     response = client.get("/docs")
     assert response.status_code == 200
 
 
-def test_redoc_available(client):
+def test_redoc_available(client: TestClient) -> None:
     """Test ReDoc is available"""
     response = client.get("/redoc")
     assert response.status_code == 200
 
 
-def test_openapi_json(client):
+def test_openapi_json(client: TestClient) -> None:
     """Test OpenAPI JSON schema"""
     response = client.get("/openapi.json")
 
@@ -61,7 +61,7 @@ def test_openapi_json(client):
     assert data["info"]["title"] == "Simulation Post-Processing API"
 
 
-def test_cors_headers(client):
+def test_cors_headers(client: TestClient) -> None:
     """Test CORS headers are set"""
     response = client.options(
         "/health",
@@ -75,7 +75,7 @@ def test_cors_headers(client):
     assert "access-control-allow-origin" in response.headers
 
 
-def test_api_version_in_prefix(client):
+def test_api_version_in_prefix(client: TestClient) -> None:
     """Test API version prefix"""
     # API routes should be under /api/v1
     response = client.get("/api/v1/simulations/")
@@ -85,14 +85,14 @@ def test_api_version_in_prefix(client):
     assert response.status_code in [200, 404, 405, 422]
 
 
-def test_404_for_invalid_route(client):
+def test_404_for_invalid_route(client: TestClient) -> None:
     """Test 404 for non-existent routes"""
     response = client.get("/api/v1/invalid-route")
 
     assert response.status_code == 404
 
 
-def test_content_type_json(client):
+def test_content_type_json(client: TestClient) -> None:
     """Test API returns JSON by default"""
     response = client.get("/health")
 

@@ -8,6 +8,7 @@ import pytest
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from typing import Generator, Any
 
 from src.infrastructure.tasks import (
     Task,
@@ -27,7 +28,7 @@ from src.infrastructure.tasks import (
 
 
 @pytest.fixture(autouse=True)
-def cleanup_singletons():
+def cleanup_singletons() -> Generator[None, None, None]:
     """Clean up singleton instances after each test"""
     yield
     reset_task_queue()
@@ -35,13 +36,13 @@ def cleanup_singletons():
 
 
 @pytest.fixture
-def task_queue():
+def task_queue() -> TaskQueue:
     """Create fresh task queue"""
     return TaskQueue()
 
 
 @pytest.fixture
-def worker_pool(task_queue):
+def worker_pool(task_queue: TaskQueue) -> Generator[WorkerPool, None, None]:
     """Create worker pool with task registry"""
     pool = WorkerPool(num_workers=2, queue=task_queue)
     yield pool
@@ -67,13 +68,13 @@ def slow_task(duration: float) -> str:
 def failing_task(fail_count: int) -> str:
     """Task that fails specified number of times"""
     if not hasattr(failing_task, "_attempts"):
-        failing_task._attempts = {}
+        failing_task._attempts = {}  # type: ignore[attr-defined]
 
     key = threading.get_ident()
-    failing_task._attempts[key] = failing_task._attempts.get(key, 0) + 1
+    failing_task._attempts[key] = failing_task._attempts.get(key, 0) + 1  # type: ignore[attr-defined]
 
-    if failing_task._attempts[key] <= fail_count:
-        raise Exception(f"Intentional failure (attempt {failing_task._attempts[key]})")
+    if failing_task._attempts[key] <= fail_count:  # type: ignore[attr-defined]
+        raise Exception(f"Intentional failure (attempt {failing_task._attempts[key]})")  # type: ignore[attr-defined]
 
     return "success after retries"
 
@@ -100,42 +101,42 @@ def low_priority_task() -> str:
 class TestTaskDecorator:
     """Test @task decorator"""
 
-    def test_task_has_delay_method(self):
+    def test_task_has_delay_method(self) -> None:
         """Test that decorated function has delay method"""
         assert hasattr(simple_task, "delay")
         assert callable(simple_task.delay)
 
-    def test_task_has_wait_method(self):
+    def test_task_has_wait_method(self) -> None:
         """Test that decorated function has wait method"""
         assert hasattr(simple_task, "wait")
         assert callable(simple_task.wait)
 
-    def test_task_has_apply_async_method(self):
+    def test_task_has_apply_async_method(self) -> None:
         """Test that decorated function has apply_async method"""
         assert hasattr(simple_task, "apply_async")
         assert callable(simple_task.apply_async)
 
-    def test_task_has_name(self):
+    def test_task_has_name(self) -> None:
         """Test that decorated function has task_name"""
         assert hasattr(simple_task, "task_name")
         assert simple_task.task_name == "test.simple_task"
 
-    def test_task_still_callable_directly(self):
+    def test_task_still_callable_directly(self) -> None:
         """Test that decorated function can still be called directly"""
         result = simple_task(5)
         assert result == 10
 
-    def test_task_registered_in_registry(self):
+    def test_task_registered_in_registry(self) -> None:
         """Test that task is registered"""
         registry = get_task_registry()
         assert "test.simple_task" in registry
-        assert registry["test.simple_task"] == simple_task.__wrapped__
+        assert registry["test.simple_task"] == simple_task.__wrapped__  # type: ignore[attr-defined]
 
 
 class TestTaskQueue:
     """Test TaskQueue operations"""
 
-    def test_enqueue_task(self, task_queue):
+    def test_enqueue_task(self, task_queue: TaskQueue) -> None:
         """Test enqueueing task"""
         task_obj = Task(name="test_task", args=(1, 2), kwargs={"key": "value"})
 
@@ -145,7 +146,7 @@ class TestTaskQueue:
         assert len(task_id) > 0
         assert task_obj.task_id == task_id
 
-    def test_dequeue_task(self, task_queue):
+    def test_dequeue_task(self, task_queue: TaskQueue) -> None:
         """Test dequeueing task"""
         task_obj = Task(name="test_task", args=(1,))
         task_queue.enqueue(task_obj)
@@ -156,7 +157,7 @@ class TestTaskQueue:
         assert dequeued.name == "test_task"
         assert dequeued.args == (1,)
 
-    def test_dequeue_timeout(self, task_queue):
+    def test_dequeue_timeout(self, task_queue: TaskQueue) -> None:
         """Test dequeue timeout on empty queue"""
         start = time.time()
         result = task_queue.dequeue(timeout=0.5)
@@ -165,7 +166,7 @@ class TestTaskQueue:
         assert result is None
         assert elapsed >= 0.5
 
-    def test_priority_ordering(self, task_queue):
+    def test_priority_ordering(self, task_queue: TaskQueue) -> None:
         """Test that high priority tasks are dequeued first"""
         # Enqueue in mixed order
         low_task = Task(name="low", args=(), priority=TaskPriority.LOW)
@@ -181,11 +182,14 @@ class TestTaskQueue:
         second = task_queue.dequeue(timeout=0.1)
         third = task_queue.dequeue(timeout=0.1)
 
+        assert first is not None
         assert first.name == "high"
+        assert second is not None
         assert second.name == "normal"
+        assert third is not None
         assert third.name == "low"
 
-    def test_get_result(self, task_queue):
+    def test_get_result(self, task_queue: TaskQueue) -> None:
         """Test getting task result"""
         task_obj = Task(name="test_task", args=())
         task_id = task_queue.enqueue(task_obj)
@@ -198,7 +202,7 @@ class TestTaskQueue:
         assert result.result == "success"
         assert result.status == TaskStatus.COMPLETED
 
-    def test_complete_task_with_error(self, task_queue):
+    def test_complete_task_with_error(self, task_queue: TaskQueue) -> None:
         """Test completing task with error"""
         task_obj = Task(name="test_task", args=())
         task_id = task_queue.enqueue(task_obj)
@@ -206,10 +210,11 @@ class TestTaskQueue:
         task_queue.complete_task(task_id, error="Task failed")
 
         result = task_queue.get_result(task_id)
+        assert result is not None
         assert result.status == TaskStatus.FAILED
         assert result.error == "Task failed"
 
-    def test_queue_statistics(self, task_queue):
+    def test_queue_statistics(self, task_queue: TaskQueue) -> None:
         """Test queue statistics"""
         # Add some tasks
         for i in range(3):
@@ -220,7 +225,7 @@ class TestTaskQueue:
         assert stats["running"] == 0
         assert stats["completed"] == 0
 
-    def test_clear_queue(self, task_queue):
+    def test_clear_queue(self, task_queue: TaskQueue) -> None:
         """Test clearing queue"""
         for i in range(5):
             task_queue.enqueue(Task(name=f"task{i}", args=()))
@@ -235,16 +240,16 @@ class TestTaskQueue:
 class TestWorkerExecution:
     """Test worker task execution"""
 
-    def test_worker_executes_task(self, task_queue):
+    def test_worker_executes_task(self, task_queue: TaskQueue) -> None:
         """Test that worker executes task"""
         worker = TaskWorker(queue=task_queue)
-        worker.register_task("test.simple_task", simple_task.__wrapped__)
+        worker.register_task("test.simple_task", simple_task.__wrapped__)  # type: ignore[attr-defined]
 
         # Start worker
         worker.start()
 
         # Enqueue task
-        task_id = simple_task.delay(5)
+        task_id = simple_task.delay(5)  # type: ignore[attr-defined]
 
         # Wait for completion
         time.sleep(1.0)
@@ -258,10 +263,10 @@ class TestWorkerExecution:
         # Stop worker
         worker.stop()
 
-    def test_worker_handles_error(self, task_queue):
+    def test_worker_handles_error(self, task_queue: TaskQueue) -> None:
         """Test that worker handles task errors"""
 
-        def error_task():
+        def error_task() -> None:
             raise ValueError("Test error")
 
         worker = TaskWorker(queue=task_queue)
@@ -277,12 +282,14 @@ class TestWorkerExecution:
 
         # Check error
         result = task_queue.get_result(task_id)
+        assert result is not None
         assert result.status == TaskStatus.FAILED
+        assert result.error is not None
         assert "Test error" in result.error
 
         worker.stop()
 
-    def test_worker_graceful_shutdown(self, task_queue):
+    def test_worker_graceful_shutdown(self, task_queue: TaskQueue) -> None:
         """Test worker graceful shutdown"""
         worker = TaskWorker(queue=task_queue)
         worker.start()
@@ -298,7 +305,7 @@ class TestWorkerExecution:
 class TestWorkerPool:
     """Test WorkerPool operations"""
 
-    def test_worker_pool_starts_workers(self):
+    def test_worker_pool_starts_workers(self) -> None:
         """Test that worker pool starts specified number of workers"""
         pool = WorkerPool(num_workers=4)
         pool.start()
@@ -308,7 +315,7 @@ class TestWorkerPool:
 
         pool.stop()
 
-    def test_worker_pool_processes_multiple_tasks(self):
+    def test_worker_pool_processes_multiple_tasks(self) -> None:
         """Test that worker pool processes multiple tasks concurrently"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=3)
@@ -318,7 +325,7 @@ class TestWorkerPool:
         # Submit multiple tasks
         task_ids = []
         for i in range(6):
-            task_id = simple_task.delay(i)
+            task_id = simple_task.delay(i)  # type: ignore[attr-defined]
             task_ids.append(task_id)
 
         # Wait for completion
@@ -336,11 +343,11 @@ class TestWorkerPool:
 
         pool.stop()
 
-    def test_worker_pool_register_task(self):
+    def test_worker_pool_register_task(self) -> None:
         """Test registering task to worker pool"""
         pool = WorkerPool(num_workers=2)
 
-        def test_func():
+        def test_func() -> str:
             return "test"
 
         pool.register_task("test_func", test_func)
@@ -351,31 +358,31 @@ class TestWorkerPool:
 class TestDelayAndWait:
     """Test .delay() and .wait() methods"""
 
-    def test_delay_returns_task_id(self):
+    def test_delay_returns_task_id(self) -> None:
         """Test that delay() returns task ID"""
-        task_id = simple_task.delay(10)
+        task_id = simple_task.delay(10)  # type: ignore[attr-defined]
 
         assert task_id is not None
         assert isinstance(task_id, str)
         assert len(task_id) > 0
 
-    def test_wait_returns_result(self):
+    def test_wait_returns_result(self) -> None:
         """Test that wait() returns result"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=1)
         pool.start()
         time.sleep(0.5)
 
-        task_id = simple_task.delay(10)
+        task_id = simple_task.delay(10)  # type: ignore[attr-defined]
 
         # Wait for result
-        result = simple_task.wait(task_id, timeout=5.0)
+        result = simple_task.wait(task_id, timeout=5.0)  # type: ignore[attr-defined]
 
         assert result == 20
 
         pool.stop()
 
-    def test_wait_timeout(self):
+    def test_wait_timeout(self) -> None:
         """Test that wait() times out"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=1)
@@ -383,15 +390,15 @@ class TestDelayAndWait:
         time.sleep(0.5)
 
         # Submit slow task
-        task_id = slow_task.delay(5.0)  # 5 seconds
+        task_id = slow_task.delay(5.0)  # type: ignore[attr-defined]  # 5 seconds
 
         # Wait with short timeout
         with pytest.raises(TimeoutError):
-            slow_task.wait(task_id, timeout=1.0)
+            slow_task.wait(task_id, timeout=1.0)  # type: ignore[attr-defined]
 
         pool.stop()
 
-    def test_wait_raises_on_error(self):
+    def test_wait_raises_on_error(self) -> None:
         """Test that wait() raises RuntimeError on task failure"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=1)
@@ -399,11 +406,11 @@ class TestDelayAndWait:
         time.sleep(0.5)
 
         # Submit failing task that exceeds retries
-        task_id = failing_task.delay(fail_count=5)  # Fails more than max_retries
+        task_id = failing_task.delay(fail_count=5)  # type: ignore[attr-defined]  # Fails more than max_retries
 
         # Wait should raise RuntimeError
         with pytest.raises(RuntimeError, match="Task failed"):
-            failing_task.wait(task_id, timeout=5.0)
+            failing_task.wait(task_id, timeout=5.0)  # type: ignore[attr-defined]
 
         pool.stop()
 
@@ -411,7 +418,7 @@ class TestDelayAndWait:
 class TestPriorityExecution:
     """Test priority-based execution"""
 
-    def test_high_priority_executes_first(self):
+    def test_high_priority_executes_first(self) -> None:
         """Test that high priority tasks execute before low priority"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=1)  # Single worker
@@ -419,9 +426,9 @@ class TestPriorityExecution:
         time.sleep(0.5)
 
         # Submit tasks in reverse priority order
-        low_id = low_priority_task.delay()
-        normal_id = simple_task.delay(1)
-        high_id = high_priority_task.delay()
+        low_id = low_priority_task.delay()  # type: ignore[attr-defined]
+        normal_id = simple_task.delay(1)  # type: ignore[attr-defined]
+        high_id = high_priority_task.delay()  # type: ignore[attr-defined]
 
         # Wait a bit
         time.sleep(0.5)
@@ -440,7 +447,7 @@ class TestPriorityExecution:
 class TestRetryMechanism:
     """Test retry mechanism"""
 
-    def test_task_retries_on_failure(self):
+    def test_task_retries_on_failure(self) -> None:
         """Test that failed tasks are retried"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=1)
@@ -452,7 +459,7 @@ class TestRetryMechanism:
         if hasattr(failing_task, "_attempts"):
             failing_task._attempts.clear()
 
-        task_id = failing_task.delay(fail_count=1)
+        task_id = failing_task.delay(fail_count=1)  # type: ignore[attr-defined]
 
         # Wait for completion (with retries)
         time.sleep(5.0)
@@ -471,7 +478,7 @@ class TestRetryMechanism:
 class TestTimeoutHandling:
     """Test timeout handling"""
 
-    def test_task_completes_within_timeout(self):
+    def test_task_completes_within_timeout(self) -> None:
         """Test task that completes within timeout"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=1)
@@ -479,14 +486,14 @@ class TestTimeoutHandling:
         time.sleep(0.5)
 
         # Task completes in 1 second, timeout is 2 seconds
-        task_id = timeout_task.delay(1.0)
+        task_id = timeout_task.delay(1.0)  # type: ignore[attr-defined]
 
-        result = timeout_task.wait(task_id, timeout=5.0)
+        result = timeout_task.wait(task_id, timeout=5.0)  # type: ignore[attr-defined]
         assert result == "completed"
 
         pool.stop()
 
-    def test_task_timeout_handling(self):
+    def test_task_timeout_handling(self) -> None:
         """Test task that exceeds timeout"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=1)
@@ -494,7 +501,7 @@ class TestTimeoutHandling:
         time.sleep(0.5)
 
         # Task takes 5 seconds, timeout is 2 seconds
-        task_id = timeout_task.delay(5.0)
+        task_id = timeout_task.delay(5.0)  # type: ignore[attr-defined]
 
         # Wait for failure
         time.sleep(5.0)
@@ -505,6 +512,7 @@ class TestTimeoutHandling:
         # Should fail with timeout error
         assert result is not None
         if result.status == TaskStatus.FAILED:
+            assert result.error is not None
             assert "timeout" in result.error.lower() or "timed out" in result.error.lower()
 
         pool.stop()
@@ -513,7 +521,7 @@ class TestTimeoutHandling:
 class TestConcurrentExecution:
     """Test concurrent task execution"""
 
-    def test_multiple_workers_process_tasks(self):
+    def test_multiple_workers_process_tasks(self) -> None:
         """Test that multiple workers process tasks concurrently"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=4)
@@ -525,7 +533,7 @@ class TestConcurrentExecution:
         start_time = time.time()
 
         for i in range(20):
-            task_id = simple_task.delay(i)
+            task_id = simple_task.delay(i)  # type: ignore[attr-defined]
             task_ids.append(task_id)
 
         # Wait for all to complete
@@ -535,11 +543,11 @@ class TestConcurrentExecution:
 
         # Check completion
         queue = get_task_queue()
-        completed = sum(
-            1
-            for tid in task_ids
-            if queue.get_result(tid) and queue.get_result(tid).status == TaskStatus.COMPLETED
-        )
+        completed = 0
+        for tid in task_ids:
+            result = queue.get_result(tid)
+            if result is not None and result.status == TaskStatus.COMPLETED:
+                completed += 1
 
         # Most should complete
         assert completed >= 15
@@ -550,11 +558,11 @@ class TestConcurrentExecution:
 
         pool.stop()
 
-    def test_thread_safety(self):
+    def test_thread_safety(self) -> None:
         """Test thread safety of queue operations"""
         queue = get_task_queue()
 
-        def enqueue_tasks(thread_id):
+        def enqueue_tasks(thread_id: int) -> None:
             for i in range(50):
                 task = Task(name=f"task_{thread_id}_{i}", args=(i,))
                 queue.enqueue(task)
@@ -573,25 +581,25 @@ class TestConcurrentExecution:
 class TestEdgeCases:
     """Test edge cases"""
 
-    def test_task_with_no_args(self):
+    def test_task_with_no_args(self) -> None:
         """Test task with no arguments"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=1)
         pool.start()
         time.sleep(0.5)
 
-        task_id = high_priority_task.delay()
-        result = high_priority_task.wait(task_id, timeout=5.0)
+        task_id = high_priority_task.delay()  # type: ignore[attr-defined]
+        result = high_priority_task.wait(task_id, timeout=5.0)  # type: ignore[attr-defined]
 
         assert result == "high_priority_result"
 
         pool.stop()
 
-    def test_task_with_kwargs_only(self):
+    def test_task_with_kwargs_only(self) -> None:
         """Test task with keyword arguments only"""
 
         @task(name="test.kwargs_task")
-        def kwargs_task(a=1, b=2):
+        def kwargs_task(a: int = 1, b: int = 2) -> int:
             return a + b
 
         register_tasks_to_workers()
@@ -599,18 +607,18 @@ class TestEdgeCases:
         pool.start()
         time.sleep(0.5)
 
-        task_id = kwargs_task.delay(a=10, b=20)
-        result = kwargs_task.wait(task_id, timeout=5.0)
+        task_id = kwargs_task.delay(a=10, b=20)  # type: ignore[attr-defined]
+        result = kwargs_task.wait(task_id, timeout=5.0)  # type: ignore[attr-defined]
 
         assert result == 30
 
         pool.stop()
 
-    def test_task_returns_none(self):
+    def test_task_returns_none(self) -> None:
         """Test task that returns None"""
 
         @task(name="test.none_task")
-        def none_task():
+        def none_task() -> None:
             return None
 
         register_tasks_to_workers()
@@ -618,14 +626,14 @@ class TestEdgeCases:
         pool.start()
         time.sleep(0.5)
 
-        task_id = none_task.delay()
-        result = none_task.wait(task_id, timeout=5.0)
+        task_id = none_task.delay()  # type: ignore[attr-defined]
+        result = none_task.wait(task_id, timeout=5.0)  # type: ignore[attr-defined]
 
         assert result is None
 
         pool.stop()
 
-    def test_empty_queue_stats(self, task_queue):
+    def test_empty_queue_stats(self, task_queue: TaskQueue) -> None:
         """Test statistics on empty queue"""
         stats = task_queue.get_stats()
 
@@ -638,7 +646,7 @@ class TestEdgeCases:
 class TestPerformance:
     """Performance tests"""
 
-    def test_queue_enqueue_performance(self, task_queue):
+    def test_queue_enqueue_performance(self, task_queue: TaskQueue) -> None:
         """Test enqueue performance"""
         start = time.time()
 
@@ -653,7 +661,7 @@ class TestPerformance:
 
         print(f"\n  1000 task enqueues: {elapsed*1000:.2f}ms")
 
-    def test_throughput(self):
+    def test_throughput(self) -> None:
         """Test task processing throughput"""
         register_tasks_to_workers()
         pool = get_worker_pool(num_workers=4)
@@ -662,7 +670,7 @@ class TestPerformance:
 
         # Submit 100 quick tasks
         start_time = time.time()
-        task_ids = [simple_task.delay(i) for i in range(100)]
+        task_ids = [simple_task.delay(i) for i in range(100)]  # type: ignore[attr-defined]
 
         # Wait for completion
         queue = get_task_queue()

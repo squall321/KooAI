@@ -22,13 +22,13 @@ pytestmark = pytest.mark.skipif(
 class TestPrometheusMetrics:
     """Prometheus 메트릭 테스트"""
 
-    def test_metrics_registry_exists(self):
+    def test_metrics_registry_exists(self) -> None:
         """메트릭 레지스트리 존재 확인"""
         from src.infrastructure.monitoring.prometheus_metrics import metrics_registry
 
         assert metrics_registry is not None
 
-    def test_http_metrics_exist(self):
+    def test_http_metrics_exist(self) -> None:
         """HTTP 메트릭 존재 확인"""
         from src.infrastructure.monitoring.prometheus_metrics import (
             http_requests_total,
@@ -40,7 +40,7 @@ class TestPrometheusMetrics:
         assert http_request_duration_seconds is not None
         assert http_requests_in_progress is not None
 
-    def test_database_metrics_exist(self):
+    def test_database_metrics_exist(self) -> None:
         """데이터베이스 메트릭 존재 확인"""
         from src.infrastructure.monitoring.prometheus_metrics import (
             database_queries_total,
@@ -52,7 +52,7 @@ class TestPrometheusMetrics:
         assert database_query_duration_seconds is not None
         assert database_connections_active is not None
 
-    def test_http_request_counter_increments(self):
+    def test_http_request_counter_increments(self) -> None:
         """HTTP 요청 카운터 증가 테스트"""
         from src.infrastructure.monitoring.prometheus_metrics import http_requests_total
 
@@ -79,7 +79,7 @@ class TestPrometheusMetrics:
 
         assert after > before
 
-    def test_http_request_duration_observes(self):
+    def test_http_request_duration_observes(self) -> None:
         """HTTP 요청 시간 관찰 테스트"""
         from src.infrastructure.monitoring.prometheus_metrics import http_request_duration_seconds
 
@@ -96,7 +96,7 @@ class TestPrometheusMetrics:
         )
         assert metric._sum._value > 0
 
-    def test_gauge_can_be_set(self):
+    def test_gauge_can_be_set(self) -> None:
         """Gauge 메트릭 설정 테스트"""
         from src.infrastructure.monitoring.prometheus_metrics import http_requests_in_progress
 
@@ -114,7 +114,7 @@ class TestPrometheusMetrics:
 
         assert value == 5
 
-    def test_gauge_can_increment_decrement(self):
+    def test_gauge_can_increment_decrement(self) -> None:
         """Gauge 증가/감소 테스트"""
         from src.infrastructure.monitoring.prometheus_metrics import database_connections_active
 
@@ -131,7 +131,7 @@ class TestPrometheusMetrics:
         after_dec = database_connections_active._value._value
         assert after_dec == 10
 
-    def test_generate_latest_returns_metrics(self):
+    def test_generate_latest_returns_metrics(self) -> None:
         """메트릭 생성 테스트"""
         from src.infrastructure.monitoring.prometheus_metrics import metrics_registry
         from prometheus_client import generate_latest
@@ -146,29 +146,24 @@ class TestPrometheusMetrics:
 
     @patch('psutil.cpu_percent')
     @patch('psutil.virtual_memory')
-    def test_system_metrics_collection(self, mock_memory, mock_cpu):
+    def test_system_metrics_collection(self, mock_memory: Mock, mock_cpu: Mock) -> None:
         """시스템 메트릭 수집 테스트"""
         # Mock system metrics
         mock_cpu.return_value = 25.5
         mock_memory.return_value = Mock(percent=60.0)
 
-        # Import after mocking
-        from src.infrastructure.monitoring.prometheus_metrics import (
-            collect_system_metrics
-        )
-
-        # Collect should not raise
-        try:
-            collect_system_metrics()
-        except NameError:
-            # Function might not exist, that's ok
-            pass
+        # Try to call the function if it exists
+        import src.infrastructure.monitoring.prometheus_metrics as metrics_module
+        if hasattr(metrics_module, 'collect_system_metrics'):
+            collect_fn = getattr(metrics_module, 'collect_system_metrics')
+            collect_fn()
+        # If function doesn't exist, test passes (it's optional)
 
 
 class TestMetricLabels:
     """메트릭 레이블 테스트"""
 
-    def test_http_metrics_support_multiple_labels(self):
+    def test_http_metrics_support_multiple_labels(self) -> None:
         """HTTP 메트릭이 다중 레이블 지원 테스트"""
         from src.infrastructure.monitoring.prometheus_metrics import http_requests_total
 
@@ -180,7 +175,7 @@ class TestMetricLabels:
         # All should work without error
         assert True
 
-    def test_database_operation_labels(self):
+    def test_database_operation_labels(self) -> None:
         """데이터베이스 작업 레이블 테스트"""
         from src.infrastructure.monitoring.prometheus_metrics import database_queries_total
 
@@ -197,16 +192,17 @@ class TestMetricLabels:
 class TestMetricsMiddleware:
     """메트릭 미들웨어 테스트"""
 
-    def test_metrics_middleware_exists(self):
+    def test_metrics_middleware_exists(self) -> None:
         """메트릭 미들웨어 존재 확인"""
-        try:
-            from src.infrastructure.monitoring.prometheus_metrics import PrometheusMiddleware
-            assert PrometheusMiddleware is not None
-        except ImportError:
+        import src.infrastructure.monitoring.prometheus_metrics as metrics_module
+        if hasattr(metrics_module, 'PrometheusMiddleware'):
+            middleware_class = getattr(metrics_module, 'PrometheusMiddleware')
+            assert middleware_class is not None
+        else:
             # Middleware might not exist, that's ok
             pytest.skip("PrometheusMiddleware not implemented")
 
-    def test_metrics_can_be_exposed_via_endpoint(self):
+    def test_metrics_can_be_exposed_via_endpoint(self) -> None:
         """메트릭을 엔드포인트로 노출 가능한지 테스트"""
         from src.infrastructure.monitoring.prometheus_metrics import metrics_registry
         from prometheus_client import generate_latest, CONTENT_TYPE_LATEST

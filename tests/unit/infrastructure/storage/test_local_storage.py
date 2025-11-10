@@ -5,6 +5,7 @@ Tests for local filesystem storage backend
 import io
 import tempfile
 from pathlib import Path
+from typing import Generator
 import pytest
 
 from src.infrastructure.storage.local import LocalStorageBackend
@@ -12,20 +13,20 @@ from src.infrastructure.storage.base import FileMetadata, UploadResult
 
 
 @pytest.fixture
-def temp_storage_dir():
+def temp_storage_dir() -> Generator[str, None, None]:
     """Create temporary storage directory"""
     with tempfile.TemporaryDirectory() as tmpdir:
         yield tmpdir
 
 
 @pytest.fixture
-def storage(temp_storage_dir):
+def storage(temp_storage_dir: str) -> LocalStorageBackend:
     """Create local storage backend"""
     return LocalStorageBackend(base_path=temp_storage_dir)
 
 
 @pytest.mark.asyncio
-async def test_upload_and_download(storage):
+async def test_upload_and_download(storage: LocalStorageBackend) -> None:
     """Test basic upload and download"""
     # Upload file
     content = b"Hello, World!"
@@ -46,7 +47,7 @@ async def test_upload_and_download(storage):
 
 
 @pytest.mark.asyncio
-async def test_upload_with_metadata(storage):
+async def test_upload_with_metadata(storage: LocalStorageBackend) -> None:
     """Test upload with custom metadata"""
     content = b"Test data"
     file = io.BytesIO(content)
@@ -64,7 +65,7 @@ async def test_upload_with_metadata(storage):
 
 
 @pytest.mark.asyncio
-async def test_multipart_upload(storage):
+async def test_multipart_upload(storage: LocalStorageBackend) -> None:
     """Test multipart upload for large files"""
     # Create larger content
     content = b"x" * (10 * 1024 * 1024)  # 10MB
@@ -83,7 +84,7 @@ async def test_multipart_upload(storage):
 
 
 @pytest.mark.asyncio
-async def test_download_to_file(storage, temp_storage_dir):
+async def test_download_to_file(storage: LocalStorageBackend, temp_storage_dir: str) -> None:
     """Test download to file"""
     # Upload
     content = b"Test content"
@@ -98,7 +99,7 @@ async def test_download_to_file(storage, temp_storage_dir):
 
 
 @pytest.mark.asyncio
-async def test_download_stream(storage):
+async def test_download_stream(storage: LocalStorageBackend) -> None:
     """Test streaming download"""
     content = b"Stream test content"
     file = io.BytesIO(content)
@@ -113,7 +114,7 @@ async def test_download_stream(storage):
 
 
 @pytest.mark.asyncio
-async def test_delete(storage):
+async def test_delete(storage: LocalStorageBackend) -> None:
     """Test file deletion"""
     # Upload
     file = io.BytesIO(b"delete me")
@@ -128,7 +129,7 @@ async def test_delete(storage):
 
 
 @pytest.mark.asyncio
-async def test_delete_many(storage):
+async def test_delete_many(storage: LocalStorageBackend) -> None:
     """Test batch deletion"""
     # Upload multiple files
     for i in range(5):
@@ -145,7 +146,7 @@ async def test_delete_many(storage):
 
 
 @pytest.mark.asyncio
-async def test_get_metadata(storage):
+async def test_get_metadata(storage: LocalStorageBackend) -> None:
     """Test metadata retrieval"""
     content = b"Metadata test"
     file = io.BytesIO(content)
@@ -161,7 +162,7 @@ async def test_get_metadata(storage):
 
 
 @pytest.mark.asyncio
-async def test_list_files(storage):
+async def test_list_files(storage: LocalStorageBackend) -> None:
     """Test file listing"""
     # Upload multiple files
     for i in range(3):
@@ -179,7 +180,7 @@ async def test_list_files(storage):
 
 
 @pytest.mark.asyncio
-async def test_generate_presigned_url(storage):
+async def test_generate_presigned_url(storage: LocalStorageBackend) -> None:
     """Test presigned URL generation"""
     file = io.BytesIO(b"test")
     await storage.upload(file, "presigned.txt")
@@ -192,7 +193,7 @@ async def test_generate_presigned_url(storage):
 
 
 @pytest.mark.asyncio
-async def test_copy(storage):
+async def test_copy(storage: LocalStorageBackend) -> None:
     """Test file copy"""
     # Upload source
     file = io.BytesIO(b"copy me")
@@ -211,7 +212,7 @@ async def test_copy(storage):
 
 
 @pytest.mark.asyncio
-async def test_move(storage):
+async def test_move(storage: LocalStorageBackend) -> None:
     """Test file move"""
     # Upload source
     file = io.BytesIO(b"move me")
@@ -226,7 +227,7 @@ async def test_move(storage):
 
 
 @pytest.mark.asyncio
-async def test_get_size(storage):
+async def test_get_size(storage: LocalStorageBackend) -> None:
     """Test file size retrieval"""
     content = b"size test"
     file = io.BytesIO(content)
@@ -237,7 +238,7 @@ async def test_get_size(storage):
 
 
 @pytest.mark.asyncio
-async def test_cleanup_old_files(storage):
+async def test_cleanup_old_files(storage: LocalStorageBackend) -> None:
     """Test cleanup of old files"""
     import time
 
@@ -260,7 +261,7 @@ async def test_cleanup_old_files(storage):
 
 
 @pytest.mark.asyncio
-async def test_nonexistent_file(storage):
+async def test_nonexistent_file(storage: LocalStorageBackend) -> None:
     """Test handling of non-existent files"""
     # Check exists
     assert not await storage.exists("nonexistent.txt")

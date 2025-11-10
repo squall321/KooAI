@@ -2,6 +2,9 @@
 Tests for SimulationComparator
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING, Iterator
+
 import pytest
 import numpy as np
 from datetime import datetime
@@ -21,7 +24,7 @@ from src.core.simulation.models import (
 
 
 @pytest.fixture
-def sample_mesh():
+def sample_mesh() -> MeshData:
     """Create sample mesh"""
     vertices = np.array(
         [
@@ -36,7 +39,7 @@ def sample_mesh():
 
 
 @pytest.fixture
-def simulation1(sample_mesh):
+def simulation1(sample_mesh: MeshData) -> SimulationResult:
     """Create first simulation"""
     # Create fields
     temperature = FieldData(
@@ -72,7 +75,7 @@ def simulation1(sample_mesh):
 
 
 @pytest.fixture
-def simulation2(sample_mesh):
+def simulation2(sample_mesh: MeshData) -> SimulationResult:
     """Create second simulation with slight differences"""
     # Create fields
     temperature = FieldData(
@@ -108,7 +111,7 @@ def simulation2(sample_mesh):
 
 
 @pytest.fixture
-def simulation3(sample_mesh):
+def simulation3(sample_mesh: MeshData) -> SimulationResult:
     """Create third simulation"""
     # Create fields
     temperature = FieldData(
@@ -144,12 +147,12 @@ def simulation3(sample_mesh):
 
 
 @pytest.fixture
-def comparator():
+def comparator() -> SimulationComparator:
     """Create comparator instance"""
     return SimulationComparator()
 
 
-def test_comparison_result_to_dict():
+def test_comparison_result_to_dict() -> None:
     """Test ComparisonResult.to_dict()"""
     result = ComparisonResult(
         simulation_ids=["sim1", "sim2"],
@@ -172,7 +175,7 @@ def test_comparison_result_to_dict():
     assert "compared_at" in result_dict
 
 
-def test_compare_fields_basic(comparator, simulation1, simulation2):
+def test_compare_fields_basic(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult) -> None:
     """Test basic field comparison"""
     result = comparator.compare_fields(simulation1, simulation2, "temperature")
 
@@ -195,7 +198,7 @@ def test_compare_fields_basic(comparator, simulation1, simulation2):
     assert "bin_edges" in result.difference_histogram
 
 
-def test_compare_fields_identical(comparator, simulation1):
+def test_compare_fields_identical(comparator: SimulationComparator, simulation1: SimulationResult) -> None:
     """Test comparing identical fields"""
     result = comparator.compare_fields(simulation1, simulation1, "temperature")
 
@@ -205,13 +208,13 @@ def test_compare_fields_identical(comparator, simulation1):
     assert result.correlation == pytest.approx(1.0, abs=1e-6)
 
 
-def test_compare_fields_nonexistent_field(comparator, simulation1, simulation2):
+def test_compare_fields_nonexistent_field(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult) -> None:
     """Test comparing nonexistent field"""
     with pytest.raises(ValueError, match="Field 'nonexistent' not found"):
         comparator.compare_fields(simulation1, simulation2, "nonexistent")
 
 
-def test_compare_all_fields(comparator, simulation1, simulation2):
+def test_compare_all_fields(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult) -> None:
     """Test comparing all fields"""
     results = comparator.compare_all_fields(simulation1, simulation2)
 
@@ -226,7 +229,7 @@ def test_compare_all_fields(comparator, simulation1, simulation2):
         assert result.simulation_ids == ["sim1", "sim2"]
 
 
-def test_compare_multiple(comparator, simulation1, simulation2, simulation3):
+def test_compare_multiple(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult, simulation3: SimulationResult) -> None:
     """Test comparing multiple simulations"""
     simulations = [simulation1, simulation2, simulation3]
 
@@ -254,13 +257,13 @@ def test_compare_multiple(comparator, simulation1, simulation2, simulation3):
     assert corr_matrix[2][2] == pytest.approx(1.0)
 
 
-def test_compare_multiple_insufficient_simulations(comparator, simulation1):
+def test_compare_multiple_insufficient_simulations(comparator: SimulationComparator, simulation1: SimulationResult) -> None:
     """Test compare_multiple with less than 2 simulations"""
     with pytest.raises(ValueError, match="Need at least 2 simulations"):
         comparator.compare_multiple([simulation1], "temperature")
 
 
-def test_calculate_convergence(comparator, simulation1, simulation2, simulation3):
+def test_calculate_convergence(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult, simulation3: SimulationResult) -> None:
     """Test convergence calculation"""
     simulations = [simulation1, simulation2, simulation3]
 
@@ -283,7 +286,7 @@ def test_calculate_convergence(comparator, simulation1, simulation2, simulation3
         assert metric["l_inf_error"] >= 0
 
 
-def test_calculate_convergence_custom_reference(comparator, simulation1, simulation2, simulation3):
+def test_calculate_convergence_custom_reference(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult, simulation3: SimulationResult) -> None:
     """Test convergence calculation with custom reference"""
     simulations = [simulation1, simulation2, simulation3]
 
@@ -292,7 +295,7 @@ def test_calculate_convergence_custom_reference(comparator, simulation1, simulat
     assert result["reference_simulation_id"] == "sim1"
 
 
-def test_identify_differences(comparator, simulation1, simulation2):
+def test_identify_differences(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult) -> None:
     """Test identifying significant differences"""
     result = comparator.identify_differences(
         simulation1, simulation2, "temperature", threshold=0.01
@@ -308,7 +311,7 @@ def test_identify_differences(comparator, simulation1, simulation2):
     assert "difference_mask" in result
 
 
-def test_identify_differences_high_threshold(comparator, simulation1, simulation2):
+def test_identify_differences_high_threshold(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult) -> None:
     """Test identifying differences with high threshold"""
     # With high threshold, should find no significant differences
     result = comparator.identify_differences(simulation1, simulation2, "temperature", threshold=0.5)
@@ -319,7 +322,7 @@ def test_identify_differences_high_threshold(comparator, simulation1, simulation
     assert result["max_relative_difference"] == 0.0
 
 
-def test_spatial_diff_map(comparator, simulation1, simulation2):
+def test_spatial_diff_map(comparator: SimulationComparator, simulation1: SimulationResult, simulation2: SimulationResult) -> None:
     """Test spatial difference map generation"""
     result = comparator.compare_fields(simulation1, simulation2, "temperature")
 
@@ -329,7 +332,7 @@ def test_spatial_diff_map(comparator, simulation1, simulation2):
     assert result.spatial_diff_map.shape == (4,)
 
 
-def test_no_timesteps_error(comparator, sample_mesh):
+def test_no_timesteps_error(comparator: SimulationComparator, sample_mesh: MeshData) -> None:
     """Test error when simulation has no timesteps"""
     sim = SimulationResult(
         name="Empty",
@@ -342,7 +345,7 @@ def test_no_timesteps_error(comparator, sample_mesh):
         comparator.compare_fields(sim, sim, "temperature")
 
 
-def test_timestep_index(comparator, sample_mesh):
+def test_timestep_index(comparator: SimulationComparator, sample_mesh: MeshData) -> None:
     """Test comparing specific timestep"""
     # Create simulation with multiple timesteps
     sim1 = SimulationResult(name="Multi", simulation_type="CFD", mesh=sample_mesh)

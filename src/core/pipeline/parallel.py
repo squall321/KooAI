@@ -5,7 +5,7 @@
 """
 
 import asyncio
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, Union
 
 from .base import (
     Pipeline,
@@ -195,8 +195,8 @@ class ConditionalStage(ProcessingStage):
     def __init__(
         self,
         condition_func: Callable,
-        true_stage: ProcessingStage,
-        false_stage: Optional[ProcessingStage] = None,
+        true_stage: Union[ProcessingStage, Pipeline],
+        false_stage: Optional[Union[ProcessingStage, Pipeline]] = None,
         name: str = "ConditionalStage",
     ):
         """
@@ -229,13 +229,15 @@ class ConditionalStage(ProcessingStage):
             # True 경로
             context.metadata[f"{self.name}_branch"] = "true"
             result = await self.true_stage.execute(data, context)
-            return result.data
+            # PipelineResult는 final_data, StageResult는 data 사용
+            return result.final_data if isinstance(result, PipelineResult) else result.data
         else:
             # False 경로
             context.metadata[f"{self.name}_branch"] = "false"
             if self.false_stage:
                 result = await self.false_stage.execute(data, context)
-                return result.data
+                # PipelineResult는 final_data, StageResult는 data 사용
+                return result.final_data if isinstance(result, PipelineResult) else result.data
             else:
                 # false_stage가 없으면 데이터 그대로 반환
                 return data

@@ -7,6 +7,7 @@ import json
 import csv
 import numpy as np
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock
 
 from src.application.export.exporter import (
@@ -16,13 +17,13 @@ from src.application.export.exporter import (
 
 
 @pytest.fixture
-def temp_dir(tmp_path):
+def temp_dir(tmp_path: Path) -> Path:
     """Create temporary directory for test outputs"""
     return tmp_path
 
 
 @pytest.fixture
-def mock_simulation_data():
+def mock_simulation_data() -> Any:
     """Create mock simulation data"""
     # Create mock simulation data with nested attributes
     sim_data = Mock()
@@ -47,12 +48,12 @@ def mock_simulation_data():
 
 
 @pytest.fixture
-def exporter():
+def exporter() -> MultiFormatExporter:
     """Create exporter instance"""
     return MultiFormatExporter()
 
 
-def test_export_json(exporter, mock_simulation_data, temp_dir):
+def test_export_json(exporter: MultiFormatExporter, mock_simulation_data: Any, temp_dir: Path) -> None:
     """Test JSON export"""
     output_path = temp_dir / "output.json"
 
@@ -78,7 +79,7 @@ def test_export_json(exporter, mock_simulation_data, temp_dir):
     assert data["metadata"]["num_vertices"] == 5
 
 
-def test_export_json_without_metadata(exporter, mock_simulation_data, temp_dir):
+def test_export_json_without_metadata(exporter: MultiFormatExporter, mock_simulation_data: Any, temp_dir: Path) -> None:
     """Test JSON export without metadata"""
     output_path = temp_dir / "output_no_meta.json"
 
@@ -95,7 +96,7 @@ def test_export_json_without_metadata(exporter, mock_simulation_data, temp_dir):
     assert "metadata" not in data
 
 
-def test_export_csv(exporter, mock_simulation_data, temp_dir):
+def test_export_csv(exporter: MultiFormatExporter, mock_simulation_data: Any, temp_dir: Path) -> None:
     """Test CSV export"""
     output_path = temp_dir / "output.csv"
 
@@ -121,7 +122,7 @@ def test_export_csv(exporter, mock_simulation_data, temp_dir):
     assert len(rows) == 6
 
 
-def test_export_numpy(exporter, mock_simulation_data, temp_dir):
+def test_export_numpy(exporter: MultiFormatExporter, mock_simulation_data: Any, temp_dir: Path) -> None:
     """Test NumPy export"""
     output_path = temp_dir / "output.npz"
 
@@ -143,7 +144,7 @@ def test_export_numpy(exporter, mock_simulation_data, temp_dir):
     assert np.array_equal(loaded["pressure"], np.array([100.0, 200.0, 300.0, 400.0, 500.0]))
 
 
-def test_export_text(exporter, mock_simulation_data, temp_dir):
+def test_export_text(exporter: MultiFormatExporter, mock_simulation_data: Any, temp_dir: Path) -> None:
     """Test text export"""
     output_path = temp_dir / "output.txt"
 
@@ -168,7 +169,7 @@ def test_export_text(exporter, mock_simulation_data, temp_dir):
     assert "pressure:" in content
 
 
-def test_export_analysis_results(exporter, temp_dir):
+def test_export_analysis_results(exporter: MultiFormatExporter, temp_dir: Path) -> None:
     """Test exporting analysis results"""
     output_path = temp_dir / "analysis.json"
 
@@ -195,7 +196,7 @@ def test_export_analysis_results(exporter, temp_dir):
     assert data["statistics"]["variance"] == 2.5
 
 
-def test_export_unsupported_format(exporter, mock_simulation_data, temp_dir):
+def test_export_unsupported_format(exporter: MultiFormatExporter, mock_simulation_data: Any, temp_dir: Path) -> None:
     """Test unsupported format raises error"""
     output_path = temp_dir / "output.xyz"
 
@@ -204,11 +205,11 @@ def test_export_unsupported_format(exporter, mock_simulation_data, temp_dir):
         exporter.export_simulation_data(
             mock_simulation_data,
             output_path,
-            format="INVALID",  # This will fail before reaching the ValueError
+            format="INVALID",  # type: ignore[arg-type]  # Intentionally testing invalid type
         )
 
 
-def test_export_csv_without_fields(exporter, temp_dir):
+def test_export_csv_without_fields(exporter: MultiFormatExporter, temp_dir: Path) -> None:
     """Test CSV export without fields raises error"""
     output_path = temp_dir / "output.csv"
 
@@ -226,7 +227,7 @@ def test_export_csv_without_fields(exporter, temp_dir):
         )
 
 
-def test_export_numpy_without_fields(exporter, temp_dir):
+def test_export_numpy_without_fields(exporter: MultiFormatExporter, temp_dir: Path) -> None:
     """Test NumPy export without fields raises error"""
     output_path = temp_dir / "output.npz"
 
@@ -244,7 +245,7 @@ def test_export_numpy_without_fields(exporter, temp_dir):
         )
 
 
-def test_json_serialize_numpy_types(exporter):
+def test_json_serialize_numpy_types(exporter: MultiFormatExporter) -> None:
     """Test JSON serialization of NumPy types"""
     # Test different NumPy types
     assert exporter._json_serialize(np.int64(42)) == 42
@@ -257,20 +258,20 @@ def test_json_serialize_numpy_types(exporter):
         exporter._json_serialize(object())
 
 
-def test_export_with_path_string(exporter, mock_simulation_data, temp_dir):
+def test_export_with_path_string(exporter: MultiFormatExporter, mock_simulation_data: Any, temp_dir: Path) -> None:
     """Test export accepts string paths"""
     output_path = str(temp_dir / "output.json")
 
     exporter.export_simulation_data(
         mock_simulation_data,
-        output_path,
+        output_path,  # type: ignore[arg-type]  # Implementation accepts str and converts to Path
         format=ExportFormat.JSON,
     )
 
     assert Path(output_path).exists()
 
 
-def test_export_minimal_simulation_data(exporter, temp_dir):
+def test_export_minimal_simulation_data(exporter: MultiFormatExporter, temp_dir: Path) -> None:
     """Test export with minimal simulation data"""
     output_path = temp_dir / "minimal.json"
 
@@ -299,7 +300,7 @@ def test_export_minimal_simulation_data(exporter, temp_dir):
     assert "fields" in data
 
 
-def test_export_large_array(exporter, temp_dir):
+def test_export_large_array(exporter: MultiFormatExporter, temp_dir: Path) -> None:
     """Test export with large arrays"""
     output_path = temp_dir / "large.npz"
 

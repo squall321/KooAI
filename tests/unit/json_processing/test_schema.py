@@ -28,7 +28,7 @@ from src.core.json_processing.schema import (
 class TestSimulationMetadata:
     """SimulationMetadata 테스트"""
 
-    def test_create_metadata(self):
+    def test_create_metadata(self) -> None:
         """메타데이터 생성 테스트"""
         metadata = SimulationMetadata(
             name="CFD Simulation",
@@ -41,7 +41,7 @@ class TestSimulationMetadata:
         assert metadata.coordinate_system == CoordinateSystem.CARTESIAN
         assert metadata.unit_system == UnitSystem.SI
 
-    def test_metadata_with_custom_fields(self):
+    def test_metadata_with_custom_fields(self) -> None:
         """사용자 정의 메타데이터 테스트"""
         metadata = SimulationMetadata(
             name="Test",
@@ -56,7 +56,7 @@ class TestSimulationMetadata:
 class TestMeshData:
     """MeshData 테스트"""
 
-    def test_create_mesh(self):
+    def test_create_mesh(self) -> None:
         """메시 생성 테스트"""
         mesh_info = MeshInfo(
             mesh_type=MeshType.UNSTRUCTURED,
@@ -75,7 +75,7 @@ class TestMeshData:
         assert mesh.info.mesh_type == MeshType.UNSTRUCTURED
         assert len(mesh.vertices) == 9
 
-    def test_mesh_validation(self):
+    def test_mesh_validation(self) -> None:
         """메시 검증 테스트"""
         with pytest.raises(ValidationError):
             # 음수 정점 개수는 허용 안됨
@@ -90,7 +90,7 @@ class TestMeshData:
 class TestFieldData:
     """FieldData 테스트"""
 
-    def test_scalar_field(self):
+    def test_scalar_field(self) -> None:
         """스칼라 필드 테스트"""
         metadata = FieldMetadata(
             name="temperature",
@@ -108,7 +108,7 @@ class TestFieldData:
         assert len(field.values) == 3
         assert not field.compressed
 
-    def test_vector_field(self):
+    def test_vector_field(self) -> None:
         """벡터 필드 테스트"""
         metadata = FieldMetadata(
             name="velocity",
@@ -125,6 +125,7 @@ class TestFieldData:
         )
 
         assert field.metadata.components == 3
+        assert field.metadata.component_names is not None
         assert len(field.metadata.component_names) == 3
         assert len(field.values) == 3
 
@@ -132,7 +133,7 @@ class TestFieldData:
 class TestContourData:
     """ContourData 테스트"""
 
-    def test_contour_levels(self):
+    def test_contour_levels(self) -> None:
         """컨투어 레벨 테스트"""
         level1 = ContourLevel(
             value=300.0, num_points=10, points=[0.0, 0.0, 1.0, 0.0, 1.0, 1.0], is_closed=True
@@ -148,7 +149,7 @@ class TestContourData:
         assert contour.levels[0].value == 300.0
         assert contour.levels[1].is_closed == False
 
-    def test_compressed_contour(self):
+    def test_compressed_contour(self) -> None:
         """압축된 컨투어 테스트"""
         contour = ContourData(
             field_name="pressure",
@@ -159,13 +160,14 @@ class TestContourData:
         )
 
         assert contour.compressed
+        assert contour.latent_representation is not None
         assert len(contour.latent_representation) == 4
 
 
 class TestTimeStep:
     """TimeStep 테스트"""
 
-    def test_time_step(self):
+    def test_time_step(self) -> None:
         """시간 단계 테스트"""
         field_meta = FieldMetadata(
             name="temperature", data_type=DataType.SCALAR, unit="K", location="vertex"
@@ -182,7 +184,7 @@ class TestTimeStep:
 class TestSimulationResult:
     """SimulationResult 테스트"""
 
-    def test_steady_state_simulation(self):
+    def test_steady_state_simulation(self) -> None:
         """정상 상태 시뮬레이션 테스트"""
         metadata = SimulationMetadata(name="Steady CFD", solver="OpenFOAM")
 
@@ -204,10 +206,11 @@ class TestSimulationResult:
         )
 
         assert result.steady_state
+        assert result.fields is not None
         assert "pressure" in result.fields
         assert result.time_steps is None
 
-    def test_transient_simulation(self):
+    def test_transient_simulation(self) -> None:
         """비정상 상태 시뮬레이션 테스트"""
         metadata = SimulationMetadata(name="Transient CFD", solver="ANSYS")
 
@@ -227,9 +230,10 @@ class TestSimulationResult:
         )
 
         assert not result.steady_state
+        assert result.time_steps is not None
         assert len(result.time_steps) == 2
 
-    def test_transient_without_timesteps_fails(self):
+    def test_transient_without_timesteps_fails(self) -> None:
         """비정상 상태인데 time_steps 없으면 실패"""
         metadata = SimulationMetadata(name="Test", solver="Test")
         mesh_info = MeshInfo(
@@ -244,7 +248,7 @@ class TestSimulationResult:
 class TestSchemaRegistry:
     """SchemaRegistry 테스트"""
 
-    def test_registry_initialization(self):
+    def test_registry_initialization(self) -> None:
         """레지스트리 초기화 테스트"""
         registry = SchemaRegistry()
         schemas = registry.list_schemas()
@@ -253,21 +257,21 @@ class TestSchemaRegistry:
         assert "simulation_metadata" in schemas
         assert "field_data" in schemas
 
-    def test_get_schema(self):
+    def test_get_schema(self) -> None:
         """스키마 조회 테스트"""
         registry = SchemaRegistry()
         schema = registry.get_schema("simulation_metadata")
 
         assert schema == SimulationMetadata
 
-    def test_get_nonexistent_schema(self):
+    def test_get_nonexistent_schema(self) -> None:
         """존재하지 않는 스키마 조회"""
         registry = SchemaRegistry()
 
         with pytest.raises(KeyError):
             registry.get_schema("nonexistent")
 
-    def test_register_custom_schema(self):
+    def test_register_custom_schema(self) -> None:
         """커스텀 스키마 등록 테스트"""
         from pydantic import BaseModel
 
@@ -281,7 +285,7 @@ class TestSchemaRegistry:
         assert "custom" in registry.list_schemas()
         assert registry.get_schema("custom") == CustomSchema
 
-    def test_validate_data(self):
+    def test_validate_data(self) -> None:
         """데이터 검증 테스트"""
         registry = SchemaRegistry()
 
@@ -295,7 +299,7 @@ class TestSchemaRegistry:
         assert isinstance(validated, SimulationMetadata)
         assert validated.name == "Test Sim"
 
-    def test_validate_invalid_data(self):
+    def test_validate_invalid_data(self) -> None:
         """잘못된 데이터 검증 실패"""
         registry = SchemaRegistry()
 
@@ -307,7 +311,7 @@ class TestSchemaRegistry:
         with pytest.raises(ValidationError):
             registry.validate("simulation_metadata", invalid_data)
 
-    def test_unregister_schema(self):
+    def test_unregister_schema(self) -> None:
         """스키마 등록 해제 테스트"""
         from pydantic import BaseModel
 
@@ -327,12 +331,12 @@ class TestSchemaRegistry:
 class TestGlobalRegistry:
     """전역 레지스트리 테스트"""
 
-    def test_global_registry_exists(self):
+    def test_global_registry_exists(self) -> None:
         """전역 레지스트리가 존재하는지 확인"""
         assert schema_registry is not None
         assert isinstance(schema_registry, SchemaRegistry)
 
-    def test_global_registry_has_schemas(self):
+    def test_global_registry_has_schemas(self) -> None:
         """전역 레지스트리에 기본 스키마가 있는지 확인"""
         schemas = schema_registry.list_schemas()
         assert len(schemas) > 0

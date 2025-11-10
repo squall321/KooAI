@@ -2,15 +2,16 @@
 Tests for Celery tasks
 """
 
+from typing import Any
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 
-from src.infrastructure.tasks import celery_app, create_celery_app
+from src.infrastructure.tasks.celery_app import celery_app, create_celery_app
 from src.infrastructure.tasks.config import CeleryConfig
 
 
 @pytest.fixture
-def mock_celery_config():
+def mock_celery_config() -> CeleryConfig:
     """Create mock Celery configuration"""
     return CeleryConfig(
         broker_url="redis://localhost:6379/0",
@@ -18,7 +19,7 @@ def mock_celery_config():
     )
 
 
-def test_create_celery_app():
+def test_create_celery_app() -> None:
     """Test Celery app creation"""
     app = create_celery_app()
 
@@ -27,7 +28,7 @@ def test_create_celery_app():
     assert app.conf.result_backend is not None
 
 
-def test_celery_app_configuration():
+def test_celery_app_configuration() -> None:
     """Test Celery app has correct configuration"""
     assert celery_app.conf.task_serializer == "json"
     assert celery_app.conf.result_serializer == "json"
@@ -36,7 +37,7 @@ def test_celery_app_configuration():
     assert celery_app.conf.enable_utc is True
 
 
-def test_celery_beat_schedule():
+def test_celery_beat_schedule() -> None:
     """Test beat schedule is configured"""
     beat_schedule = celery_app.conf.beat_schedule
 
@@ -45,7 +46,7 @@ def test_celery_beat_schedule():
     assert "health-check" in beat_schedule
 
 
-def test_task_routes():
+def test_task_routes() -> None:
     """Test task routes are configured"""
     routes = celery_app.conf.task_routes
 
@@ -59,7 +60,7 @@ def test_task_routes():
     assert routes["src.infrastructure.tasks.cleanup.*"]["queue"] == "cleanup"
 
 
-def test_debug_task():
+def test_debug_task() -> None:
     """Test debug task execution"""
     from src.infrastructure.tasks.celery_app import debug_task
 
@@ -77,7 +78,7 @@ def test_debug_task():
         ("src.infrastructure.tasks.cleanup.cleanup_old_files", "cleanup"),
     ],
 )
-def test_task_queues(task_name, expected_queue):
+def test_task_queues(task_name: str, expected_queue: str) -> None:
     """Test tasks are routed to correct queues"""
     routes = celery_app.conf.task_routes
 
@@ -93,7 +94,7 @@ def test_task_queues(task_name, expected_queue):
     assert matched_queue == expected_queue
 
 
-def test_base_task_retry_config():
+def test_base_task_retry_config() -> None:
     """Test base task has retry configuration"""
     from src.infrastructure.tasks.base import BaseTask
 
@@ -103,7 +104,7 @@ def test_base_task_retry_config():
     assert BaseTask.retry_kwargs["max_retries"] == 3
 
 
-def test_long_running_task_limits():
+def test_long_running_task_limits() -> None:
     """Test long running task has appropriate time limits"""
     from src.infrastructure.tasks.base import LongRunningTask
 
@@ -112,36 +113,36 @@ def test_long_running_task_limits():
 
 
 @pytest.mark.asyncio
-async def test_simulation_task_decorator():
+async def test_simulation_task_decorator() -> None:
     """Test simulation task decorator"""
     from src.infrastructure.tasks.base import simulation_task
 
     @simulation_task(name="test.simulation.task")
-    def test_task(self):
+    def test_task(self: Any) -> str:
         return "test"
 
     assert test_task.queue == "simulation"
 
 
 @pytest.mark.asyncio
-async def test_analysis_task_decorator():
+async def test_analysis_task_decorator() -> None:
     """Test analysis task decorator"""
     from src.infrastructure.tasks.base import analysis_task
 
     @analysis_task(name="test.analysis.task")
-    def test_task(self):
+    def test_task(self: Any) -> str:
         return "test"
 
     assert test_task.queue == "analysis"
 
 
 @pytest.mark.asyncio
-async def test_cleanup_task_decorator():
+async def test_cleanup_task_decorator() -> None:
     """Test cleanup task decorator"""
     from src.infrastructure.tasks.base import cleanup_task
 
     @cleanup_task(name="test.cleanup.task")
-    def test_task(self):
+    def test_task(self: Any) -> str:
         return "test"
 
     assert test_task.queue == "cleanup"

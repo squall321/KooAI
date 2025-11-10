@@ -4,6 +4,7 @@ Tests for API Exception Handlers
 Tests exception handlers and error response generation.
 """
 
+from typing import Any
 from unittest.mock import Mock, AsyncMock
 import pytest
 from fastapi import HTTPException
@@ -12,7 +13,7 @@ from fastapi import HTTPException
 class TestErrorResponseGeneration:
     """Test error response generation functions"""
 
-    def test_generate_request_id(self):
+    def test_generate_request_id(self) -> None:
         """Test request ID generation"""
         from src.presentation.api.exceptions import generate_request_id
 
@@ -22,7 +23,7 @@ class TestErrorResponseGeneration:
         assert isinstance(request_id, str)
         assert len(request_id) > 0
 
-    def test_request_id_is_unique(self):
+    def test_request_id_is_unique(self) -> None:
         """Test request IDs are unique"""
         from src.presentation.api.exceptions import generate_request_id
 
@@ -31,7 +32,7 @@ class TestErrorResponseGeneration:
 
         assert id1 != id2
 
-    def test_create_error_response_basic(self):
+    def test_create_error_response_basic(self) -> None:
         """Test creating basic error response"""
         from src.presentation.api.exceptions import create_error_response
 
@@ -43,7 +44,7 @@ class TestErrorResponseGeneration:
         assert response["error"]["message"] == "Test message"
         assert response["error"]["status_code"] == 400
 
-    def test_create_error_response_with_code(self):
+    def test_create_error_response_with_code(self) -> None:
         """Test error response with error code"""
         from src.presentation.api.exceptions import create_error_response
 
@@ -56,7 +57,7 @@ class TestErrorResponseGeneration:
 
         assert response["error"]["code"] == "TEST_001"
 
-    def test_create_error_response_with_details(self):
+    def test_create_error_response_with_details(self) -> None:
         """Test error response with details"""
         from src.presentation.api.exceptions import create_error_response
 
@@ -70,7 +71,7 @@ class TestErrorResponseGeneration:
 
         assert response["error"]["details"] == details
 
-    def test_create_error_response_with_request_id(self):
+    def test_create_error_response_with_request_id(self) -> None:
         """Test error response with request ID"""
         from src.presentation.api.exceptions import create_error_response
 
@@ -88,14 +89,14 @@ class TestValidationErrorHandler:
     """Test ValidationError handler"""
 
     @pytest.fixture
-    def mock_request(self):
+    def mock_request(self) -> Mock:
         """Create mock request"""
         request = Mock()
         request.url.path = "/api/test"
         return request
 
     @pytest.mark.asyncio
-    async def test_validation_error_handler_returns_400(self, mock_request):
+    async def test_validation_error_handler_returns_400(self, mock_request: Mock) -> None:
         """Test ValidationError handler returns 400"""
         from src.presentation.api.exceptions import validation_error_handler
         from src.application.use_cases import ValidationError
@@ -106,7 +107,7 @@ class TestValidationErrorHandler:
         assert response.status_code == 400
 
     @pytest.mark.asyncio
-    async def test_validation_error_handler_response_structure(self, mock_request):
+    async def test_validation_error_handler_response_structure(self, mock_request: Mock) -> None:
         """Test ValidationError handler response structure"""
         from src.presentation.api.exceptions import validation_error_handler
         from src.application.use_cases import ValidationError
@@ -126,14 +127,14 @@ class TestNotFoundErrorHandler:
     """Test NotFoundError handler"""
 
     @pytest.fixture
-    def mock_request(self):
+    def mock_request(self) -> Mock:
         """Create mock request"""
         request = Mock()
         request.url.path = "/api/test"
         return request
 
     @pytest.mark.asyncio
-    async def test_not_found_error_handler_returns_404(self, mock_request):
+    async def test_not_found_error_handler_returns_404(self, mock_request: Mock) -> None:
         """Test NotFoundError handler returns 404"""
         from src.presentation.api.exceptions import not_found_error_handler
         from src.application.use_cases import NotFoundError
@@ -144,7 +145,7 @@ class TestNotFoundErrorHandler:
         assert response.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_not_found_error_handler_response_structure(self, mock_request):
+    async def test_not_found_error_handler_response_structure(self, mock_request: Mock) -> None:
         """Test NotFoundError handler response structure"""
         from src.presentation.api.exceptions import not_found_error_handler
         from src.application.use_cases import NotFoundError
@@ -163,14 +164,14 @@ class TestAlreadyExistsErrorHandler:
     """Test AlreadyExistsError handler"""
 
     @pytest.fixture
-    def mock_request(self):
+    def mock_request(self) -> Mock:
         """Create mock request"""
         request = Mock()
         request.url.path = "/api/test"
         return request
 
     @pytest.mark.asyncio
-    async def test_already_exists_error_handler_returns_409(self, mock_request):
+    async def test_already_exists_error_handler_returns_409(self, mock_request: Mock) -> None:
         """Test AlreadyExistsError handler returns 409"""
         from src.presentation.api.exceptions import already_exists_error_handler
         from src.application.use_cases import AlreadyExistsError
@@ -185,14 +186,14 @@ class TestHTTPExceptionHandler:
     """Test HTTPException handler"""
 
     @pytest.fixture
-    def mock_request(self):
+    def mock_request(self) -> Mock:
         """Create mock request"""
         request = Mock()
         request.url.path = "/api/test"
         return request
 
     @pytest.mark.asyncio
-    async def test_http_exception_handler(self, mock_request):
+    async def test_http_exception_handler(self, mock_request: Mock) -> None:
         """Test HTTPException handler"""
         from src.presentation.api.exceptions import http_exception_handler
 
@@ -202,7 +203,7 @@ class TestHTTPExceptionHandler:
         assert response.status_code == 403
 
     @pytest.mark.asyncio
-    async def test_http_exception_handler_response_structure(self, mock_request):
+    async def test_http_exception_handler_response_structure(self, mock_request: Mock) -> None:
         """Test HTTPException handler response structure"""
         from src.presentation.api.exceptions import http_exception_handler
 
@@ -221,7 +222,7 @@ class TestGeneralExceptionHandler:
     """Test general exception handler"""
 
     @pytest.fixture
-    def mock_request(self):
+    def mock_request(self) -> Mock:
         """Create mock request"""
         request = Mock()
         request.url.path = "/api/test"
@@ -229,7 +230,7 @@ class TestGeneralExceptionHandler:
         return request
 
     @pytest.mark.asyncio
-    async def test_general_exception_handler_returns_500(self, mock_request):
+    async def test_general_exception_handler_returns_500(self, mock_request: Mock) -> None:
         """Test general exception handler returns 500"""
         from src.presentation.api.exceptions import general_exception_handler
 
@@ -239,7 +240,7 @@ class TestGeneralExceptionHandler:
         assert response.status_code == 500
 
     @pytest.mark.asyncio
-    async def test_general_exception_handler_hides_details(self, mock_request):
+    async def test_general_exception_handler_hides_details(self, mock_request: Mock) -> None:
         """Test general exception handler hides details in production"""
         from src.presentation.api.exceptions import general_exception_handler
 
@@ -256,7 +257,7 @@ class TestGeneralExceptionHandler:
         assert "details" not in body["error"] or body["error"]["details"] is None
 
     @pytest.mark.asyncio
-    async def test_general_exception_handler_shows_details_in_debug(self, mock_request):
+    async def test_general_exception_handler_shows_details_in_debug(self, mock_request: Mock) -> None:
         """Test general exception handler shows details in debug mode"""
         from src.presentation.api.exceptions import general_exception_handler
 
@@ -275,13 +276,13 @@ class TestGeneralExceptionHandler:
 class TestExceptionHandlerRegistration:
     """Test exception handler registration"""
 
-    def test_register_exception_handlers_function_exists(self):
+    def test_register_exception_handlers_function_exists(self) -> None:
         """Test register_exception_handlers function exists"""
         from src.presentation.api.exceptions import register_exception_handlers
 
         assert register_exception_handlers is not None
 
-    def test_register_exception_handlers(self):
+    def test_register_exception_handlers(self) -> None:
         """Test registering exception handlers"""
         from src.presentation.api.exceptions import register_exception_handlers
 

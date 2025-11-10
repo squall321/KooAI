@@ -4,7 +4,7 @@ Tests for Streaming Parser Base Classes
 
 import pytest
 from pathlib import Path
-from typing import Iterator, AsyncIterator
+from typing import Iterator, AsyncIterator, Any
 
 from src.core.simulation.parsers.streaming_base import (
     ProgressCallback,
@@ -17,7 +17,7 @@ from src.core.simulation.models import SimulationResult
 class TestProgressCallback:
     """Test ProgressCallback functionality."""
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test ProgressCallback initialization."""
         callback = ProgressCallback(total_bytes=1000)
 
@@ -25,18 +25,18 @@ class TestProgressCallback:
         assert callback.processed_bytes == 0
         assert callback.callback is None
 
-    def test_init_with_callback(self):
+    def test_init_with_callback(self) -> None:
         """Test ProgressCallback with callback function."""
-        called_args = []
+        called_args: list[tuple[int, int, float]] = []
 
-        def progress_fn(processed, total, percent):
+        def progress_fn(processed: int, total: int, percent: float) -> None:
             called_args.append((processed, total, percent))
 
         callback = ProgressCallback(total_bytes=1000, callback=progress_fn)
 
         assert callback.callback is not None
 
-    def test_update(self):
+    def test_update(self) -> None:
         """Test progress update."""
         callback = ProgressCallback(total_bytes=1000)
 
@@ -46,11 +46,11 @@ class TestProgressCallback:
         callback.update(200)
         assert callback.processed_bytes == 300
 
-    def test_update_with_callback(self):
+    def test_update_with_callback(self) -> None:
         """Test progress update triggers callback."""
-        called_args = []
+        called_args: list[tuple[int, int, float]] = []
 
-        def progress_fn(processed, total, percent):
+        def progress_fn(processed: int, total: int, percent: float) -> None:
             called_args.append((processed, total, percent))
 
         callback = ProgressCallback(total_bytes=1000, callback=progress_fn)
@@ -65,7 +65,7 @@ class TestProgressCallback:
         assert len(called_args) == 2
         assert called_args[1] == (750, 1000, 75.0)
 
-    def test_percentage_property(self):
+    def test_percentage_property(self) -> None:
         """Test percentage calculation."""
         callback = ProgressCallback(total_bytes=1000)
 
@@ -80,13 +80,13 @@ class TestProgressCallback:
         callback.update(250)
         assert callback.percentage == 100.0
 
-    def test_percentage_zero_total(self):
+    def test_percentage_zero_total(self) -> None:
         """Test percentage with zero total bytes."""
         callback = ProgressCallback(total_bytes=0)
 
         assert callback.percentage == 100.0
 
-    def test_update_no_callback(self):
+    def test_update_no_callback(self) -> None:
         """Test update without callback doesn't raise error."""
         callback = ProgressCallback(total_bytes=1000)
 
@@ -98,11 +98,11 @@ class TestProgressCallback:
 class ConcreteStreamingParser(StreamingParser[str]):
     """Concrete implementation for testing."""
 
-    def parse_stream(self, file_path: Path, **options) -> SimulationResult:
+    def parse_stream(self, file_path: Path, **options: Any) -> SimulationResult:
         """Dummy implementation."""
         raise NotImplementedError("Test implementation")
 
-    def read_chunks(self, file_path: Path, **options) -> Iterator[str]:
+    def read_chunks(self, file_path: Path, **options: Any) -> Iterator[str]:
         """Dummy implementation."""
         yield "chunk1"
         yield "chunk2"
@@ -111,29 +111,29 @@ class ConcreteStreamingParser(StreamingParser[str]):
 class TestStreamingParser:
     """Test StreamingParser base class."""
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test StreamingParser initialization."""
         parser = ConcreteStreamingParser()
 
         assert parser.chunk_size == 1024 * 1024  # 1MB default
         assert parser.progress_callback is None
 
-    def test_init_with_custom_chunk_size(self):
+    def test_init_with_custom_chunk_size(self) -> None:
         """Test initialization with custom chunk size."""
         parser = ConcreteStreamingParser(chunk_size=2048)
 
         assert parser.chunk_size == 2048
 
-    def test_init_with_callback(self):
+    def test_init_with_callback(self) -> None:
         """Test initialization with progress callback."""
-        def progress_fn(processed, total, percent):
+        def progress_fn(processed: int, total: int, percent: float) -> None:
             pass
 
         parser = ConcreteStreamingParser(progress_callback=progress_fn)
 
         assert parser.progress_callback is progress_fn
 
-    def test_create_progress_tracker(self, tmp_path):
+    def test_create_progress_tracker(self, tmp_path: Path) -> None:
         """Test progress tracker creation."""
         parser = ConcreteStreamingParser()
 
@@ -146,11 +146,11 @@ class TestStreamingParser:
         assert tracker.total_bytes == 1000
         assert tracker.processed_bytes == 0
 
-    def test_create_progress_tracker_with_callback(self, tmp_path):
+    def test_create_progress_tracker_with_callback(self, tmp_path: Path) -> None:
         """Test progress tracker with callback."""
-        called_args = []
+        called_args: list[tuple[int, int, float]] = []
 
-        def progress_fn(processed, total, percent):
+        def progress_fn(processed: int, total: int, percent: float) -> None:
             called_args.append((processed, total, percent))
 
         parser = ConcreteStreamingParser(progress_callback=progress_fn)
@@ -166,11 +166,11 @@ class TestStreamingParser:
 class ConcreteAsyncStreamingParser(AsyncStreamingParser[str]):
     """Concrete async implementation for testing."""
 
-    async def parse_stream(self, file_path: Path, **options) -> SimulationResult:
+    async def parse_stream(self, file_path: Path, **options: Any) -> SimulationResult:
         """Dummy implementation."""
         raise NotImplementedError("Test implementation")
 
-    async def read_chunks(self, file_path: Path, **options) -> AsyncIterator[str]:
+    async def read_chunks(self, file_path: Path, **options: Any) -> AsyncIterator[str]:  # type: ignore[override]
         """Dummy implementation."""
         yield "async_chunk1"
         yield "async_chunk2"
@@ -179,29 +179,29 @@ class ConcreteAsyncStreamingParser(AsyncStreamingParser[str]):
 class TestAsyncStreamingParser:
     """Test AsyncStreamingParser base class."""
 
-    def test_init(self):
+    def test_init(self) -> None:
         """Test AsyncStreamingParser initialization."""
         parser = ConcreteAsyncStreamingParser()
 
         assert parser.chunk_size == 1024 * 1024  # 1MB default
         assert parser.progress_callback is None
 
-    def test_init_with_custom_chunk_size(self):
+    def test_init_with_custom_chunk_size(self) -> None:
         """Test initialization with custom chunk size."""
         parser = ConcreteAsyncStreamingParser(chunk_size=4096)
 
         assert parser.chunk_size == 4096
 
-    def test_init_with_callback(self):
+    def test_init_with_callback(self) -> None:
         """Test initialization with progress callback."""
-        def progress_fn(processed, total, percent):
+        def progress_fn(processed: int, total: int, percent: float) -> None:
             pass
 
         parser = ConcreteAsyncStreamingParser(progress_callback=progress_fn)
 
         assert parser.progress_callback is progress_fn
 
-    def test_create_progress_tracker(self, tmp_path):
+    def test_create_progress_tracker(self, tmp_path: Path) -> None:
         """Test async progress tracker creation."""
         parser = ConcreteAsyncStreamingParser()
 
@@ -214,7 +214,7 @@ class TestAsyncStreamingParser:
         assert tracker.processed_bytes == 0
 
     @pytest.mark.asyncio
-    async def test_read_chunks_async(self):
+    async def test_read_chunks_async(self) -> None:
         """Test async chunk reading."""
         parser = ConcreteAsyncStreamingParser()
 

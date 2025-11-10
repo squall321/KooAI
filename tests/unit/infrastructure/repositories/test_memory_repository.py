@@ -12,7 +12,7 @@ import numpy as np
 class TestInMemoryRepositoryBasics:
     """Test basic repository operations"""
 
-    def test_repository_creation(self):
+    def test_repository_creation(self) -> None:
         """Test creating repository"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -23,7 +23,7 @@ class TestInMemoryRepositoryBasics:
         assert repo is not None
         assert repo.count() == 0
 
-    def test_repository_add_simulation(self):
+    def test_repository_add_simulation(self) -> None:
         """Test adding simulation to repository"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -40,7 +40,7 @@ class TestInMemoryRepositoryBasics:
         assert result.id is not None
         assert repo.count() == 1
 
-    def test_repository_add_assigns_id_if_missing(self):
+    def test_repository_add_assigns_id_if_missing(self) -> None:
         """Test add assigns ID if simulation doesn't have one"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -61,7 +61,7 @@ class TestInMemoryRepositoryBasics:
         assert result.id is not None
         assert len(result.id) > 0
 
-    def test_repository_add_preserves_existing_id(self):
+    def test_repository_add_preserves_existing_id(self) -> None:
         """Test add preserves existing ID"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -86,7 +86,7 @@ class TestInMemoryRepositoryBasics:
 class TestRepositoryRetrieval:
     """Test retrieving simulations from repository"""
 
-    def test_get_by_id(self):
+    def test_get_by_id(self) -> None:
         """Test retrieving simulation by ID"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -99,13 +99,14 @@ class TestRepositoryRetrieval:
         simulation = SimulationResult(name="Test", simulation_type="CFD", mesh=mesh)
 
         added = repo.add(simulation)
+        assert added.id is not None
         retrieved = repo.get_by_id(added.id)
 
         assert retrieved is not None
         assert retrieved.id == added.id
         assert retrieved.name == "Test"
 
-    def test_get_by_id_returns_none_if_not_found(self):
+    def test_get_by_id_returns_none_if_not_found(self) -> None:
         """Test get_by_id returns None for non-existent ID"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -117,7 +118,7 @@ class TestRepositoryRetrieval:
 
         assert result is None
 
-    def test_get_by_name(self):
+    def test_get_by_name(self) -> None:
         """Test retrieving simulation by name"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -139,7 +140,7 @@ class TestRepositoryRetrieval:
         assert retrieved is not None
         assert retrieved.name == "MySimulation"
 
-    def test_get_by_name_returns_none_if_not_found(self):
+    def test_get_by_name_returns_none_if_not_found(self) -> None:
         """Test get_by_name returns None for non-existent name"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -151,7 +152,7 @@ class TestRepositoryRetrieval:
 
         assert result is None
 
-    def test_exists(self):
+    def test_exists(self) -> None:
         """Test checking if simulation exists"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -164,6 +165,7 @@ class TestRepositoryRetrieval:
         simulation = SimulationResult(name="Test", simulation_type="CFD", mesh=mesh)
 
         added = repo.add(simulation)
+        assert added.id is not None
 
         assert repo.exists(added.id) is True
         assert repo.exists("nonexistent-id") is False
@@ -172,7 +174,7 @@ class TestRepositoryRetrieval:
 class TestRepositoryListing:
     """Test listing simulations"""
 
-    def test_list_all_empty(self):
+    def test_list_all_empty(self) -> None:
         """Test list_all returns empty list when repository is empty"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -184,7 +186,7 @@ class TestRepositoryListing:
 
         assert len(results) == 0
 
-    def test_list_all_returns_all_simulations(self):
+    def test_list_all_returns_all_simulations(self) -> None:
         """Test list_all returns all simulations"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -203,7 +205,7 @@ class TestRepositoryListing:
 
         assert len(results) == 5
 
-    def test_list_all_with_skip(self):
+    def test_list_all_with_skip(self) -> None:
         """Test list_all with skip parameter"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -222,7 +224,7 @@ class TestRepositoryListing:
 
         assert len(results) == 7  # 10 - 3 = 7
 
-    def test_list_all_with_limit(self):
+    def test_list_all_with_limit(self) -> None:
         """Test list_all with limit parameter"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -241,7 +243,7 @@ class TestRepositoryListing:
 
         assert len(results) == 5
 
-    def test_list_all_with_skip_and_limit(self):
+    def test_list_all_with_skip_and_limit(self) -> None:
         """Test list_all with both skip and limit"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -260,7 +262,7 @@ class TestRepositoryListing:
 
         assert len(results) == 10
 
-    def test_count(self):
+    def test_count(self) -> None:
         """Test count method"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -283,7 +285,7 @@ class TestRepositoryListing:
 class TestRepositoryUpdate:
     """Test updating simulations"""
 
-    def test_update_simulation(self):
+    def test_update_simulation(self) -> None:
         """Test updating simulation"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -296,6 +298,7 @@ class TestRepositoryUpdate:
         simulation = SimulationResult(name="Original", simulation_type="CFD", mesh=mesh)
 
         added = repo.add(simulation)
+        assert added.id is not None
 
         # Update the simulation
         added.name = "Updated"
@@ -305,9 +308,10 @@ class TestRepositoryUpdate:
 
         # Verify it's updated in repository
         retrieved = repo.get_by_id(added.id)
+        assert retrieved is not None
         assert retrieved.name == "Updated"
 
-    def test_update_without_id_raises_error(self):
+    def test_update_without_id_raises_error(self) -> None:
         """Test update raises error for simulation without ID"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -322,7 +326,7 @@ class TestRepositoryUpdate:
         with pytest.raises(ValueError, match="Cannot update result without ID"):
             repo.update(simulation)
 
-    def test_update_nonexistent_raises_error(self):
+    def test_update_nonexistent_raises_error(self) -> None:
         """Test update raises error for non-existent simulation"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -343,7 +347,7 @@ class TestRepositoryUpdate:
             repo.update(simulation)
 
     @pytest.mark.skip(reason="Repository has a bug: name index not updated correctly on name change")
-    def test_update_with_name_change_updates_index(self):
+    def test_update_with_name_change_updates_index(self) -> None:
         """Test update with name change updates name index"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -377,7 +381,7 @@ class TestRepositoryUpdate:
 class TestRepositoryDelete:
     """Test deleting simulations"""
 
-    def test_delete_simulation(self):
+    def test_delete_simulation(self) -> None:
         """Test deleting simulation"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -391,6 +395,7 @@ class TestRepositoryDelete:
 
         added = repo.add(simulation)
         assert repo.count() == 1
+        assert added.id is not None
 
         deleted = repo.delete(added.id)
 
@@ -398,7 +403,7 @@ class TestRepositoryDelete:
         assert repo.count() == 0
         assert repo.get_by_id(added.id) is None
 
-    def test_delete_nonexistent_returns_false(self):
+    def test_delete_nonexistent_returns_false(self) -> None:
         """Test delete returns False for non-existent simulation"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -410,7 +415,7 @@ class TestRepositoryDelete:
 
         assert result is False
 
-    def test_delete_removes_from_name_index(self):
+    def test_delete_removes_from_name_index(self) -> None:
         """Test delete removes simulation from name index"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -427,6 +432,7 @@ class TestRepositoryDelete:
         )
 
         added = repo.add(simulation)
+        assert added.id is not None
 
         # Verify it's in name index
         assert repo.get_by_name("TestSim") is not None
@@ -436,7 +442,7 @@ class TestRepositoryDelete:
         # Should be removed from name index
         assert repo.get_by_name("TestSim") is None
 
-    def test_clear(self):
+    def test_clear(self) -> None:
         """Test clear removes all simulations"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -462,7 +468,7 @@ class TestRepositoryDelete:
 class TestRepositoryEdgeCases:
     """Test edge cases and special scenarios"""
 
-    def test_add_multiple_simulations_with_same_name(self):
+    def test_add_multiple_simulations_with_same_name(self) -> None:
         """Test adding multiple simulations with same name"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository
@@ -485,13 +491,16 @@ class TestRepositoryEdgeCases:
 
         # get_by_name returns the last one added (due to index overwrite)
         by_name = repo.get_by_name("SameName")
+        assert by_name is not None
         assert by_name.id == added2.id
 
         # Both can still be retrieved by ID
+        assert added1.id is not None
+        assert added2.id is not None
         assert repo.get_by_id(added1.id) is not None
         assert repo.get_by_id(added2.id) is not None
 
-    def test_repository_isolation(self):
+    def test_repository_isolation(self) -> None:
         """Test multiple repository instances are isolated"""
         from src.infrastructure.repositories.memory_simulation_repository import (
             InMemorySimulationResultRepository

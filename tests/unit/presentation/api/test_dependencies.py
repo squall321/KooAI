@@ -11,13 +11,13 @@ import pytest
 class TestDatabaseDependencies:
     """Test database dependencies"""
 
-    def test_get_db_function_exists(self):
+    def test_get_db_function_exists(self) -> None:
         """Test get_db function can be imported"""
         from src.presentation.api.dependencies import get_db
 
         assert get_db is not None
 
-    def test_get_db_yields_session(self):
+    def test_get_db_yields_session(self) -> None:
         """Test get_db yields database session"""
         from src.presentation.api.dependencies import get_db
 
@@ -33,7 +33,7 @@ class TestDatabaseDependencies:
 
             assert session == mock_session
 
-    def test_get_db_closes_session(self):
+    def test_get_db_closes_session(self) -> None:
         """Test get_db closes session after use"""
         from src.presentation.api.dependencies import get_db
 
@@ -56,13 +56,13 @@ class TestDatabaseDependencies:
 class TestRepositoryDependencies:
     """Test repository dependencies"""
 
-    def test_get_simulation_repository_exists(self):
+    def test_get_simulation_repository_exists(self) -> None:
         """Test get_simulation_repository function exists"""
         from src.presentation.api.dependencies import get_simulation_repository
 
         assert get_simulation_repository is not None
 
-    def test_get_simulation_repository_returns_repository(self):
+    def test_get_simulation_repository_returns_repository(self) -> None:
         """Test get_simulation_repository returns repository instance"""
         from src.presentation.api.dependencies import get_simulation_repository
 
@@ -73,7 +73,7 @@ class TestRepositoryDependencies:
 
         assert repo is not None
 
-    def test_get_simulation_repository_is_singleton(self):
+    def test_get_simulation_repository_is_singleton(self) -> None:
         """Test get_simulation_repository returns same instance (singleton)"""
         from src.presentation.api.dependencies import get_simulation_repository
 
@@ -86,7 +86,7 @@ class TestRepositoryDependencies:
         # Should return same instance
         assert repo1 is repo2
 
-    def test_get_simulation_repository_implements_interface(self):
+    def test_get_simulation_repository_implements_interface(self) -> None:
         """Test repository implements SimulationResultRepository interface"""
         from src.presentation.api.dependencies import get_simulation_repository
 
@@ -106,13 +106,13 @@ class TestRepositoryDependencies:
 class TestServiceDependencies:
     """Test service dependencies"""
 
-    def test_get_simulation_service_exists(self):
+    def test_get_simulation_service_exists(self) -> None:
         """Test get_simulation_service function exists"""
         from src.presentation.api.dependencies import get_simulation_service
 
         assert get_simulation_service is not None
 
-    def test_get_simulation_service_returns_service(self):
+    def test_get_simulation_service_returns_service(self) -> None:
         """Test get_simulation_service returns service instance"""
         from src.presentation.api.dependencies import (
             get_simulation_service,
@@ -126,7 +126,7 @@ class TestServiceDependencies:
 
         assert service is not None
 
-    def test_get_simulation_service_uses_repository(self):
+    def test_get_simulation_service_uses_repository(self) -> None:
         """Test service is created with repository dependency"""
         from src.presentation.api.dependencies import (
             get_simulation_service,
@@ -145,7 +145,7 @@ class TestServiceDependencies:
         # Service should have repository
         assert service.repository == mock_repo
 
-    def test_get_simulation_service_type(self):
+    def test_get_simulation_service_type(self) -> None:
         """Test service is of correct type"""
         from src.presentation.api.dependencies import get_simulation_service
         from src.application.services import SimulationService
@@ -158,7 +158,7 @@ class TestServiceDependencies:
 class TestDependencyInjection:
     """Test dependency injection integration"""
 
-    def test_dependencies_can_be_used_together(self):
+    def test_dependencies_can_be_used_together(self) -> None:
         """Test dependencies can be used together"""
         from src.presentation.api.dependencies import (
             get_simulation_repository,

@@ -9,7 +9,7 @@ from src.core.advanced_analysis.pod import PODAnalyzer, compute_pod
 from src.core.advanced_analysis.dmd import DMDAnalyzer, compute_dmd
 
 
-def test_pod_analyzer_initialization():
+def test_pod_analyzer_initialization() -> None:
     """Test POD analyzer initialization"""
     analyzer = PODAnalyzer(n_modes=5, energy_threshold=0.95, method="svd")
 
@@ -18,7 +18,7 @@ def test_pod_analyzer_initialization():
     assert analyzer.method == "svd"
 
 
-def test_pod_simple_data():
+def test_pod_simple_data() -> None:
     """Test POD on simple synthetic data"""
     # Create simple test data: traveling wave
     n_points = 100
@@ -43,7 +43,7 @@ def test_pod_simple_data():
     assert np.all(result.cumulative_energy <= 1.0)
 
 
-def test_pod_reconstruction():
+def test_pod_reconstruction() -> None:
     """Test POD reconstruction"""
     n_points = 50
     n_timesteps = 30
@@ -61,7 +61,7 @@ def test_pod_reconstruction():
     assert reconstructed.shape == data.shape
 
 
-def test_pod_energy_threshold():
+def test_pod_energy_threshold() -> None:
     """Test automatic mode selection by energy threshold"""
     n_points = 100
     n_timesteps = 50
@@ -77,7 +77,7 @@ def test_pod_energy_threshold():
     assert result.n_modes <= 10
 
 
-def test_dmd_analyzer_initialization():
+def test_dmd_analyzer_initialization() -> None:
     """Test DMD analyzer initialization"""
     analyzer = DMDAnalyzer(n_modes=5, dt=0.1, rank=10)
 
@@ -86,7 +86,7 @@ def test_dmd_analyzer_initialization():
     assert analyzer.rank == 10
 
 
-def test_dmd_simple_data():
+def test_dmd_simple_data() -> None:
     """Test DMD on simple synthetic data"""
     # Create simple oscillating data
     n_points = 50
@@ -111,7 +111,7 @@ def test_dmd_simple_data():
     assert len(result.growth_rates) == result.n_modes
 
 
-def test_dmd_reconstruction():
+def test_dmd_reconstruction() -> None:
     """Test DMD reconstruction"""
     n_points = 30
     n_timesteps = 50
@@ -130,7 +130,7 @@ def test_dmd_reconstruction():
     assert reconstructed.shape[0] == n_points
 
 
-def test_compute_pod_convenience():
+def test_compute_pod_convenience() -> None:
     """Test POD convenience function"""
     data = np.random.randn(50, 30)
 
@@ -140,7 +140,7 @@ def test_compute_pod_convenience():
     assert result.modes.shape[0] == 50
 
 
-def test_compute_dmd_convenience():
+def test_compute_dmd_convenience() -> None:
     """Test DMD convenience function"""
     data = np.random.randn(50, 30)
 

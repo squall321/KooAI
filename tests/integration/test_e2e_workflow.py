@@ -5,12 +5,13 @@ End-to-end workflow integration tests
 import pytest
 from pathlib import Path
 import time
+from typing import Any
 
 
 class TestSimulationWorkflow:
     """Test complete simulation processing workflow"""
 
-    def test_complete_csv_workflow(self, api_client, sample_csv_file):
+    def test_complete_csv_workflow(self, api_client: Any, sample_csv_file: Any) -> None:
         """
         Test complete workflow:
         1. Upload CSV file
@@ -87,7 +88,7 @@ class TestSimulationWorkflow:
         final_get_response = api_client.get(f"/api/simulations/{sim_id}")
         assert final_get_response.status_code == 404
 
-    def test_complete_vtk_workflow(self, api_client, sample_vtk_file):
+    def test_complete_vtk_workflow(self, api_client: Any, sample_vtk_file: Any) -> None:
         """
         Test complete workflow with VTK file
         """
@@ -114,7 +115,7 @@ class TestSimulationWorkflow:
         # Clean up
         api_client.delete(f"/api/simulations/{sim_id}")
 
-    def test_multiple_field_analysis_workflow(self, api_client, sample_csv_file):
+    def test_multiple_field_analysis_workflow(self, api_client: Any, sample_csv_file: Any) -> None:
         """
         Test analyzing multiple fields in sequence
         """
@@ -145,7 +146,7 @@ class TestSimulationWorkflow:
         # Clean up
         api_client.delete(f"/api/simulations/{sim_id}")
 
-    def test_batch_upload_workflow(self, api_client, sample_csv_file):
+    def test_batch_upload_workflow(self, api_client: Any, sample_csv_file: Any) -> None:
         """
         Test uploading and processing multiple simulations
         """
@@ -181,7 +182,7 @@ class TestSimulationWorkflow:
         for sim_id in simulation_ids:
             api_client.delete(f"/api/simulations/{sim_id}")
 
-    def test_error_recovery_workflow(self, api_client, sample_csv_file):
+    def test_error_recovery_workflow(self, api_client: Any, sample_csv_file: Any) -> None:
         """
         Test error handling and recovery
         """
@@ -221,7 +222,7 @@ class TestSimulationWorkflow:
 class TestConcurrentWorkflows:
     """Test concurrent workflow execution"""
 
-    def test_concurrent_uploads(self, api_client, sample_csv_file):
+    def test_concurrent_uploads(self, api_client: Any, sample_csv_file: Any) -> None:
         """Test uploading simulations concurrently"""
         # In a real concurrent test, we would use threading or asyncio
         # For now, we'll just test sequential uploads quickly
@@ -247,7 +248,7 @@ class TestConcurrentWorkflows:
         for sim_id in simulation_ids:
             api_client.delete(f"/api/simulations/{sim_id}")
 
-    def test_concurrent_analysis(self, api_client, simulation_factory):
+    def test_concurrent_analysis(self, api_client: Any, simulation_factory: Any) -> None:
         """Test running analysis on multiple simulations concurrently"""
         # Create test simulations
         simulations = [simulation_factory(f"Concurrent Analysis {i}") for i in range(3)]
@@ -269,7 +270,7 @@ class TestConcurrentWorkflows:
 class TestPerformanceWorkflow:
     """Test workflow performance"""
 
-    def test_upload_performance(self, api_client, sample_csv_file):
+    def test_upload_performance(self, api_client: Any, sample_csv_file: Any) -> None:
         """Test upload performance"""
         start_time = time.time()
 
@@ -290,7 +291,7 @@ class TestPerformanceWorkflow:
         sim_id = response.json()["simulation_id"]
         api_client.delete(f"/api/simulations/{sim_id}")
 
-    def test_analysis_performance(self, api_client, simulation_factory):
+    def test_analysis_performance(self, api_client: Any, simulation_factory: Any) -> None:
         """Test analysis performance"""
         # Create simulation with reasonable size
         simulation = simulation_factory("Performance Test", num_points=1000)
@@ -312,7 +313,7 @@ class TestPerformanceWorkflow:
 class TestDataIntegrity:
     """Test data integrity throughout workflow"""
 
-    def test_data_consistency(self, api_client, sample_csv_file):
+    def test_data_consistency(self, api_client: Any, sample_csv_file: Any) -> None:
         """Test that data remains consistent through upload and retrieval"""
         # Upload
         with open(sample_csv_file, "rb") as f:
@@ -337,7 +338,7 @@ class TestDataIntegrity:
         # Clean up
         api_client.delete(f"/api/simulations/{sim_id}")
 
-    def test_field_data_preservation(self, api_client, sample_csv_file):
+    def test_field_data_preservation(self, api_client: Any, sample_csv_file: Any) -> None:
         """Test that field data is preserved correctly"""
         # Upload simulation
         with open(sample_csv_file, "rb") as f:

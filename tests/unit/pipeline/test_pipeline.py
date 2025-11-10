@@ -41,7 +41,7 @@ class TestPipeline:
     """Pipeline 테스트"""
 
     @pytest.mark.asyncio
-    async def test_empty_pipeline(self):
+    async def test_empty_pipeline(self) -> None:
         """빈 파이프라인 테스트"""
         pipeline = Pipeline()
 
@@ -52,7 +52,7 @@ class TestPipeline:
         assert len(result.get_stage_results()) == 0
 
     @pytest.mark.asyncio
-    async def test_single_stage(self):
+    async def test_single_stage(self) -> None:
         """단일 단계 파이프라인 테스트"""
         pipeline = Pipeline()
         pipeline.add_stage(DoubleStage())
@@ -64,7 +64,7 @@ class TestPipeline:
         assert len(result.get_stage_results()) == 1
 
     @pytest.mark.asyncio
-    async def test_multiple_stages(self):
+    async def test_multiple_stages(self) -> None:
         """다중 단계 파이프라인 테스트"""
         pipeline = Pipeline()
         pipeline.add_stage(DoubleStage())
@@ -78,7 +78,7 @@ class TestPipeline:
         assert len(result.get_stage_results()) == 2
 
     @pytest.mark.asyncio
-    async def test_chaining_add_stage(self):
+    async def test_chaining_add_stage(self) -> None:
         """add_stage 체이닝 테스트"""
         pipeline = (
             Pipeline().add_stage(DoubleStage()).add_stage(AddStage(3)).add_stage(DoubleStage())
@@ -91,7 +91,7 @@ class TestPipeline:
         assert len(pipeline) == 3
 
     @pytest.mark.asyncio
-    async def test_stage_failure(self):
+    async def test_stage_failure(self) -> None:
         """단계 실패 테스트"""
         pipeline = Pipeline(stop_on_failure=True)
         pipeline.add_stage(DoubleStage())
@@ -109,7 +109,7 @@ class TestPipeline:
         assert failed_stages[0].stage_name == "FailingStage"
 
     @pytest.mark.asyncio
-    async def test_continue_on_failure(self):
+    async def test_continue_on_failure(self) -> None:
         """실패 시에도 계속 실행 테스트"""
         pipeline = Pipeline(stop_on_failure=False)
         pipeline.add_stage(DoubleStage())
@@ -123,7 +123,7 @@ class TestPipeline:
         assert len(result.get_stage_results()) == 3
 
     @pytest.mark.asyncio
-    async def test_pipeline_context(self):
+    async def test_pipeline_context(self) -> None:
         """파이프라인 컨텍스트 테스트"""
         context = PipelineContext()
         context.metadata["initial_key"] = "initial_value"
@@ -138,7 +138,7 @@ class TestPipeline:
         assert result.context.pipeline_id == context.pipeline_id
 
     @pytest.mark.asyncio
-    async def test_stage_results(self):
+    async def test_stage_results(self) -> None:
         """단계 결과 테스트"""
         pipeline = Pipeline()
         pipeline.add_stage(DoubleStage())
@@ -160,7 +160,7 @@ class TestPipeline:
         assert stages[1].data == 13
 
     @pytest.mark.asyncio
-    async def test_stage_duration(self):
+    async def test_stage_duration(self) -> None:
         """단계 실행 시간 측정 테스트"""
         pipeline = Pipeline()
         pipeline.add_stage(DoubleStage())
@@ -174,7 +174,7 @@ class TestPipeline:
         assert duration >= 0
 
     @pytest.mark.asyncio
-    async def test_pipeline_to_dict(self):
+    async def test_pipeline_to_dict(self) -> None:
         """파이프라인 결과 딕셔너리 변환 테스트"""
         pipeline = Pipeline()
         pipeline.add_stage(DoubleStage())
@@ -193,7 +193,7 @@ class TestPipeline:
 class TestPipelineContext:
     """PipelineContext 테스트"""
 
-    def test_create_context(self):
+    def test_create_context(self) -> None:
         """컨텍스트 생성 테스트"""
         context = PipelineContext()
 
@@ -201,7 +201,7 @@ class TestPipelineContext:
         assert len(context.stage_results) == 0
         assert len(context.metadata) == 0
 
-    def test_add_stage_result(self):
+    def test_add_stage_result(self) -> None:
         """단계 결과 추가 테스트"""
         context = PipelineContext()
 
@@ -211,7 +211,7 @@ class TestPipelineContext:
         assert len(context.stage_results) == 1
         assert context.get_last_result() == result1
 
-    def test_get_stage_result(self):
+    def test_get_stage_result(self) -> None:
         """특정 단계 결과 조회 테스트"""
         context = PipelineContext()
 
@@ -224,7 +224,7 @@ class TestPipelineContext:
         found = context.get_stage_result("Stage1")
         assert found == result1
 
-    def test_has_failures(self):
+    def test_has_failures(self) -> None:
         """실패 확인 테스트"""
         context = PipelineContext()
 

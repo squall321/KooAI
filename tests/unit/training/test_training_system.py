@@ -24,7 +24,7 @@ from src.core.training import (
 class TestPretrainedModelManager:
     """사전 학습 모델 관리자 테스트"""
 
-    def test_register_model(self):
+    def test_register_model(self) -> None:
         """모델 등록 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = PretrainedModelManager(cache_dir=Path(tmpdir))
@@ -41,7 +41,7 @@ class TestPretrainedModelManager:
             assert info.source == ModelSource.LOCAL
             assert info.framework == "pytorch"
 
-    def test_get_model(self):
+    def test_get_model(self) -> None:
         """모델 조회 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = PretrainedModelManager(cache_dir=Path(tmpdir))
@@ -55,7 +55,7 @@ class TestPretrainedModelManager:
             # 존재하지 않는 모델
             assert manager.get_model("nonexistent") is None
 
-    def test_list_models(self):
+    def test_list_models(self) -> None:
         """모델 목록 조회 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = PretrainedModelManager(cache_dir=Path(tmpdir))
@@ -91,7 +91,7 @@ class TestPretrainedModelManager:
 class TestFinetuneConfig:
     """Fine-tuning 설정 테스트"""
 
-    def test_default_config(self):
+    def test_default_config(self) -> None:
         """기본 설정 생성 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = FinetuneConfig(model_name="test_model", output_dir=Path(tmpdir) / "outputs")
@@ -101,7 +101,7 @@ class TestFinetuneConfig:
             assert config.scheduler.type == SchedulerType.LINEAR
             assert config.training.num_epochs == 10
 
-    def test_custom_config(self):
+    def test_custom_config(self) -> None:
         """커스텀 설정 생성 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             optimizer = OptimizerConfig(type=OptimizerType.SGD, learning_rate=0.01, momentum=0.9)
@@ -129,7 +129,7 @@ class TestFinetuneConfig:
             assert config.training.num_epochs == 20
             assert config.loss_type == LossType.CROSS_ENTROPY
 
-    def test_save_load_config(self):
+    def test_save_load_config(self) -> None:
         """설정 저장/로드 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             config_path = Path(tmpdir) / "config.json"
@@ -149,7 +149,7 @@ class TestFinetuneConfig:
             assert loaded_config.pretrained_model_name == config.pretrained_model_name
             assert loaded_config.optimizer.learning_rate == config.optimizer.learning_rate
 
-    def test_to_from_dict(self):
+    def test_to_from_dict(self) -> None:
         """딕셔너리 변환 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = FinetuneConfig(model_name="test_model", output_dir=Path(tmpdir) / "outputs")
@@ -169,7 +169,7 @@ class TestFinetuneConfig:
 class TestMetricsTracker:
     """메트릭 추적기 테스트"""
 
-    def test_log_metrics(self):
+    def test_log_metrics(self) -> None:
         """메트릭 기록 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             tracker = MetricsTracker(log_dir=Path(tmpdir))
@@ -181,7 +181,7 @@ class TestMetricsTracker:
             assert latest["loss"] == 0.5
             assert latest["accuracy"] == 0.9
 
-    def test_metric_history(self):
+    def test_metric_history(self) -> None:
         """메트릭 히스토리 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             tracker = MetricsTracker(log_dir=Path(tmpdir))
@@ -197,7 +197,7 @@ class TestMetricsTracker:
             assert history[1] == (200, 0.4)
             assert history[2] == (300, 0.3)
 
-    def test_best_metric(self):
+    def test_best_metric(self) -> None:
         """최적 메트릭 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             tracker = MetricsTracker(log_dir=Path(tmpdir))
@@ -211,7 +211,7 @@ class TestMetricsTracker:
             assert best[0] == 0.3  # 최소값
             assert best[1] == 200  # 해당 스텝
 
-    def test_metric_summary(self):
+    def test_metric_summary(self) -> None:
         """메트릭 요약 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             tracker = MetricsTracker(log_dir=Path(tmpdir))
@@ -230,7 +230,7 @@ class TestMetricsTracker:
             assert summary["max"] == 0.5
             assert summary["latest"] == 0.4
 
-    def test_phase_filtering(self):
+    def test_phase_filtering(self) -> None:
         """학습 단계 필터링 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             tracker = MetricsTracker(log_dir=Path(tmpdir))
@@ -245,7 +245,7 @@ class TestMetricsTracker:
             assert len(train_history) == 2
             assert len(val_history) == 1
 
-    def test_export_csv(self):
+    def test_export_csv(self) -> None:
         """CSV 내보내기 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             tracker = MetricsTracker(log_dir=Path(tmpdir))

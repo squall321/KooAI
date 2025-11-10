@@ -7,6 +7,7 @@ Tests the LogEntry, LogAnalyzer, MetricsAnalyzer, and AuditAnalyzer classes.
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch, MagicMock
 import pytest
 
@@ -14,7 +15,7 @@ import pytest
 class TestLogEntry:
     """Test LogEntry class"""
 
-    def test_log_entry_parse_json(self):
+    def test_log_entry_parse_json(self) -> None:
         """Test parsing JSON log entry"""
         from src.infrastructure.logging.log_analyzer import LogEntry
 
@@ -32,7 +33,7 @@ class TestLogEntry:
         assert entry.event_type == "test_event"
         assert entry.user_id == "usr_123"
 
-    def test_log_entry_parse_invalid_json(self):
+    def test_log_entry_parse_invalid_json(self) -> None:
         """Test parsing invalid JSON falls back gracefully"""
         from src.infrastructure.logging.log_analyzer import LogEntry
 
@@ -43,7 +44,7 @@ class TestLogEntry:
         assert entry.message == log_line
         assert entry.event_type is None
 
-    def test_log_entry_timestamp_parsing(self):
+    def test_log_entry_timestamp_parsing(self) -> None:
         """Test timestamp is parsed correctly"""
         from src.infrastructure.logging.log_analyzer import LogEntry
 
@@ -60,7 +61,7 @@ class TestLogAnalyzer:
     """Test LogAnalyzer class"""
 
     @pytest.fixture
-    def temp_log_file(self, tmp_path):
+    def temp_log_file(self, tmp_path: Path) -> Path:
         """Create temporary log file with test data"""
         log_file = tmp_path / "test.log"
 
@@ -95,7 +96,7 @@ class TestLogAnalyzer:
 
         return log_file
 
-    def test_log_analyzer_creation(self, temp_log_file):
+    def test_log_analyzer_creation(self, temp_log_file: Path) -> None:
         """Test LogAnalyzer can be created"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -103,7 +104,7 @@ class TestLogAnalyzer:
         assert analyzer is not None
         assert analyzer.log_file == temp_log_file
 
-    def test_load_logs(self, temp_log_file):
+    def test_load_logs(self, temp_log_file: Path) -> None:
         """Test loading log entries"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -112,7 +113,7 @@ class TestLogAnalyzer:
 
         assert len(analyzer.entries) == 3
 
-    def test_load_logs_with_time_filter(self, temp_log_file):
+    def test_load_logs_with_time_filter(self, temp_log_file: Path) -> None:
         """Test loading logs with time filter"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -123,7 +124,7 @@ class TestLogAnalyzer:
         # All test entries should be within 1 hour
         assert len(analyzer.entries) >= 0
 
-    def test_load_logs_nonexistent_file(self, tmp_path):
+    def test_load_logs_nonexistent_file(self, tmp_path: Path) -> None:
         """Test loading from nonexistent file"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -132,7 +133,7 @@ class TestLogAnalyzer:
 
         assert len(analyzer.entries) == 0
 
-    def test_analyze_basic_stats(self, temp_log_file):
+    def test_analyze_basic_stats(self, temp_log_file: Path) -> None:
         """Test analyze returns basic statistics"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -144,7 +145,7 @@ class TestLogAnalyzer:
         assert "levels" in stats
         assert "errors" in stats
 
-    def test_analyze_error_rate(self, temp_log_file):
+    def test_analyze_error_rate(self, temp_log_file: Path) -> None:
         """Test analyze calculates error rate"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -155,7 +156,7 @@ class TestLogAnalyzer:
         assert "error_rate" in stats
         assert stats["error_rate"] > 0
 
-    def test_analyze_event_types(self, temp_log_file):
+    def test_analyze_event_types(self, temp_log_file: Path) -> None:
         """Test analyze counts event types"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -165,7 +166,7 @@ class TestLogAnalyzer:
         assert "event_types" in stats
         assert "login" in stats["event_types"]
 
-    def test_analyze_top_users(self, temp_log_file):
+    def test_analyze_top_users(self, temp_log_file: Path) -> None:
         """Test analyze identifies top users"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -174,7 +175,7 @@ class TestLogAnalyzer:
 
         assert "top_users" in stats
 
-    def test_analyze_empty_log(self, tmp_path):
+    def test_analyze_empty_log(self, tmp_path: Path) -> None:
         """Test analyze with empty log file"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -186,7 +187,7 @@ class TestLogAnalyzer:
 
         assert stats["total_entries"] == 0
 
-    def test_get_error_summary(self, temp_log_file):
+    def test_get_error_summary(self, temp_log_file: Path) -> None:
         """Test getting error summary"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -197,7 +198,7 @@ class TestLogAnalyzer:
         # Should have 1 error from test data
         assert len(errors) >= 0
 
-    def test_get_user_activity(self, temp_log_file):
+    def test_get_user_activity(self, temp_log_file: Path) -> None:
         """Test getting user activity"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -207,7 +208,7 @@ class TestLogAnalyzer:
         assert activity["user_id"] == "usr_123"
         assert "total_actions" in activity
 
-    def test_get_user_activity_nonexistent(self, temp_log_file):
+    def test_get_user_activity_nonexistent(self, temp_log_file: Path) -> None:
         """Test getting activity for nonexistent user"""
         from src.infrastructure.logging.log_analyzer import LogAnalyzer
 
@@ -221,7 +222,7 @@ class TestMetricsAnalyzer:
     """Test MetricsAnalyzer class"""
 
     @pytest.fixture
-    def temp_metrics_log(self, tmp_path):
+    def temp_metrics_log(self, tmp_path: Path) -> Path:
         """Create temporary metrics log file"""
         log_file = tmp_path / "metrics.log"
 
@@ -256,14 +257,14 @@ class TestMetricsAnalyzer:
 
         return log_file
 
-    def test_metrics_analyzer_creation(self, temp_metrics_log):
+    def test_metrics_analyzer_creation(self, temp_metrics_log: Path) -> None:
         """Test MetricsAnalyzer can be created"""
         from src.infrastructure.logging.log_analyzer import MetricsAnalyzer
 
         analyzer = MetricsAnalyzer(temp_metrics_log)
         assert analyzer is not None
 
-    def test_get_file_upload_stats(self, temp_metrics_log):
+    def test_get_file_upload_stats(self, temp_metrics_log: Path) -> None:
         """Test getting file upload statistics"""
         from src.infrastructure.logging.log_analyzer import MetricsAnalyzer
 
@@ -273,7 +274,7 @@ class TestMetricsAnalyzer:
         assert "total_uploads" in stats
         assert stats["total_uploads"] >= 0
 
-    def test_get_file_upload_stats_empty(self, tmp_path):
+    def test_get_file_upload_stats_empty(self, tmp_path: Path) -> None:
         """Test file upload stats with no data"""
         from src.infrastructure.logging.log_analyzer import MetricsAnalyzer
 
@@ -285,7 +286,7 @@ class TestMetricsAnalyzer:
 
         assert stats["total_uploads"] == 0
 
-    def test_get_llm_usage_stats(self, temp_metrics_log):
+    def test_get_llm_usage_stats(self, temp_metrics_log: Path) -> None:
         """Test getting LLM usage statistics"""
         from src.infrastructure.logging.log_analyzer import MetricsAnalyzer
 
@@ -296,7 +297,7 @@ class TestMetricsAnalyzer:
         assert "total_tokens" in stats
         assert "total_cost_usd" in stats
 
-    def test_get_llm_usage_stats_empty(self, tmp_path):
+    def test_get_llm_usage_stats_empty(self, tmp_path: Path) -> None:
         """Test LLM usage stats with no data"""
         from src.infrastructure.logging.log_analyzer import MetricsAnalyzer
 
@@ -308,7 +309,7 @@ class TestMetricsAnalyzer:
 
         assert stats["total_requests"] == 0
 
-    def test_get_visualization_stats(self, temp_metrics_log):
+    def test_get_visualization_stats(self, temp_metrics_log: Path) -> None:
         """Test getting visualization statistics"""
         from src.infrastructure.logging.log_analyzer import MetricsAnalyzer
 
@@ -323,7 +324,7 @@ class TestAuditAnalyzer:
     """Test AuditAnalyzer class"""
 
     @pytest.fixture
-    def temp_audit_log(self, tmp_path):
+    def temp_audit_log(self, tmp_path: Path) -> Path:
         """Create temporary audit log file"""
         log_file = tmp_path / "audit.log"
 
@@ -359,14 +360,14 @@ class TestAuditAnalyzer:
 
         return log_file
 
-    def test_audit_analyzer_creation(self, temp_audit_log):
+    def test_audit_analyzer_creation(self, temp_audit_log: Path) -> None:
         """Test AuditAnalyzer can be created"""
         from src.infrastructure.logging.log_analyzer import AuditAnalyzer
 
         analyzer = AuditAnalyzer(temp_audit_log)
         assert analyzer is not None
 
-    def test_get_authentication_stats(self, temp_audit_log):
+    def test_get_authentication_stats(self, temp_audit_log: Path) -> None:
         """Test getting authentication statistics"""
         from src.infrastructure.logging.log_analyzer import AuditAnalyzer
 
@@ -377,7 +378,7 @@ class TestAuditAnalyzer:
         assert "successful_auth" in stats
         assert "failed_auth" in stats
 
-    def test_get_access_patterns(self, temp_audit_log):
+    def test_get_access_patterns(self, temp_audit_log: Path) -> None:
         """Test getting access patterns"""
         from src.infrastructure.logging.log_analyzer import AuditAnalyzer
 
@@ -387,7 +388,7 @@ class TestAuditAnalyzer:
         assert "total_access_events" in stats
         assert "actions" in stats
 
-    def test_detect_anomalies(self, temp_audit_log):
+    def test_detect_anomalies(self, temp_audit_log: Path) -> None:
         """Test anomaly detection"""
         from src.infrastructure.logging.log_analyzer import AuditAnalyzer
 
@@ -401,7 +402,7 @@ class TestDashboardReport:
     """Test dashboard report generation"""
 
     @pytest.fixture
-    def temp_logs(self, tmp_path):
+    def temp_logs(self, tmp_path: Path) -> tuple[Path, Path, Path]:
         """Create temporary log files"""
         app_log = tmp_path / "app.log"
         metrics_log = tmp_path / "metrics.log"
@@ -414,7 +415,7 @@ class TestDashboardReport:
 
         return app_log, metrics_log, audit_log
 
-    def test_generate_dashboard_report(self, temp_logs):
+    def test_generate_dashboard_report(self, temp_logs: tuple[Path, Path, Path]) -> None:
         """Test generating dashboard report"""
         from src.infrastructure.logging.log_analyzer import generate_dashboard_report
 
@@ -430,7 +431,7 @@ class TestDashboardReport:
         assert "authentication" in report
         assert "security_anomalies" in report
 
-    def test_generate_dashboard_report_nonexistent_files(self, tmp_path):
+    def test_generate_dashboard_report_nonexistent_files(self, tmp_path: Path) -> None:
         """Test generating report with nonexistent files"""
         from src.infrastructure.logging.log_analyzer import generate_dashboard_report
 

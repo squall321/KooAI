@@ -24,7 +24,7 @@ from src.core.plugins import (
 class TestPlugin(BasePlugin):
     """테스트용 플러그인"""
 
-    def __init__(self, name: str = "test_plugin", version: str = "1.0.0"):
+    def __init__(self, name: str = "test_plugin", version: str = "1.0.0") -> None:
         metadata = PluginMetadata(
             name=name,
             version=PluginVersion.from_string(version),
@@ -50,7 +50,7 @@ class TestPlugin(BasePlugin):
 class TestPluginWithDependency(BasePlugin):
     """의존성이 있는 테스트 플러그인"""
 
-    def __init__(self, name: str, depends_on: str, min_version: str = "1.0.0"):
+    def __init__(self, name: str, depends_on: str, min_version: str = "1.0.0") -> None:
         metadata = PluginMetadata(
             name=name,
             version=PluginVersion.from_string("1.0.0"),
@@ -68,19 +68,19 @@ class TestPluginWithDependency(BasePlugin):
 class TestPluginVersion:
     """PluginVersion 테스트"""
 
-    def test_version_creation(self):
+    def test_version_creation(self) -> None:
         """버전 생성 테스트"""
         version = PluginVersion(major=1, minor=2, patch=3)
         assert str(version) == "1.2.3"
 
-    def test_version_from_string(self):
+    def test_version_from_string(self) -> None:
         """문자열에서 버전 파싱"""
         version = PluginVersion.from_string("2.0.5")
         assert version.major == 2
         assert version.minor == 0
         assert version.patch == 5
 
-    def test_version_comparison(self):
+    def test_version_comparison(self) -> None:
         """버전 비교"""
         v1 = PluginVersion(1, 0, 0)
         v2 = PluginVersion(1, 0, 1)
@@ -92,7 +92,7 @@ class TestPluginVersion:
         assert v2 > v1
         assert v3 >= v2
 
-    def test_version_equality(self):
+    def test_version_equality(self) -> None:
         """버전 동등성"""
         v1 = PluginVersion(1, 2, 3)
         v2 = PluginVersion(1, 2, 3)
@@ -105,7 +105,7 @@ class TestPluginVersion:
 class TestPluginDependency:
     """PluginDependency 테스트"""
 
-    def test_dependency_compatibility(self):
+    def test_dependency_compatibility(self) -> None:
         """의존성 호환성 확인"""
         dep = PluginDependency(
             name="dep_plugin",
@@ -119,7 +119,7 @@ class TestPluginDependency:
         assert not dep.is_compatible(PluginVersion(0, 9, 0))
         assert not dep.is_compatible(PluginVersion(2, 0, 1))
 
-    def test_dependency_min_only(self):
+    def test_dependency_min_only(self) -> None:
         """최소 버전만 있는 의존성"""
         dep = PluginDependency(name="dep_plugin", min_version=PluginVersion(1, 0, 0))
 
@@ -132,7 +132,7 @@ class TestBasePlugin:
     """BasePlugin 테스트"""
 
     @pytest.mark.asyncio
-    async def test_plugin_lifecycle(self):
+    async def test_plugin_lifecycle(self) -> None:
         """플러그인 라이프사이클 테스트"""
         plugin = TestPlugin()
 
@@ -160,7 +160,7 @@ class TestBasePlugin:
         assert plugin.cleanup_called
 
     @pytest.mark.asyncio
-    async def test_plugin_health_check(self):
+    async def test_plugin_health_check(self) -> None:
         """플러그인 헬스 체크"""
         plugin = TestPlugin()
         await plugin.initialize({})
@@ -172,7 +172,7 @@ class TestBasePlugin:
         assert health["name"] == "test_plugin"
         assert "version" in health
 
-    def test_plugin_metadata(self):
+    def test_plugin_metadata(self) -> None:
         """플러그인 메타데이터"""
         plugin = TestPlugin()
         metadata = plugin.get_metadata()
@@ -185,7 +185,7 @@ class TestBasePlugin:
 class TestPluginRegistry:
     """PluginRegistry 테스트"""
 
-    def test_register_plugin(self):
+    def test_register_plugin(self) -> None:
         """플러그인 등록"""
         registry = PluginRegistry()
         plugin = TestPlugin()
@@ -195,7 +195,7 @@ class TestPluginRegistry:
         assert registry.has("test_plugin")
         assert registry.get("test_plugin") == plugin
 
-    def test_register_duplicate_plugin(self):
+    def test_register_duplicate_plugin(self) -> None:
         """중복 플러그인 등록 (같은 버전)"""
         registry = PluginRegistry()
         plugin1 = TestPlugin()
@@ -206,7 +206,7 @@ class TestPluginRegistry:
 
         assert registry.get("test_plugin") == plugin1
 
-    def test_register_conflict_version(self):
+    def test_register_conflict_version(self) -> None:
         """버전 충돌 플러그인 등록"""
         registry = PluginRegistry()
         plugin1 = TestPlugin(version="1.0.0")
@@ -217,7 +217,7 @@ class TestPluginRegistry:
         with pytest.raises(PluginVersionConflictError):
             registry.register(plugin2)
 
-    def test_unregister_plugin(self):
+    def test_unregister_plugin(self) -> None:
         """플러그인 등록 해제"""
         registry = PluginRegistry()
         plugin = TestPlugin()
@@ -227,7 +227,7 @@ class TestPluginRegistry:
 
         assert not registry.has("test_plugin")
 
-    def test_unregister_with_dependents(self):
+    def test_unregister_with_dependents(self) -> None:
         """의존하는 플러그인이 있을 때 등록 해제 실패"""
         registry = PluginRegistry()
         base_plugin = TestPlugin(name="base")
@@ -239,7 +239,7 @@ class TestPluginRegistry:
         with pytest.raises(PluginDependencyError):
             registry.unregister("base")
 
-    def test_list_plugins(self):
+    def test_list_plugins(self) -> None:
         """플러그인 목록 조회"""
         registry = PluginRegistry()
         plugin1 = TestPlugin(name="plugin1")
@@ -253,7 +253,7 @@ class TestPluginRegistry:
         assert len(plugins) == 2
         assert {p.name for p in plugins} == {"plugin1", "plugin2"}
 
-    def test_list_by_type(self):
+    def test_list_by_type(self) -> None:
         """타입별 플러그인 조회"""
         registry = PluginRegistry()
         plugin = TestPlugin()
@@ -266,7 +266,7 @@ class TestPluginRegistry:
         assert "test_plugin" in custom_plugins
         assert len(stage_plugins) == 0
 
-    def test_dependency_validation(self):
+    def test_dependency_validation(self) -> None:
         """의존성 검증"""
         registry = PluginRegistry()
         base_plugin = TestPlugin(name="base", version="1.0.0")
@@ -285,7 +285,7 @@ class TestPluginRegistry:
         assert registry.has("dependent")
 
     @pytest.mark.asyncio
-    async def test_activate_all(self):
+    async def test_activate_all(self) -> None:
         """모든 플러그인 활성화"""
         registry = PluginRegistry()
         plugin1 = TestPlugin(name="plugin1")
@@ -303,7 +303,7 @@ class TestPluginRegistry:
         assert plugin2.get_status() == PluginStatus.ACTIVE
 
     @pytest.mark.asyncio
-    async def test_activation_order_with_dependencies(self):
+    async def test_activation_order_with_dependencies(self) -> None:
         """의존성 순서로 활성화"""
         registry = PluginRegistry()
         base = TestPlugin(name="base")
@@ -325,7 +325,7 @@ class TestPluginRegistry:
 class TestPluginConfigManager:
     """PluginConfigManager 테스트"""
 
-    def test_set_get_config(self):
+    def test_set_get_config(self) -> None:
         """설정 설정 및 조회"""
         manager = PluginConfigManager()
 
@@ -336,7 +336,7 @@ class TestPluginConfigManager:
 
         assert retrieved == config
 
-    def test_save_load_config(self):
+    def test_save_load_config(self) -> None:
         """설정 저장 및 로드"""
         with tempfile.TemporaryDirectory() as tmpdir:
             manager = PluginConfigManager(config_dir=Path(tmpdir))
@@ -350,7 +350,7 @@ class TestPluginConfigManager:
 
             assert loaded == config
 
-    def test_config_with_schema_validation(self):
+    def test_config_with_schema_validation(self) -> None:
         """스키마 검증이 있는 설정"""
         manager = PluginConfigManager()
 
@@ -375,7 +375,7 @@ class TestPluginConfigManager:
 class TestConfigBuilder:
     """ConfigBuilder 테스트"""
 
-    def test_config_builder(self):
+    def test_config_builder(self) -> None:
         """설정 빌더"""
         config = (
             ConfigBuilder("test_plugin")
@@ -387,7 +387,7 @@ class TestConfigBuilder:
 
         assert config == {"host": "localhost", "port": 8080, "debug": True}
 
-    def test_config_builder_nested(self):
+    def test_config_builder_nested(self) -> None:
         """중첩 설정"""
         config = (
             ConfigBuilder("test_plugin")
@@ -398,7 +398,7 @@ class TestConfigBuilder:
 
         assert config == {"database": {"host": "localhost", "port": 5432}}
 
-    def test_config_builder_merge(self):
+    def test_config_builder_merge(self) -> None:
         """설정 병합"""
         base_config = {"host": "localhost", "port": 8080}
 

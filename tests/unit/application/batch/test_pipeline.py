@@ -2,6 +2,7 @@
 Tests for Pipeline
 """
 
+from typing import Any
 import pytest
 from src.application.batch.pipeline import (
     Pipeline,
@@ -19,7 +20,7 @@ class TestStage(PipelineStage):
         super().__init__(name)
         self.operation = operation
 
-    def process(self, data):
+    def process(self, data: Any) -> Any:
         """Add stage name to data"""
         if isinstance(data, list):
             return data + [self.name]
@@ -34,7 +35,7 @@ class MultiplyStage(PipelineStage):
         super().__init__(f"multiply_by_{multiplier}")
         self.multiplier = multiplier
 
-    def process(self, data):
+    def process(self, data: Any) -> Any:
         """Multiply data"""
         if isinstance(data, (int, float)):
             return data * self.multiplier
@@ -44,15 +45,15 @@ class MultiplyStage(PipelineStage):
 class ErrorStage(PipelineStage):
     """Stage that raises an error"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("error_stage")
 
-    def process(self, data):
+    def process(self, data: Any) -> Any:
         """Raise error"""
         raise ValueError("Test error from stage")
 
 
-def test_pipeline_creation():
+def test_pipeline_creation() -> None:
     """Test pipeline creation"""
     pipeline = Pipeline(name="test_pipeline")
 
@@ -60,7 +61,7 @@ def test_pipeline_creation():
     assert len(pipeline.stages) == 0
 
 
-def test_pipeline_add_stage():
+def test_pipeline_add_stage() -> None:
     """Test adding stages to pipeline"""
     pipeline = Pipeline()
 
@@ -74,7 +75,7 @@ def test_pipeline_add_stage():
     assert pipeline.stages[1].name == "stage2"
 
 
-def test_pipeline_process():
+def test_pipeline_process() -> None:
     """Test pipeline processing"""
     pipeline = Pipeline()
 
@@ -87,7 +88,7 @@ def test_pipeline_process():
     assert result == ["stage1", "stage2", "stage3"]
 
 
-def test_pipeline_callable():
+def test_pipeline_callable() -> None:
     """Test pipeline is callable"""
     pipeline = Pipeline()
     pipeline.add_stage(TestStage("stage1"))
@@ -97,7 +98,7 @@ def test_pipeline_callable():
     assert result == ["stage1"]
 
 
-def test_pipeline_data_transformation():
+def test_pipeline_data_transformation() -> None:
     """Test data transformation through pipeline"""
     pipeline = Pipeline()
 
@@ -110,7 +111,7 @@ def test_pipeline_data_transformation():
     assert result == 24  # 1 * 2 * 3 * 4
 
 
-def test_pipeline_error_handling():
+def test_pipeline_error_handling() -> None:
     """Test pipeline error handling"""
     pipeline = Pipeline()
 
@@ -122,10 +123,10 @@ def test_pipeline_error_handling():
         pipeline.process([])
 
 
-def test_parse_stage():
+def test_parse_stage() -> None:
     """Test ParseStage"""
 
-    def mock_parser(file_path):
+    def mock_parser(file_path: Any) -> Any:
         return {"data": f"parsed_{file_path}"}
 
     stage = ParseStage(mock_parser)
@@ -134,10 +135,10 @@ def test_parse_stage():
     assert result["data"] == "parsed_/test/file.txt"
 
 
-def test_analyze_stage():
+def test_analyze_stage() -> None:
     """Test AnalyzeStage"""
 
-    def mock_analyzer(sim_data, field):
+    def mock_analyzer(sim_data: Any, field: Any) -> Any:
         return {"field": field, "mean": 42.0}
 
     stage = AnalyzeStage(mock_analyzer, "temperature")
@@ -152,11 +153,11 @@ def test_analyze_stage():
     assert result["analysis_results"]["temperature"]["mean"] == 42.0
 
 
-def test_export_stage():
+def test_export_stage() -> None:
     """Test ExportStage"""
     export_calls = []
 
-    def mock_exporter(data, path):
+    def mock_exporter(data: Any, path: Any) -> Any:
         export_calls.append((data, path))
         return data
 
@@ -170,18 +171,18 @@ def test_export_stage():
     assert export_calls[0][1] == "/output/result.json"
 
 
-def test_pipeline_complex_workflow():
+def test_pipeline_complex_workflow() -> None:
     """Test complex pipeline workflow"""
     # Simulate: parse -> multiply -> transform -> export
 
     parsed_data = []
     exported_data = []
 
-    def parse_func(path):
+    def parse_func(path: Any) -> Any:
         parsed_data.append(path)
         return 10
 
-    def export_func(data, path):
+    def export_func(data: Any, path: Any) -> Any:
         exported_data.append((data, path))
         return data
 
@@ -199,7 +200,7 @@ def test_pipeline_complex_workflow():
     assert exported_data[0][0] == 50
 
 
-def test_pipeline_empty():
+def test_pipeline_empty() -> None:
     """Test empty pipeline"""
     pipeline = Pipeline()
 
@@ -209,7 +210,7 @@ def test_pipeline_empty():
     assert result == "test_data"
 
 
-def test_stage_callable():
+def test_stage_callable() -> None:
     """Test that stages are callable"""
     stage = TestStage("test")
 
@@ -218,7 +219,7 @@ def test_stage_callable():
     assert result == ["initial", "test"]
 
 
-def test_pipeline_method_chaining():
+def test_pipeline_method_chaining() -> None:
     """Test method chaining for adding stages"""
     pipeline = Pipeline()
 
@@ -231,15 +232,15 @@ def test_pipeline_method_chaining():
     assert len(pipeline.stages) == 3
 
 
-def test_pipeline_with_different_data_types():
+def test_pipeline_with_different_data_types() -> None:
     """Test pipeline with different data types"""
 
     class StringAppendStage(PipelineStage):
-        def __init__(self, suffix):
+        def __init__(self, suffix: Any) -> None:
             super().__init__(f"append_{suffix}")
             self.suffix = suffix
 
-        def process(self, data):
+        def process(self, data: Any) -> Any:
             return f"{data}_{self.suffix}"
 
     pipeline = Pipeline()
@@ -252,15 +253,15 @@ def test_pipeline_with_different_data_types():
     assert result == "start_foo_bar_baz"
 
 
-def test_pipeline_state_isolation():
+def test_pipeline_state_isolation() -> None:
     """Test that pipeline stages don't share state between calls"""
 
     class CounterStage(PipelineStage):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__("counter")
             self.count = 0
 
-        def process(self, data):
+        def process(self, data: Any) -> Any:
             self.count += 1
             return self.count
 

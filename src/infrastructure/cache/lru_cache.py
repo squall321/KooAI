@@ -100,7 +100,7 @@ class LRUCache:
             self._hits += 1
             return entry.value
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key: str, value: Any, ttl: Optional[float | int] = None) -> None:
         """
         캐시에 값 저장
 

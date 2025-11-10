@@ -3,6 +3,7 @@ Tests for Redis cache implementation
 """
 
 import time
+from typing import Any
 from unittest.mock import Mock, patch, MagicMock
 import pytest
 import json
@@ -14,7 +15,7 @@ from src.infrastructure.cache.redis_cache import RedisCache
 
 
 @pytest.fixture
-def cache_config():
+def cache_config() -> CacheConfig:
     """Create cache config for testing"""
     return CacheConfig(
         cache_enabled=True,
@@ -27,7 +28,7 @@ def cache_config():
 
 
 @pytest.fixture
-def mock_redis():
+def mock_redis() -> MagicMock:
     """Create mock Redis client"""
     mock_client = MagicMock()
     mock_client.ping.return_value = True
@@ -35,7 +36,7 @@ def mock_redis():
 
 
 @pytest.fixture
-def cache(cache_config, mock_redis):
+def cache(cache_config: CacheConfig, mock_redis: MagicMock) -> RedisCache:
     """Create RedisCache instance with mock client"""
     with patch("redis.from_url", return_value=mock_redis):
         cache = RedisCache(cache_config)
@@ -43,7 +44,7 @@ def cache(cache_config, mock_redis):
         return cache
 
 
-def test_cache_initialization(cache_config):
+def test_cache_initialization(cache_config: CacheConfig) -> None:
     """Test cache initialization"""
     with patch("redis.from_url") as mock_from_url:
         mock_client = MagicMock()
@@ -59,7 +60,7 @@ def test_cache_initialization(cache_config):
         mock_from_url.assert_called_once()
 
 
-def test_cache_disabled(mock_redis):
+def test_cache_disabled(mock_redis: MagicMock) -> None:
     """Test cache operations when cache is disabled"""
     config = CacheConfig(cache_enabled=False)
     cache = RedisCache(config)
@@ -71,7 +72,7 @@ def test_cache_disabled(mock_redis):
     assert cache.delete("key") is False
 
 
-def test_set_and_get_json(cache, mock_redis):
+def test_set_and_get_json(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test set and get with JSON serialization"""
     test_data = {"field": "value", "number": 42}
     cache.set("test_key", test_data)
@@ -89,7 +90,7 @@ def test_set_and_get_json(cache, mock_redis):
     assert result == test_data
 
 
-def test_set_and_get_pickle(cache_config, mock_redis):
+def test_set_and_get_pickle(cache_config: CacheConfig, mock_redis: MagicMock) -> None:
     """Test set and get with pickle serialization"""
     cache_config.cache_serialization = "pickle"
     cache = RedisCache(cache_config)
@@ -110,7 +111,7 @@ def test_set_and_get_pickle(cache_config, mock_redis):
     assert result == test_data
 
 
-def test_compression(cache_config, mock_redis):
+def test_compression(cache_config: CacheConfig, mock_redis: MagicMock) -> None:
     """Test data compression"""
     cache_config.cache_compression = True
     cache = RedisCache(cache_config)
@@ -131,7 +132,7 @@ def test_compression(cache_config, mock_redis):
     assert result == test_data
 
 
-def test_set_with_ttl(cache, mock_redis):
+def test_set_with_ttl(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test set with custom TTL"""
     cache.set("test_key", "value", ttl=60)
 
@@ -140,7 +141,7 @@ def test_set_with_ttl(cache, mock_redis):
     assert call_args[1]["ex"] == 60
 
 
-def test_set_with_prefix(cache, mock_redis):
+def test_set_with_prefix(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test set with custom prefix"""
     cache.set("test_key", "value", prefix="custom:")
 
@@ -149,14 +150,14 @@ def test_set_with_prefix(cache, mock_redis):
     assert call_args[0][0] == "custom:test_key"
 
 
-def test_get_nonexistent_key(cache, mock_redis):
+def test_get_nonexistent_key(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test get with nonexistent key"""
     mock_redis.get.return_value = None
     result = cache.get("nonexistent")
     assert result is None
 
 
-def test_delete(cache, mock_redis):
+def test_delete(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test delete operation"""
     mock_redis.delete.return_value = 1
     result = cache.delete("test_key")
@@ -164,7 +165,7 @@ def test_delete(cache, mock_redis):
     mock_redis.delete.assert_called_once_with("test:test_key")
 
 
-def test_exists(cache, mock_redis):
+def test_exists(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test exists operation"""
     mock_redis.exists.return_value = 1
     assert cache.exists("test_key") is True
@@ -173,7 +174,7 @@ def test_exists(cache, mock_redis):
     assert cache.exists("other_key") is False
 
 
-def test_get_many(cache, mock_redis):
+def test_get_many(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test batch get operation"""
     keys = ["key1", "key2", "key3"]
     values = [
@@ -188,7 +189,7 @@ def test_get_many(cache, mock_redis):
     assert "key3" not in result
 
 
-def test_set_many(cache, mock_redis):
+def test_set_many(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test batch set operation"""
     data = {"key1": "value1", "key2": "value2"}
     cache.set_many(data, ttl=60)
@@ -201,7 +202,7 @@ def test_set_many(cache, mock_redis):
     assert pipeline.set.call_count == 2
 
 
-def test_delete_many(cache, mock_redis):
+def test_delete_many(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test batch delete operation"""
     keys = ["key1", "key2", "key3"]
     mock_redis.delete.return_value = 3
@@ -218,7 +219,7 @@ def test_delete_many(cache, mock_redis):
     }
 
 
-def test_clear_prefix(cache, mock_redis):
+def test_clear_prefix(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test clear by prefix"""
     mock_redis.scan_iter.return_value = [
         "test:user:1",
@@ -234,7 +235,7 @@ def test_clear_prefix(cache, mock_redis):
     mock_redis.scan_iter.assert_called_once_with(match="test:user:*", count=1000)
 
 
-def test_increment(cache, mock_redis):
+def test_increment(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test increment operation"""
     mock_redis.incr.return_value = 5
     result = cache.increment("counter", amount=2)
@@ -242,26 +243,26 @@ def test_increment(cache, mock_redis):
     mock_redis.incr.assert_called_once_with("test:counter", 2)
 
 
-def test_expire(cache, mock_redis):
+def test_expire(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test expire operation"""
     cache.expire("test_key", 120)
     mock_redis.expire.assert_called_once_with("test:test_key", 120)
 
 
-def test_ttl(cache, mock_redis):
+def test_ttl(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test TTL check"""
     mock_redis.ttl.return_value = 300
     result = cache.ttl("test_key")
     assert result == 300
 
 
-def test_ping(cache, mock_redis):
+def test_ping(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test ping operation"""
     mock_redis.ping.return_value = True
     assert cache.ping() is True
 
 
-def test_error_handling_get(cache, mock_redis):
+def test_error_handling_get(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test error handling in get"""
     from redis.exceptions import RedisError
 
@@ -272,7 +273,7 @@ def test_error_handling_get(cache, mock_redis):
     assert result is None
 
 
-def test_error_handling_set(cache, mock_redis):
+def test_error_handling_set(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test error handling in set"""
     from redis.exceptions import RedisError
 
@@ -283,7 +284,7 @@ def test_error_handling_set(cache, mock_redis):
     assert result is False
 
 
-def test_singleton_pattern():
+def test_singleton_pattern() -> None:
     """Test singleton get_cache()"""
     from src.infrastructure.cache.redis_cache import get_cache, _cache_instance
 
@@ -298,7 +299,7 @@ def test_singleton_pattern():
         assert cache1 is cache2
 
 
-def test_make_key(cache):
+def test_make_key(cache: RedisCache) -> None:
     """Test key generation"""
     key = cache._make_key("test", prefix="custom:")
     assert key == "custom:test"
@@ -307,7 +308,7 @@ def test_make_key(cache):
     assert key == "test:test"
 
 
-def test_serialize_deserialize_roundtrip(cache):
+def test_serialize_deserialize_roundtrip(cache: RedisCache) -> None:
     """Test serialization round trip"""
     test_data = {"field": "value", "number": 42, "list": [1, 2, 3]}
 
@@ -318,7 +319,7 @@ def test_serialize_deserialize_roundtrip(cache):
     assert deserialized == test_data
 
 
-def test_compression_roundtrip(cache_config, mock_redis):
+def test_compression_roundtrip(cache_config: CacheConfig, mock_redis: MagicMock) -> None:
     """Test compression/decompression round trip"""
     cache_config.cache_compression = True
     cache = RedisCache(cache_config)
@@ -333,7 +334,7 @@ def test_compression_roundtrip(cache_config, mock_redis):
     assert deserialized == test_data
 
 
-def test_large_data_handling(cache, mock_redis):
+def test_large_data_handling(cache: RedisCache, mock_redis: MagicMock) -> None:
     """Test handling of large data"""
     large_data = {"data": "x" * 1000000}  # 1MB of data
     cache.set("large_key", large_data)

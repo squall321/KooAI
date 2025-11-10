@@ -4,6 +4,7 @@ Tests for Infrastructure Config Settings
 Tests Settings class and configuration loading.
 """
 
+from typing import Any
 import os
 from unittest.mock import patch
 import pytest
@@ -12,7 +13,7 @@ import pytest
 class TestSettings:
     """Test Settings class"""
 
-    def test_settings_can_be_created(self):
+    def test_settings_can_be_created(self) -> None:
         """Test Settings can be instantiated"""
         from src.infrastructure.config.settings import Settings
 
@@ -21,7 +22,7 @@ class TestSettings:
         assert settings is not None
         assert settings.app_name == "KooAI"
 
-    def test_settings_default_values(self):
+    def test_settings_default_values(self) -> None:
         """Test Settings has correct default values"""
         from src.infrastructure.config.settings import Settings
 
@@ -33,7 +34,7 @@ class TestSettings:
         assert settings.api_host == "0.0.0.0"
         assert settings.api_port == 8000
 
-    def test_settings_allowed_origins_list(self):
+    def test_settings_allowed_origins_list(self) -> None:
         """Test allowed_origins_list property"""
         from src.infrastructure.config.settings import Settings
 
@@ -44,7 +45,7 @@ class TestSettings:
         assert isinstance(origins, list)
         assert len(origins) > 0
 
-    def test_settings_database_url_property(self):
+    def test_settings_database_url_property(self) -> None:
         """Test get_database_url property"""
         from src.infrastructure.config.settings import Settings
 
@@ -55,7 +56,7 @@ class TestSettings:
         assert isinstance(db_url, str)
         assert len(db_url) > 0
 
-    def test_settings_from_env(self):
+    def test_settings_from_env(self) -> None:
         """Test Settings loads from environment variables"""
         from src.infrastructure.config.settings import Settings
 
@@ -70,7 +71,7 @@ class TestSettings:
             assert settings.debug is True
             assert settings.log_level == "DEBUG"
 
-    def test_settings_api_configuration(self):
+    def test_settings_api_configuration(self) -> None:
         """Test API settings"""
         from src.infrastructure.config.settings import Settings
 
@@ -81,7 +82,7 @@ class TestSettings:
         assert hasattr(settings, 'api_workers')
         assert settings.api_workers >= 1
 
-    def test_settings_database_configuration(self):
+    def test_settings_database_configuration(self) -> None:
         """Test database settings"""
         from src.infrastructure.config.settings import Settings
 
@@ -93,7 +94,7 @@ class TestSettings:
         assert hasattr(settings, 'db_user')
         assert hasattr(settings, 'db_pool_size')
 
-    def test_settings_secret_key_generated(self):
+    def test_settings_secret_key_generated(self) -> None:
         """Test secret key is generated if not provided"""
         from src.infrastructure.config.settings import Settings
 
@@ -102,7 +103,7 @@ class TestSettings:
         assert settings.secret_key is not None
         assert len(settings.secret_key) > 0
 
-    def test_settings_use_test_db(self):
+    def test_settings_use_test_db(self) -> None:
         """Test test database configuration"""
         from src.infrastructure.config.settings import Settings
 
@@ -111,7 +112,7 @@ class TestSettings:
 
             assert settings.use_test_db is True
 
-    def test_get_settings_function(self):
+    def test_get_settings_function(self) -> None:
         """Test get_settings function returns Settings"""
         from src.infrastructure.config.settings import get_settings
 
@@ -120,7 +121,7 @@ class TestSettings:
         assert settings is not None
         assert settings.app_name == "KooAI"
 
-    def test_get_settings_is_cached(self):
+    def test_get_settings_is_cached(self) -> None:
         """Test get_settings returns same instance (cached)"""
         from src.infrastructure.config.settings import get_settings
 
@@ -133,7 +134,7 @@ class TestSettings:
 class TestSettingsValidation:
     """Test Settings validation"""
 
-    def test_settings_validates_port_number(self):
+    def test_settings_validates_port_number(self) -> None:
         """Test port number validation"""
         from src.infrastructure.config.settings import Settings
 
@@ -143,7 +144,7 @@ class TestSettingsValidation:
             assert settings.api_port == 8080
             assert isinstance(settings.api_port, int)
 
-    def test_settings_validates_boolean(self):
+    def test_settings_validates_boolean(self) -> None:
         """Test boolean field validation"""
         from src.infrastructure.config.settings import Settings
 
@@ -153,7 +154,7 @@ class TestSettingsValidation:
             # Pydantic converts truthy strings to bool
             assert isinstance(settings.debug, bool)
 
-    def test_settings_environment_modes(self):
+    def test_settings_environment_modes(self) -> None:
         """Test different environment modes"""
         from src.infrastructure.config.settings import Settings
 
@@ -166,7 +167,7 @@ class TestSettingsValidation:
 class TestDatabaseURL:
     """Test database URL generation"""
 
-    def test_database_url_from_components(self):
+    def test_database_url_from_components(self) -> None:
         """Test database URL is built from components"""
         from src.infrastructure.config.settings import Settings
 
@@ -182,7 +183,7 @@ class TestDatabaseURL:
 
         assert "postgresql" in db_url or "sqlite" in db_url
 
-    def test_database_url_override(self):
+    def test_database_url_override(self) -> None:
         """Test database_url can be overridden"""
         from src.infrastructure.config.settings import Settings
 
@@ -191,7 +192,7 @@ class TestDatabaseURL:
 
         assert settings.get_database_url == custom_url
 
-    def test_test_database_url(self):
+    def test_test_database_url(self) -> None:
         """Test test database uses SQLite"""
         from src.infrastructure.config.settings import Settings
 

@@ -13,7 +13,7 @@ from src.core.data_types.curve import CurveData
 class TestDataTypeFactory:
     """DataTypeFactory 클래스 테스트"""
 
-    def test_create_contour(self):
+    def test_create_contour(self) -> None:
         """컨투어 생성"""
         data = {
             "points": [[0, 0], [1, 1], [2, 0]],
@@ -25,7 +25,7 @@ class TestDataTypeFactory:
         assert isinstance(contour, ContourData)
         assert len(contour.points) == 3
 
-    def test_create_mesh(self):
+    def test_create_mesh(self) -> None:
         """메시 생성"""
         data = {
             "vertices": [[0, 0, 0], [1, 0, 0], [0, 1, 0]],
@@ -37,7 +37,7 @@ class TestDataTypeFactory:
         assert isinstance(mesh, MeshData)
         assert len(mesh.vertices) == 3
 
-    def test_create_curve(self):
+    def test_create_curve(self) -> None:
         """커브 생성"""
         data = {
             "x": [0, 1, 2],
@@ -49,12 +49,12 @@ class TestDataTypeFactory:
         assert isinstance(curve, CurveData)
         assert len(curve.x) == 3
 
-    def test_create_unknown_type_raises_error(self):
+    def test_create_unknown_type_raises_error(self) -> None:
         """알 수 없는 타입 생성 시 에러"""
         with pytest.raises(ValueError, match="Unknown data type"):
             DataTypeFactory.create("unknown", {})
 
-    def test_get_registered_types(self):
+    def test_get_registered_types(self) -> None:
         """등록된 타입 목록"""
         types = DataTypeFactory.get_registered_types()
 
@@ -62,7 +62,7 @@ class TestDataTypeFactory:
         assert "mesh" in types
         assert "curve" in types
 
-    def test_is_registered(self):
+    def test_is_registered(self) -> None:
         """등록 여부 확인"""
         assert DataTypeFactory.is_registered("contour")
         assert not DataTypeFactory.is_registered("unknown")

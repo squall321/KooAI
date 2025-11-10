@@ -10,6 +10,10 @@ Tests the complete task queue workflow including:
 - Task cancellation
 """
 
+from __future__ import annotations
+from typing import TYPE_CHECKING, Iterator, Any
+from celery.app.base import Celery
+
 import pytest
 import time
 from unittest.mock import patch, MagicMock
@@ -24,7 +28,7 @@ from src.infrastructure.tasks.simulation_tasks import (
 
 
 @pytest.fixture
-def celery_worker():
+def celery_worker() -> Iterator[Celery]:
     """
     Start Celery worker for testing
 
@@ -38,7 +42,7 @@ def celery_worker():
 class TestTaskSubmission:
     """Test task submission and basic execution"""
 
-    def test_submit_process_simulation_task(self, celery_worker):
+    def test_submit_process_simulation_task(self, celery_worker: Celery) -> None:
         """Test submitting a file processing task"""
         # Arrange
         file_id = str(uuid4())
@@ -61,7 +65,7 @@ class TestTaskSubmission:
         assert result_data["status"] == "completed"
         assert "metadata" in result_data
 
-    def test_submit_multiple_tasks(self, celery_worker):
+    def test_submit_multiple_tasks(self, celery_worker: Celery) -> None:
         """Test submitting multiple tasks concurrently"""
         # Arrange
         task_count = 5
@@ -84,7 +88,7 @@ class TestTaskSubmission:
 class TestTaskStatusTracking:
     """Test task status tracking and monitoring"""
 
-    def test_track_task_status(self, celery_worker):
+    def test_track_task_status(self, celery_worker: Celery) -> None:
         """Test tracking task status through lifecycle"""
         # Arrange
         file_id = str(uuid4())
@@ -105,7 +109,7 @@ class TestTaskStatusTracking:
         assert initial_state in ["PENDING", "SUCCESS"]
         assert final_state == "SUCCESS"
 
-    def test_get_task_info(self, celery_worker):
+    def test_get_task_info(self, celery_worker: Celery) -> None:
         """Test retrieving task information"""
         # Arrange
         file_id = str(uuid4())
@@ -131,7 +135,7 @@ class TestTaskStatusTracking:
 class TestTaskResults:
     """Test task result retrieval and handling"""
 
-    def test_get_task_result(self, celery_worker):
+    def test_get_task_result(self, celery_worker: Celery) -> None:
         """Test retrieving task results"""
         # Arrange
         file_id = str(uuid4())
@@ -152,7 +156,7 @@ class TestTaskResults:
         # Assert
         assert actual_result == expected_result
 
-    def test_result_backend_storage(self, celery_worker):
+    def test_result_backend_storage(self, celery_worker: Celery) -> None:
         """Test that results are stored in backend"""
         # Arrange
         file_id = str(uuid4())
@@ -173,7 +177,7 @@ class TestTaskResults:
 class TestTaskErrorHandling:
     """Test error handling and retry logic"""
 
-    def test_task_failure(self, celery_worker):
+    def test_task_failure(self, celery_worker: Celery) -> None:
         """Test handling of task failures"""
         # Arrange
         file_id = str(uuid4())
@@ -192,7 +196,7 @@ class TestTaskErrorHandling:
         # Assert
         assert result.failed()
 
-    def test_task_retry_on_failure(self, celery_worker):
+    def test_task_retry_on_failure(self, celery_worker: Celery) -> None:
         """Test automatic retry on transient failures"""
         # Arrange
         file_id = str(uuid4())
@@ -218,7 +222,7 @@ class TestTaskErrorHandling:
 class TestAnalysisTasks:
     """Test AI analysis tasks"""
 
-    def test_analyze_simulation_task(self, celery_worker):
+    def test_analyze_simulation_task(self, celery_worker: Celery) -> None:
         """Test simulation analysis task"""
         # Arrange
         simulation_id = str(uuid4())
@@ -243,7 +247,7 @@ class TestAnalysisTasks:
 class TestCleanupTasks:
     """Test cleanup and maintenance tasks"""
 
-    def test_cleanup_old_files_task(self, celery_worker):
+    def test_cleanup_old_files_task(self, celery_worker: Celery) -> None:
         """Test old files cleanup task"""
         # Arrange
         days_old = 30
@@ -267,7 +271,7 @@ class TestCleanupTasks:
 class TestTaskCancellation:
     """Test task cancellation"""
 
-    def test_cancel_pending_task(self, celery_worker):
+    def test_cancel_pending_task(self, celery_worker: Celery) -> None:
         """Test cancelling a pending task"""
         # Arrange
         file_id = str(uuid4())
@@ -289,7 +293,7 @@ class TestTaskCancellation:
 class TestTaskChaining:
     """Test task chaining and workflows"""
 
-    def test_chain_file_processing_and_analysis(self, celery_worker):
+    def test_chain_file_processing_and_analysis(self, celery_worker: Celery) -> None:
         """Test chaining file processing followed by analysis"""
         # Arrange
         file_id = str(uuid4())
@@ -319,7 +323,7 @@ class TestTaskChaining:
 class TestTaskMetrics:
     """Test task metrics and monitoring"""
 
-    def test_task_execution_time(self, celery_worker):
+    def test_task_execution_time(self, celery_worker: Celery) -> None:
         """Test measuring task execution time"""
         # Arrange
         file_id = str(uuid4())
@@ -335,7 +339,7 @@ class TestTaskMetrics:
         # Assert
         assert execution_time < 5  # Should complete quickly in eager mode
 
-    def test_task_count_metrics(self, celery_worker):
+    def test_task_count_metrics(self, celery_worker: Celery) -> None:
         """Test tracking number of tasks"""
         # Arrange
         initial_count = 0
@@ -354,7 +358,7 @@ class TestTaskMetrics:
 class TestTaskQueuePriority:
     """Test task priority handling"""
 
-    def test_high_priority_task(self, celery_worker):
+    def test_high_priority_task(self, celery_worker: Celery) -> None:
         """Test submitting high priority task"""
         # Arrange
         file_id = str(uuid4())
@@ -381,13 +385,13 @@ class TestRealWorkerIntegration:
     """
 
     @pytest.mark.skip(reason="Requires real Celery worker")
-    def test_with_real_worker(self):
+    def test_with_real_worker(self) -> None:
         """Test with actual Celery worker"""
         # This test requires a real worker running
         pass
 
     @pytest.mark.skip(reason="Requires real Celery worker")
-    def test_distributed_tasks(self):
+    def test_distributed_tasks(self) -> None:
         """Test distributed task processing across workers"""
         # This test requires multiple workers
         pass
@@ -398,7 +402,7 @@ class TestRealWorkerIntegration:
 class TestTaskPerformance:
     """Performance tests for task queue"""
 
-    def test_bulk_task_submission(self, celery_worker):
+    def test_bulk_task_submission(self, celery_worker: Celery) -> None:
         """Test submitting many tasks at once"""
         # Arrange
         task_count = 100

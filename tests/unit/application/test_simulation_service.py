@@ -1,6 +1,7 @@
 """시뮬레이션 서비스 테스트"""
 
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -12,7 +13,7 @@ from src.infrastructure.repositories.memory_simulation_repository import (
 
 
 @pytest.fixture
-def repository():
+def repository() -> Generator[InMemorySimulationResultRepository, None, None]:
     """테스트용 리포지토리"""
     repo = InMemorySimulationResultRepository()
     yield repo
@@ -20,13 +21,13 @@ def repository():
 
 
 @pytest.fixture
-def service(repository):
+def service(repository: InMemorySimulationResultRepository) -> SimulationService:
     """테스트용 서비스"""
     return SimulationService(repository)
 
 
 @pytest.fixture
-def sample_csv_file():
+def sample_csv_file() -> Generator[Path, None, None]:
     """테스트용 CSV 파일"""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
         f.write("x,y,z,temperature\n")
@@ -43,7 +44,7 @@ def sample_csv_file():
 class TestSimulationService:
     """시뮬레이션 서비스 테스트"""
 
-    def test_upload_and_analyze(self, service, sample_csv_file):
+    def test_upload_and_analyze(self, service: SimulationService, sample_csv_file: Path) -> None:
         """업로드 및 자동 분석"""
         result = service.upload_and_analyze(
             file_path=sample_csv_file,
@@ -55,7 +56,7 @@ class TestSimulationService:
         assert "temperature" in result.field_analyses
         assert result.field_analyses["temperature"].field_type == "scalar"
 
-    def test_list_simulations(self, service, sample_csv_file):
+    def test_list_simulations(self, service: SimulationService, sample_csv_file: Path) -> None:
         """시뮬레이션 목록 조회"""
         # 2개 업로드
         service.upload_and_analyze(sample_csv_file, name="sim1", analyze_all_fields=False)
@@ -67,7 +68,7 @@ class TestSimulationService:
         assert list_response.total == 2
         assert len(list_response.simulations) == 2
 
-    def test_get_simulation_summary(self, service, sample_csv_file):
+    def test_get_simulation_summary(self, service: SimulationService, sample_csv_file: Path) -> None:
         """시뮬레이션 요약 조회"""
         # 업로드
         upload_result = service.upload_and_analyze(

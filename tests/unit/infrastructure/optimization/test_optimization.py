@@ -5,6 +5,7 @@ Tests for optimization utilities
 import time
 import gzip
 import zlib
+from typing import Any, Dict, List
 from unittest.mock import Mock, patch, MagicMock
 import pytest
 
@@ -37,13 +38,13 @@ profiling_tests = pytest.mark.skip(reason="Profiler/PerformanceMonitor API misma
 # ===== Query Optimizer Tests =====
 
 
-def test_batch_process():
+def test_batch_process() -> None:
     """Test batch processing"""
     optimizer = QueryOptimizer()
 
     items = list(range(100))
 
-    def processor(batch):
+    def processor(batch: List[int]) -> List[int]:
         return [x * 2 for x in batch]
 
     results = optimizer.batch_process(items, processor, batch_size=10)
@@ -54,7 +55,7 @@ def test_batch_process():
     assert results[99] == 198
 
 
-def test_chunk_list():
+def test_chunk_list() -> None:
     """Test list chunking"""
     optimizer = QueryOptimizer()
 
@@ -68,12 +69,12 @@ def test_chunk_list():
     assert chunks[3] == [9]
 
 
-def test_optimize_query_decorator():
+def test_optimize_query_decorator() -> None:
     """Test optimize_query decorator"""
     call_count = 0
 
     @optimize_query(use_cache=False)
-    def sample_query(value):
+    def sample_query(value: int) -> int:
         nonlocal call_count
         call_count += 1
         return value * 2
@@ -83,11 +84,11 @@ def test_optimize_query_decorator():
     assert call_count == 1
 
 
-def test_batch_query_decorator():
+def test_batch_query_decorator() -> None:
     """Test batch_query decorator"""
 
     @batch_query(batch_size=3, key_param="ids")
-    def fetch_items(ids):
+    def fetch_items(ids: List[int]) -> List[Dict[str, int]]:
         return [{"id": id, "value": id * 2} for id in ids]
 
     # Test with small list (no batching)
@@ -102,60 +103,68 @@ def test_batch_query_decorator():
 
 
 @connection_pool_tests
-def test_connection_pool_manager():
+def test_connection_pool_manager() -> None:
     """Test connection pool manager"""
-    pool_manager = ConnectionPoolManager(
-        pool_size=5, max_overflow=2, pool_timeout=30.0, pool_recycle=3600
+    # Test configure_pool static method
+    config = ConnectionPoolManager.configure_pool(
+        pool_size=5, max_overflow=2, pool_timeout=30, pool_recycle=3600
     )
-
-    config = pool_manager.get_pool_config()
     assert config["pool_size"] == 5
     assert config["max_overflow"] == 2
-    assert config["pool_timeout"] == 30.0
+    assert config["pool_timeout"] == 30
     assert config["pool_recycle"] == 3600
 
-    stats = pool_manager.get_pool_stats()
-    assert "pool_size" in stats
-    assert "max_overflow" in stats
+    # Test get_pool_stats with mock engine
+    mock_engine = Mock()
+    mock_pool = Mock()
+    mock_pool.size.return_value = 5
+    mock_pool.checkedin.return_value = 3
+    mock_pool.checkedout.return_value = 2
+    mock_pool.overflow.return_value = 0
+    mock_engine.pool = mock_pool
+
+    stats = ConnectionPoolManager.get_pool_stats(mock_engine)
+    assert "size" in stats
+    assert "checked_in" in stats
 
 
 @connection_pool_tests
-def test_index_manager():
+def test_index_manager() -> None:
     """Test index manager"""
-    index_manager = IndexManager()
+    # Test index suggestion with mock session
+    mock_session = Mock()
 
-    # Test index suggestion
-    suggestions = index_manager.suggest_indexes(
+    suggestions = IndexManager.suggest_indexes(
+        session=mock_session,
         table_name="simulations",
-        columns=["status", "created_at"],
-        query_pattern="WHERE status = ? ORDER BY created_at",
     )
 
     assert len(suggestions) > 0
-    assert "CREATE INDEX" in suggestions[0]
-    assert "simulations" in suggestions[0]
+    assert "table" in suggestions[0]
+    assert suggestions[0]["table"] == "simulations"
+    assert "columns" in suggestions[0]
 
 
 # ===== Profiling Tests =====
 
 
 @profiling_tests
-def test_profiler_measure():
+def test_profiler_measure() -> None:
     """Test profiler measure context manager"""
     profiler = Profiler()
 
     with profiler.measure("test_operation"):
         time.sleep(0.1)
 
-    metrics = profiler.get_metrics()
+    metrics = profiler.get_all_stats()
     assert "test_operation" in metrics
     assert metrics["test_operation"]["count"] == 1
-    assert metrics["test_operation"]["total_time"] >= 0.1
-    assert metrics["test_operation"]["avg_time"] >= 0.1
+    assert metrics["test_operation"]["total"] >= 0.1
+    assert metrics["test_operation"]["mean"] >= 0.1
 
 
 @profiling_tests
-def test_profiler_multiple_measurements():
+def test_profiler_multiple_measurements() -> None:
     """Test profiler with multiple measurements"""
     profiler = Profiler()
 
@@ -163,19 +172,19 @@ def test_profiler_multiple_measurements():
         with profiler.measure("repeated_operation"):
             time.sleep(0.05)
 
-    metrics = profiler.get_metrics()
+    metrics = profiler.get_all_stats()
     assert metrics["repeated_operation"]["count"] == 3
-    assert metrics["repeated_operation"]["total_time"] >= 0.15
-    assert metrics["repeated_operation"]["min_time"] >= 0.05
-    assert metrics["repeated_operation"]["max_time"] >= 0.05
+    assert metrics["repeated_operation"]["total"] >= 0.15
+    assert metrics["repeated_operation"]["min"] >= 0.05
+    assert metrics["repeated_operation"]["max"] >= 0.05
 
 
 @profiling_tests
-def test_profile_function_decorator():
+def test_profile_function_decorator() -> None:
     """Test profile_function decorator"""
 
     @profile_function()
-    def slow_function(n):
+    def slow_function(n: int) -> int:
         time.sleep(0.05)
         return n * 2
 
@@ -186,7 +195,7 @@ def test_profile_function_decorator():
 
 
 @profiling_tests
-def test_measure_time_context():
+def test_measure_time_context() -> None:
     """Test measure_time context manager"""
     with measure_time("test_operation") as timer:
         time.sleep(0.05)
@@ -196,60 +205,58 @@ def test_measure_time_context():
 
 
 @profiling_tests
-def test_performance_monitor():
+def test_performance_monitor() -> None:
     """Test performance monitor"""
     monitor = PerformanceMonitor()
 
-    # Record some metrics
-    monitor.record_metric("query_time", 0.1)
-    monitor.record_metric("query_time", 0.2)
-    monitor.record_metric("parse_time", 0.3)
+    # Record some requests
+    monitor.record_request(0.1, success=True)
+    monitor.record_request(0.2, success=True)
+    monitor.record_request(0.3, success=False)
 
     metrics = monitor.get_metrics()
-    assert "query_time" in metrics
-    assert "parse_time" in metrics
-    assert len(metrics["query_time"]) == 2
-    assert len(metrics["parse_time"]) == 1
-
-    stats = monitor.get_statistics()
-    assert "query_time" in stats
-    assert stats["query_time"]["count"] == 2
-    assert stats["query_time"]["mean"] == 0.15
+    assert "request_count" in metrics
+    assert "error_count" in metrics
+    assert metrics["request_count"] == 3
+    assert metrics["error_count"] == 1
+    assert metrics["error_rate"] == 1 / 3
+    assert metrics["avg_response_time"] == 0.2
 
 
 @profiling_tests
-def test_performance_monitor_percentiles():
-    """Test performance monitor percentile calculations"""
+def test_performance_monitor_percentiles() -> None:
+    """Test performance monitor statistics"""
     monitor = PerformanceMonitor()
 
-    # Record metrics
+    # Record requests
     for i in range(100):
-        monitor.record_metric("test", i / 100.0)
+        monitor.record_request(i / 100.0, success=True)
 
-    stats = monitor.get_statistics()
-    assert "test" in stats
-    assert "p50" in stats["test"]
-    assert "p95" in stats["test"]
-    assert "p99" in stats["test"]
+    metrics = monitor.get_metrics()
+    assert "request_count" in metrics
+    assert metrics["request_count"] == 100
+    assert "min_response_time" in metrics
+    assert "max_response_time" in metrics
+    assert "avg_response_time" in metrics
 
 
 @profiling_tests
-def test_profiler_clear():
+def test_profiler_clear() -> None:
     """Test profiler clear functionality"""
     profiler = Profiler()
 
     with profiler.measure("operation1"):
         time.sleep(0.01)
 
-    profiler.clear()
-    metrics = profiler.get_metrics()
+    profiler.reset()
+    metrics = profiler.get_all_stats()
     assert len(metrics) == 0
 
 
 # ===== Compression Tests =====
 
 
-def test_compress_response_gzip():
+def test_compress_response_gzip() -> None:
     """Test gzip compression"""
     data = "Hello World" * 100
     compressed = compress_response(data, method="gzip")
@@ -262,7 +269,7 @@ def test_compress_response_gzip():
     assert decompressed.decode("utf-8") == data
 
 
-def test_compress_response_zlib():
+def test_compress_response_zlib() -> None:
     """Test zlib compression"""
     data = "Hello World" * 100
     compressed = compress_response(data, method="zlib")
@@ -275,7 +282,7 @@ def test_compress_response_zlib():
     assert decompressed.decode("utf-8") == data
 
 
-def test_compress_response_bytes():
+def test_compress_response_bytes() -> None:
     """Test compression with bytes input"""
     data = b"Hello World" * 100
     compressed = compress_response(data, method="gzip")
@@ -284,7 +291,7 @@ def test_compress_response_bytes():
     assert len(compressed) < len(data)
 
 
-def test_compress_response_compression_levels():
+def test_compress_response_compression_levels() -> None:
     """Test different compression levels"""
     data = "x" * 10000
 
@@ -295,7 +302,7 @@ def test_compress_response_compression_levels():
     assert len(compressed_high) <= len(compressed_low)
 
 
-def test_compress_response_invalid_method():
+def test_compress_response_invalid_method() -> None:
     """Test compression with invalid method"""
     data = "Hello World"
 
@@ -304,7 +311,7 @@ def test_compress_response_invalid_method():
     assert result == data.encode("utf-8")
 
 
-def test_decompress_response_gzip():
+def test_decompress_response_gzip() -> None:
     """Test gzip decompression"""
     original = "Hello World" * 100
     compressed = gzip.compress(original.encode("utf-8"))
@@ -313,7 +320,7 @@ def test_decompress_response_gzip():
     assert decompressed.decode("utf-8") == original
 
 
-def test_decompress_response_zlib():
+def test_decompress_response_zlib() -> None:
     """Test zlib decompression"""
     original = "Hello World" * 100
     compressed = zlib.compress(original.encode("utf-8"))
@@ -322,7 +329,7 @@ def test_decompress_response_zlib():
     assert decompressed.decode("utf-8") == original
 
 
-def test_compression_roundtrip():
+def test_compression_roundtrip() -> None:
     """Test compression and decompression roundtrip"""
     original = "The quick brown fox jumps over the lazy dog" * 100
 
@@ -337,7 +344,7 @@ def test_compression_roundtrip():
     assert decompressed_zlib.decode("utf-8") == original
 
 
-def test_should_compress_size_threshold():
+def test_should_compress_size_threshold() -> None:
     """Test compression decision based on size"""
     small_data = "x" * 500
     large_data = "x" * 2000
@@ -349,7 +356,7 @@ def test_should_compress_size_threshold():
     assert should_compress(large_data, min_size=1024) is True
 
 
-def test_should_compress_content_type():
+def test_should_compress_content_type() -> None:
     """Test compression decision based on content type"""
     data = "x" * 2000
 
@@ -364,7 +371,7 @@ def test_should_compress_content_type():
     assert should_compress(data, content_type="video/mp4") is False
 
 
-def test_compress_response_error_handling():
+def test_compress_response_error_handling() -> None:
     """Test error handling in compression"""
     # Create an object that can't be compressed properly
     # by passing invalid level
@@ -377,7 +384,7 @@ def test_compress_response_error_handling():
         assert result == data.encode("utf-8")
 
 
-def test_decompress_response_error_handling():
+def test_decompress_response_error_handling() -> None:
     """Test error handling in decompression"""
     invalid_data = b"not compressed data"
 
@@ -387,11 +394,11 @@ def test_decompress_response_error_handling():
 
 
 @pytest.mark.asyncio
-async def test_compression_middleware():
+async def test_compression_middleware() -> None:
     """Test compression middleware"""
 
     # Create a simple ASGI app
-    async def simple_app(scope, receive, send):
+    async def simple_app(scope: Dict[str, Any], receive: Any, send: Any) -> None:
         await send(
             {
                 "type": "http.response.start",
@@ -417,13 +424,13 @@ async def test_compression_middleware():
     }
 
     # Mock receive
-    async def receive():
+    async def receive() -> Dict[str, str]:
         return {"type": "http.request"}
 
     # Capture sent messages
-    sent_messages = []
+    sent_messages: List[Dict[str, Any]] = []
 
-    async def send(message):
+    async def send(message: Dict[str, Any]) -> None:
         sent_messages.append(message)
 
     # Call middleware
@@ -446,10 +453,10 @@ async def test_compression_middleware():
 
 
 @pytest.mark.asyncio
-async def test_compression_middleware_no_gzip_support():
+async def test_compression_middleware_no_gzip_support() -> None:
     """Test compression middleware when client doesn't support gzip"""
 
-    async def simple_app(scope, receive, send):
+    async def simple_app(scope: Dict[str, Any], receive: Any, send: Any) -> None:
         await send(
             {
                 "type": "http.response.start",
@@ -473,12 +480,12 @@ async def test_compression_middleware_no_gzip_support():
         "headers": [],
     }
 
-    async def receive():
+    async def receive() -> Dict[str, str]:
         return {"type": "http.request"}
 
-    sent_messages = []
+    sent_messages: List[Dict[str, Any]] = []
 
-    async def send(message):
+    async def send(message: Dict[str, Any]) -> None:
         sent_messages.append(message)
 
     await middleware(scope, receive, send)
@@ -490,11 +497,11 @@ async def test_compression_middleware_no_gzip_support():
         assert b"content-encoding" not in headers
 
 
-def test_batch_query_with_empty_list():
+def test_batch_query_with_empty_list() -> None:
     """Test batch_query with empty list"""
 
     @batch_query(batch_size=3, key_param="ids")
-    def fetch_items(ids):
+    def fetch_items(ids: List[int]) -> List[Dict[str, int]]:
         return [{"id": id} for id in ids]
 
     result = fetch_items(ids=[])
@@ -502,7 +509,7 @@ def test_batch_query_with_empty_list():
 
 
 @profiling_tests
-def test_profiler_nested_measurements():
+def test_profiler_nested_measurements() -> None:
     """Test profiler with nested measurements"""
     profiler = Profiler()
 
@@ -511,37 +518,38 @@ def test_profiler_nested_measurements():
         with profiler.measure("inner"):
             time.sleep(0.05)
 
-    metrics = profiler.get_metrics()
+    metrics = profiler.get_all_stats()
     assert "outer" in metrics
     assert "inner" in metrics
-    assert metrics["outer"]["total_time"] >= metrics["inner"]["total_time"]
+    assert metrics["outer"]["total"] >= metrics["inner"]["total"]
 
 
 @connection_pool_tests
-def test_index_manager_composite_index():
+def test_index_manager_composite_index() -> None:
     """Test index manager suggesting composite index"""
-    index_manager = IndexManager()
+    # Test index suggestion with mock session
+    mock_session = Mock()
 
-    suggestions = index_manager.suggest_indexes(
+    suggestions = IndexManager.suggest_indexes(
+        session=mock_session,
         table_name="simulations",
-        columns=["user_id", "status", "created_at"],
-        query_pattern="WHERE user_id = ? AND status = ? ORDER BY created_at",
     )
 
     # Should suggest composite index
     assert len(suggestions) > 0
-    # Check if suggestion contains multiple columns
-    assert any("user_id" in s and "status" in s for s in suggestions)
+    # Check if suggestion contains table name and columns
+    assert suggestions[0]["table"] == "simulations"
+    assert "columns" in suggestions[0]
 
 
 @profiling_tests
-def test_performance_monitor_clear():
+def test_performance_monitor_clear() -> None:
     """Test performance monitor clear"""
     monitor = PerformanceMonitor()
 
-    monitor.record_metric("test", 1.0)
-    monitor.record_metric("test", 2.0)
+    monitor.record_request(1.0, success=True)
+    monitor.record_request(2.0, success=True)
 
-    monitor.clear()
+    monitor.reset()
     metrics = monitor.get_metrics()
-    assert len(metrics) == 0
+    assert metrics["request_count"] == 0

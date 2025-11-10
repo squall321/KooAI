@@ -13,13 +13,13 @@ from src.application.comparison.diff_analyzer import (
 
 
 @pytest.fixture
-def analyzer():
+def analyzer() -> DifferenceAnalyzer:
     """Create analyzer with default thresholds"""
     return DifferenceAnalyzer()
 
 
 @pytest.fixture
-def custom_analyzer():
+def custom_analyzer() -> DifferenceAnalyzer:
     """Create analyzer with custom thresholds"""
     return DifferenceAnalyzer(
         negligible_threshold=0.02,
@@ -29,7 +29,7 @@ def custom_analyzer():
     )
 
 
-def test_difference_type_enum():
+def test_difference_type_enum() -> None:
     """Test DifferenceType enum"""
     assert DifferenceType.NEGLIGIBLE.value == "negligible"
     assert DifferenceType.SMALL.value == "small"
@@ -38,7 +38,7 @@ def test_difference_type_enum():
     assert DifferenceType.CRITICAL.value == "critical"
 
 
-def test_field_difference_to_dict():
+def test_field_difference_to_dict() -> None:
     """Test FieldDifference.to_dict()"""
     diff = FieldDifference(
         field_name="temperature",
@@ -61,7 +61,7 @@ def test_field_difference_to_dict():
     assert result["percentage_affected"] == 25.5
 
 
-def test_analyze_field_difference_negligible(analyzer):
+def test_analyze_field_difference_negligible(analyzer: DifferenceAnalyzer) -> None:
     """Test analysis with negligible differences"""
     field1 = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float32)
     field2 = np.array([100.5, 200.5, 300.5, 400.5], dtype=np.float32)  # 0.5% difference
@@ -74,7 +74,7 @@ def test_analyze_field_difference_negligible(analyzer):
     assert result.mean_absolute_diff == pytest.approx(0.5, abs=0.01)
 
 
-def test_analyze_field_difference_small(analyzer):
+def test_analyze_field_difference_small(analyzer: DifferenceAnalyzer) -> None:
     """Test analysis with small differences"""
     field1 = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float32)
     field2 = np.array([103.0, 206.0, 309.0, 412.0], dtype=np.float32)  # ~3% difference
@@ -86,7 +86,7 @@ def test_analyze_field_difference_small(analyzer):
     assert 0.01 < result.mean_relative_diff < 0.05
 
 
-def test_analyze_field_difference_moderate(analyzer):
+def test_analyze_field_difference_moderate(analyzer: DifferenceAnalyzer) -> None:
     """Test analysis with moderate differences"""
     field1 = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float32)
     field2 = np.array([115.0, 230.0, 345.0, 460.0], dtype=np.float32)  # ~15% difference
@@ -98,7 +98,7 @@ def test_analyze_field_difference_moderate(analyzer):
     assert 0.05 < result.mean_relative_diff < 0.20
 
 
-def test_analyze_field_difference_large(analyzer):
+def test_analyze_field_difference_large(analyzer: DifferenceAnalyzer) -> None:
     """Test analysis with large differences"""
     field1 = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float32)
     field2 = np.array([135.0, 270.0, 405.0, 540.0], dtype=np.float32)  # ~35% difference
@@ -110,7 +110,7 @@ def test_analyze_field_difference_large(analyzer):
     assert 0.20 < result.mean_relative_diff < 0.50
 
 
-def test_analyze_field_difference_critical(analyzer):
+def test_analyze_field_difference_critical(analyzer: DifferenceAnalyzer) -> None:
     """Test analysis with critical differences"""
     field1 = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float32)
     field2 = np.array([200.0, 400.0, 600.0, 800.0], dtype=np.float32)  # 100% difference
@@ -122,7 +122,7 @@ def test_analyze_field_difference_critical(analyzer):
     assert result.mean_relative_diff > 0.50
 
 
-def test_analyze_field_difference_metrics(analyzer):
+def test_analyze_field_difference_metrics(analyzer: DifferenceAnalyzer) -> None:
     """Test that all metrics are calculated correctly"""
     field1 = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float32)
     field2 = np.array([110.0, 220.0, 330.0, 440.0], dtype=np.float32)
@@ -138,7 +138,7 @@ def test_analyze_field_difference_metrics(analyzer):
     assert isinstance(result.percentage_affected, (float, np.floating))
 
 
-def test_analyze_field_difference_critical_zones(analyzer):
+def test_analyze_field_difference_critical_zones(analyzer: DifferenceAnalyzer) -> None:
     """Test critical zones detection"""
     field1 = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float32)
     field2 = np.array([100.0, 250.0, 300.0, 500.0], dtype=np.float32)  # 2 regions with >20% diff
@@ -151,7 +151,7 @@ def test_analyze_field_difference_critical_zones(analyzer):
     assert np.sum(result.critical_zones) == result.regions_with_large_diff
 
 
-def test_analyze_all_fields(analyzer):
+def test_analyze_all_fields(analyzer: DifferenceAnalyzer) -> None:
     """Test analyzing all fields"""
     fields1 = {
         "temperature": np.array([100.0, 200.0, 300.0], dtype=np.float32),
@@ -177,7 +177,7 @@ def test_analyze_all_fields(analyzer):
         assert diff.field_name == field_name
 
 
-def test_analyze_all_fields_partial_overlap(analyzer):
+def test_analyze_all_fields_partial_overlap(analyzer: DifferenceAnalyzer) -> None:
     """Test analyzing fields with partial overlap"""
     fields1 = {
         "temperature": np.array([100.0, 200.0], dtype=np.float32),
@@ -202,7 +202,7 @@ def test_analyze_all_fields_partial_overlap(analyzer):
     assert "density" not in results
 
 
-def test_analyze_all_fields_shape_mismatch(analyzer):
+def test_analyze_all_fields_shape_mismatch(analyzer: DifferenceAnalyzer) -> None:
     """Test that fields with shape mismatch are skipped"""
     fields1 = {
         "temperature": np.array([100.0, 200.0, 300.0], dtype=np.float32),
@@ -221,14 +221,14 @@ def test_analyze_all_fields_shape_mismatch(analyzer):
     assert "temperature" in results
 
 
-def test_generate_summary_empty(analyzer):
+def test_generate_summary_empty(analyzer: DifferenceAnalyzer) -> None:
     """Test summary generation with no differences"""
     summary = analyzer.generate_summary({})
 
     assert summary["status"] == "no_differences_analyzed"
 
 
-def test_generate_summary(analyzer):
+def test_generate_summary(analyzer: DifferenceAnalyzer) -> None:
     """Test summary generation"""
     differences = {
         "temp1": FieldDifference(
@@ -284,7 +284,7 @@ def test_generate_summary(analyzer):
     assert "overall_status" in summary
 
 
-def test_generate_summary_overall_status_critical(analyzer):
+def test_generate_summary_overall_status_critical(analyzer: DifferenceAnalyzer) -> None:
     """Test overall status with critical differences"""
     differences = {
         "temp1": FieldDifference(
@@ -303,7 +303,7 @@ def test_generate_summary_overall_status_critical(analyzer):
     assert summary["overall_status"] == "critical_differences_found"
 
 
-def test_generate_summary_overall_status_significant(analyzer):
+def test_generate_summary_overall_status_significant(analyzer: DifferenceAnalyzer) -> None:
     """Test overall status with significant differences"""
     differences = {
         "temp1": FieldDifference(
@@ -332,7 +332,7 @@ def test_generate_summary_overall_status_significant(analyzer):
     assert summary["overall_status"] == "significant_differences_found"
 
 
-def test_generate_summary_overall_status_some(analyzer):
+def test_generate_summary_overall_status_some(analyzer: DifferenceAnalyzer) -> None:
     """Test overall status with some differences"""
     differences = {
         "temp1": FieldDifference(
@@ -361,7 +361,7 @@ def test_generate_summary_overall_status_some(analyzer):
     assert summary["overall_status"] == "some_differences_found"
 
 
-def test_generate_summary_overall_status_minor(analyzer):
+def test_generate_summary_overall_status_minor(analyzer: DifferenceAnalyzer) -> None:
     """Test overall status with only minor differences"""
     differences = {
         "temp1": FieldDifference(
@@ -390,7 +390,7 @@ def test_generate_summary_overall_status_minor(analyzer):
     assert summary["overall_status"] == "minor_differences_only"
 
 
-def test_identify_outlier_regions(analyzer):
+def test_identify_outlier_regions(analyzer: DifferenceAnalyzer) -> None:
     """Test outlier region identification"""
     # Create fields with mostly small differences but a few outliers
     np.random.seed(42)
@@ -412,7 +412,7 @@ def test_identify_outlier_regions(analyzer):
     assert "std_difference" in statistics
 
 
-def test_identify_outlier_regions_no_outliers(analyzer):
+def test_identify_outlier_regions_no_outliers(analyzer: DifferenceAnalyzer) -> None:
     """Test outlier identification with no outliers"""
     field1 = np.array([100.0, 200.0, 300.0, 400.0], dtype=np.float32)
     field2 = np.array([101.0, 201.0, 301.0, 401.0], dtype=np.float32)  # Uniform small difference
@@ -424,7 +424,7 @@ def test_identify_outlier_regions_no_outliers(analyzer):
     assert statistics["percentage_outliers"] == 0.0
 
 
-def test_custom_thresholds(custom_analyzer):
+def test_custom_thresholds(custom_analyzer: DifferenceAnalyzer) -> None:
     """Test analyzer with custom thresholds"""
     field1 = np.array([100.0, 200.0, 300.0], dtype=np.float32)
     field2 = np.array([103.0, 206.0, 309.0], dtype=np.float32)  # 3% difference
@@ -435,7 +435,7 @@ def test_custom_thresholds(custom_analyzer):
     assert result.difference_type == DifferenceType.SMALL
 
 
-def test_edge_case_zero_denominator(analyzer):
+def test_edge_case_zero_denominator(analyzer: DifferenceAnalyzer) -> None:
     """Test edge case where field1 has zero values"""
     field1 = np.array([0.0, 100.0, 200.0, 300.0], dtype=np.float32)
     field2 = np.array([10.0, 110.0, 220.0, 330.0], dtype=np.float32)
@@ -448,7 +448,7 @@ def test_edge_case_zero_denominator(analyzer):
     assert not np.isinf(result.mean_relative_diff)
 
 
-def test_edge_case_identical_fields(analyzer):
+def test_edge_case_identical_fields(analyzer: DifferenceAnalyzer) -> None:
     """Test edge case with identical fields"""
     field1 = np.array([100.0, 200.0, 300.0], dtype=np.float32)
     field2 = field1.copy()
@@ -461,7 +461,7 @@ def test_edge_case_identical_fields(analyzer):
     assert result.regions_with_large_diff == 0
 
 
-def test_edge_case_negative_values(analyzer):
+def test_edge_case_negative_values(analyzer: DifferenceAnalyzer) -> None:
     """Test edge case with negative values"""
     field1 = np.array([-100.0, -50.0, 0.0, 50.0], dtype=np.float32)
     field2 = np.array([-90.0, -45.0, 5.0, 55.0], dtype=np.float32)
@@ -473,7 +473,7 @@ def test_edge_case_negative_values(analyzer):
     assert result.mean_relative_diff >= 0
 
 
-def test_large_dataset(analyzer):
+def test_large_dataset(analyzer: DifferenceAnalyzer) -> None:
     """Test with large dataset"""
     np.random.seed(42)
     field1 = np.random.uniform(100, 200, 100000).astype(np.float32)

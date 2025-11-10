@@ -6,6 +6,9 @@ import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from fastapi import status
 from datetime import datetime
+from typing import Any, Callable, Awaitable
+from starlette.requests import Request
+from starlette.responses import Response
 
 # Check for optional dependencies
 try:
@@ -23,7 +26,7 @@ pytestmark = pytest.mark.skipif(
 class TestBasicHealthCheck:
     """기본 헬스 체크 테스트"""
 
-    def test_health_status_model(self):
+    def test_health_status_model(self) -> None:
         """HealthStatus 모델 테스트"""
         from src.presentation.api.routes.health_routes import HealthStatus
 
@@ -38,7 +41,7 @@ class TestBasicHealthCheck:
         assert health.version == "1.0.0"
         assert health.environment == "test"
 
-    def test_dependency_status_model(self):
+    def test_dependency_status_model(self) -> None:
         """DependencyStatus 모델 테스트"""
         from src.presentation.api.routes.health_routes import DependencyStatus
 
@@ -54,7 +57,7 @@ class TestBasicHealthCheck:
         assert dep.response_time_ms == 12.5
         assert dep.details == {"connections": 10}
 
-    def test_detailed_health_status_model(self):
+    def test_detailed_health_status_model(self) -> None:
         """DetailedHealthStatus 모델 테스트"""
         from src.presentation.api.routes.health_routes import (
             DetailedHealthStatus,
@@ -77,7 +80,7 @@ class TestBasicHealthCheck:
         assert health.uptime_seconds == 3600.0
 
     @pytest.mark.asyncio
-    async def test_basic_health_check_returns_healthy(self):
+    async def test_basic_health_check_returns_healthy(self) -> None:
         """기본 헬스 체크가 healthy 반환하는지 테스트"""
         from src.presentation.api.routes.health_routes import health_check
 
@@ -88,7 +91,7 @@ class TestBasicHealthCheck:
         assert result.timestamp is not None
 
     @pytest.mark.asyncio
-    async def test_liveness_probe_returns_healthy(self):
+    async def test_liveness_probe_returns_healthy(self) -> None:
         """Liveness probe가 healthy 반환하는지 테스트"""
         from src.presentation.api.routes.health_routes import liveness_probe
 
@@ -101,7 +104,7 @@ class TestDatabaseHealthCheck:
     """데이터베이스 헬스 체크 테스트"""
 
     @pytest.mark.asyncio
-    async def test_check_database_success(self):
+    async def test_check_database_success(self) -> None:
         """데이터베이스 체크 성공 테스트"""
         from src.presentation.api.routes.health_routes import _check_database
 
@@ -117,7 +120,7 @@ class TestDatabaseHealthCheck:
         assert result.response_time_ms >= 0
 
     @pytest.mark.asyncio
-    async def test_check_database_failure(self):
+    async def test_check_database_failure(self) -> None:
         """데이터베이스 체크 실패 테스트"""
         from src.presentation.api.routes.health_routes import _check_database
 
@@ -133,7 +136,7 @@ class TestDatabaseHealthCheck:
         assert "Connection failed" in result.error
 
     @pytest.mark.asyncio
-    async def test_check_database_unexpected_result(self):
+    async def test_check_database_unexpected_result(self) -> None:
         """데이터베이스 체크 예상치 못한 결과 테스트"""
         from src.presentation.api.routes.health_routes import _check_database
 
@@ -144,6 +147,7 @@ class TestDatabaseHealthCheck:
         result = await _check_database(mock_db)
 
         assert result.status == "down"
+        assert result.error is not None
         assert "Unexpected" in result.error
 
 
@@ -152,7 +156,7 @@ class TestCacheHealthCheck:
 
     @pytest.mark.asyncio
     @patch('src.presentation.api.routes.health_routes.get_cache')
-    async def test_check_cache_success(self, mock_get_cache):
+    async def test_check_cache_success(self, mock_get_cache: Any) -> None:
         """캐시 체크 성공 테스트"""
         from src.presentation.api.routes.health_routes import _check_cache
 
@@ -173,7 +177,7 @@ class TestCacheHealthCheck:
 
     @pytest.mark.asyncio
     @patch('src.presentation.api.routes.health_routes.get_cache')
-    async def test_check_cache_unavailable(self, mock_get_cache):
+    async def test_check_cache_unavailable(self, mock_get_cache: Any) -> None:
         """캐시 체크 실패 테스트 (degraded)"""
         from src.presentation.api.routes.health_routes import _check_cache
 
@@ -189,7 +193,7 @@ class TestCacheHealthCheck:
 
     @pytest.mark.asyncio
     @patch('src.presentation.api.routes.health_routes.get_cache')
-    async def test_check_cache_exception(self, mock_get_cache):
+    async def test_check_cache_exception(self, mock_get_cache: Any) -> None:
         """캐시 체크 예외 테스트"""
         from src.presentation.api.routes.health_routes import _check_cache
 
@@ -210,7 +214,7 @@ class TestStorageHealthCheck:
     @patch('os.path.exists')
     @patch('os.access')
     @patch('os.statvfs')
-    async def test_check_storage_success(self, mock_statvfs, mock_access, mock_exists):
+    async def test_check_storage_success(self, mock_statvfs: Any, mock_access: Any, mock_exists: Any) -> None:
         """스토리지 체크 성공 테스트"""
         from src.presentation.api.routes.health_routes import _check_storage
 
@@ -233,7 +237,7 @@ class TestStorageHealthCheck:
 
     @pytest.mark.asyncio
     @patch('os.path.exists')
-    async def test_check_storage_not_accessible(self, mock_exists):
+    async def test_check_storage_not_accessible(self, mock_exists: Any) -> None:
         """스토리지 체크 접근 불가 테스트"""
         from src.presentation.api.routes.health_routes import _check_storage
 
@@ -256,10 +260,10 @@ class TestReadinessCheck:
     @patch('src.presentation.api.routes.health_routes._check_database')
     async def test_readiness_all_healthy(
         self,
-        mock_db_check,
-        mock_cache_check,
-        mock_storage_check
-    ):
+        mock_db_check: Any,
+        mock_cache_check: Any,
+        mock_storage_check: Any
+    ) -> None:
         """모든 의존성이 healthy일 때 테스트"""
         from src.presentation.api.routes.health_routes import (
             readiness_check,
@@ -288,10 +292,10 @@ class TestReadinessCheck:
     @patch('src.presentation.api.routes.health_routes._check_database')
     async def test_readiness_degraded(
         self,
-        mock_db_check,
-        mock_cache_check,
-        mock_storage_check
-    ):
+        mock_db_check: Any,
+        mock_cache_check: Any,
+        mock_storage_check: Any
+    ) -> None:
         """일부 의존성이 degraded일 때 테스트"""
         from src.presentation.api.routes.health_routes import (
             readiness_check,
@@ -318,10 +322,10 @@ class TestReadinessCheck:
     @patch('src.presentation.api.routes.health_routes._check_database')
     async def test_readiness_unhealthy(
         self,
-        mock_db_check,
-        mock_cache_check,
-        mock_storage_check
-    ):
+        mock_db_check: Any,
+        mock_cache_check: Any,
+        mock_storage_check: Any
+    ) -> None:
         """중요 의존성이 down일 때 테스트"""
         from src.presentation.api.routes.health_routes import (
             readiness_check,
@@ -354,7 +358,7 @@ class TestHealthMetrics:
     @patch('psutil.cpu_percent')
     @patch('psutil.virtual_memory')
     @patch('psutil.disk_usage')
-    async def test_health_metrics(self, mock_disk, mock_memory, mock_cpu):
+    async def test_health_metrics(self, mock_disk: Any, mock_memory: Any, mock_cpu: Any) -> None:
         """헬스 메트릭 반환 테스트"""
         from src.presentation.api.routes.health_routes import health_metrics
 
@@ -372,7 +376,7 @@ class TestHealthMetrics:
         assert result["system"]["memory_percent"] == 60.0
 
     @pytest.mark.asyncio
-    async def test_startup_probe_calls_readiness(self):
+    async def test_startup_probe_calls_readiness(self) -> None:
         """Startup probe가 readiness를 호출하는지 테스트"""
         from src.presentation.api.routes.health_routes import startup_probe
         from fastapi import Response
@@ -397,7 +401,7 @@ class TestHealthCheckUptime:
     """Uptime 추적 테스트"""
 
     @pytest.mark.asyncio
-    async def test_uptime_increases_over_time(self):
+    async def test_uptime_increases_over_time(self) -> None:
         """Uptime이 시간에 따라 증가하는지 테스트"""
         from src.presentation.api.routes.health_routes import readiness_check
         from fastapi import Response
