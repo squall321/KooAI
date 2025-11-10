@@ -9,7 +9,9 @@ import mimetypes
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
+
+from ..models import SimulationResult
 
 
 class FileFormat(Enum):
@@ -195,7 +197,7 @@ class FormatDetector:
                         return DetectionResult(
                             format=file_format,
                             confidence=0.95,  # Magic bytes는 매우 신뢰도 높음
-                            details=f"Magic bytes matched: {signature[:20]}...",
+                            details=f"Magic bytes matched: {signature[:20]!r}...",
                         )
 
         except Exception:
@@ -349,9 +351,9 @@ class AutoFormatParser:
         """
         self.detector = FormatDetector()
         self.min_confidence = min_confidence
-        self._parsers = {}
+        self._parsers: dict[FileFormat, Any] = {}
 
-    def parse(self, file_path: Path, **options):
+    def parse(self, file_path: Path, **options: Any) -> SimulationResult:
         """
         파일 자동 감지 및 파싱
 
@@ -390,7 +392,7 @@ class AutoFormatParser:
         # 파싱 실행
         return parser.parse(file_path, **options)
 
-    def _get_parser(self, file_format: FileFormat):
+    def _get_parser(self, file_format: FileFormat) -> Any:
         """파일 형식에 맞는 파서 반환"""
         # Lazy import로 순환 참조 방지
         if file_format not in self._parsers:

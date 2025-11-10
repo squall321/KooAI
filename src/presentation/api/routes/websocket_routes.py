@@ -236,7 +236,7 @@ async def send_processing_status(client_id: str, task_id: str, status: str, prog
     )
 
 
-async def send_notification(client_id: str, level: str, message: str, title: str = None) -> None:
+async def send_notification(client_id: str, level: str, message: str, title: Optional[str] = None) -> None:
     """
     Send notification.
 

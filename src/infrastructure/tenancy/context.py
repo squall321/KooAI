@@ -165,10 +165,9 @@ class TenantContextManager:
         set_current_tenant(self.context)
         return self.context
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Exit context."""
         set_current_tenant(self.previous_context)
-        return False
 
 
 def with_tenant(context: TenantContext) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
