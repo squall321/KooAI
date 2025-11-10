@@ -52,7 +52,7 @@ class HeaderStrategy(TenantIdentificationStrategy):
 
     async def identify(self, request: Request) -> Optional[str]:
         """Identify tenant from header."""
-        return request.headers.get(self.header_name)
+        return request.headers.get(self.header_name)  # type: ignore[no-any-return]
 
 
 class SubdomainStrategy(TenantIdentificationStrategy):
@@ -82,7 +82,7 @@ class SubdomainStrategy(TenantIdentificationStrategy):
         # Extract subdomain
         if host.endswith(f".{self.base_domain}"):
             subdomain = host.replace(f".{self.base_domain}", "")
-            return subdomain
+            return subdomain  # type: ignore[no-any-return]
 
         return None
 
@@ -112,7 +112,7 @@ class DomainStrategy(TenantIdentificationStrategy):
         # Lookup tenant by domain
         tenant = await self.db_lookup(domain=host)
         if tenant:
-            return tenant.slug
+            return tenant.slug  # type: ignore[no-any-return]
 
         return None
 
@@ -177,7 +177,7 @@ class JWTStrategy(TenantIdentificationStrategy):
             import jwt
 
             payload = jwt.decode(token, options={"verify_signature": False})
-            return payload.get(self.claim_name)
+            return payload.get(self.claim_name)  # type: ignore[no-any-return]
         except Exception:
             return None
 
@@ -289,6 +289,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # Clear any existing tenant context
         clear_current_tenant()
 
+        # Initialize tenant_context
+        tenant_context: Optional[TenantContext] = None
+
         # Skip tenant resolution for excluded paths
         if self.is_excluded_path(request.url.path):
             response = await call_next(request)
@@ -326,7 +329,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
 
             # Add tenant header to response
-            if tenant_identifier:
+            if tenant_context is not None:
                 response.headers["X-Tenant-ID"] = tenant_context.tenant_id
 
             return response

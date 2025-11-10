@@ -36,7 +36,7 @@ class PluginRegistry:
     Plugin registry for storing and managing loaded plugins.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize plugin registry."""
         self._plugins: Dict[str, Plugin] = {}
         self._hooks: Dict[HookEvent, List[HookPlugin]] = defaultdict(list)
@@ -145,7 +145,7 @@ class PluginManager:
         ```
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize plugin manager."""
         self.registry = PluginRegistry()
         self._configs: Dict[str, Dict[str, Any]] = {}
@@ -179,7 +179,7 @@ class PluginManager:
                 )
 
             # Instantiate plugin
-            plugin = plugin_class()
+            plugin = plugin_class()  # type: ignore[call-arg]
 
             # Validate and store config
             config = config or {}
@@ -318,7 +318,7 @@ class PluginManager:
             ```
         """
         config_map = config_map or {}
-        loaded_plugins = []
+        loaded_plugins: List[Plugin] = []
 
         path = Path(directory)
         if not path.exists():
@@ -387,7 +387,7 @@ class PluginManager:
         self,
         name: str,
         context: Optional[PluginContext] = None,
-        **kwargs
+        **kwargs: Any
     ) -> Any:
         """
         Execute a plugin.
@@ -430,7 +430,7 @@ class PluginManager:
         self,
         plugin_type: PluginType,
         context: Optional[PluginContext] = None,
-        **kwargs
+        **kwargs: Any
     ) -> List[Any]:
         """
         Execute all enabled plugins of a specific type.
