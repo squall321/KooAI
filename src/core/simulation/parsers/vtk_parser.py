@@ -5,7 +5,7 @@ VTK ASCII 형식의 시뮬레이션 결과 파싱.
 """
 
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -337,8 +337,8 @@ class VTKParser(BaseParser):
                 idx += 1
 
                 # 데이터 읽기
-                values: list[float] = []
-                while len(values) < num_points * 3:
+                vector_values: list[float] = []
+                while len(vector_values) < num_points * 3:
                     if idx >= len(lines):
                         break
                     parts = lines[idx].split()
@@ -349,10 +349,10 @@ class VTKParser(BaseParser):
                         idx -= 1
                         break
 
-                    values.extend([float(v) for v in parts])
+                    vector_values.extend([float(v) for v in parts])
 
-                if values:
-                    data = np.array(values[: num_points * 3]).reshape(-1, 3)
+                if vector_values:
+                    data = np.array(vector_values[: num_points * 3]).reshape(-1, 3)
                     field = FieldData(
                         name=field_name,
                         field_type=FieldType.VECTOR,
