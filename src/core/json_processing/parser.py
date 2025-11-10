@@ -416,7 +416,7 @@ class ChunkedJSONWriter:
         self._file: Optional[TextIO] = None
         self._first_item = True
 
-    def __enter__(self) -> StreamingJSONWriter:
+    def __enter__(self) -> "StreamingJSONWriter":
         self._file = open(self.file_path, "w", encoding="utf-8")
         return self
 
