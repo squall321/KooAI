@@ -5,7 +5,7 @@ Manages current tenant context throughout request lifecycle.
 """
 
 from contextvars import ContextVar
-from typing import Optional
+from typing import Any, Callable, Optional
 from dataclasses import dataclass
 
 # Context variable for current tenant
@@ -157,7 +157,7 @@ class TenantContextManager:
             context: Tenant context to set
         """
         self.context = context
-        self.previous_context = None
+        self.previous_context: Optional[TenantContext] = None
 
     def __enter__(self) -> TenantContext:
         """Enter context."""
@@ -165,13 +165,13 @@ class TenantContextManager:
         set_current_tenant(self.context)
         return self.context
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
         """Exit context."""
         set_current_tenant(self.previous_context)
         return False
 
 
-def with_tenant(context: TenantContext):
+def with_tenant(context: TenantContext) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to execute function with tenant context.
 
@@ -187,12 +187,12 @@ def with_tenant(context: TenantContext):
         ```
     """
 
-    def decorator(func):
-        async def async_wrapper(*args, **kwargs):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             with TenantContextManager(context):
                 return await func(*args, **kwargs)
 
-        def sync_wrapper(*args, **kwargs):
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             with TenantContextManager(context):
                 return func(*args, **kwargs)
 
