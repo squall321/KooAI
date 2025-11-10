@@ -251,7 +251,7 @@ class ModelServer:
 
         try:
             # Instantiate model
-            metadata = model_class._model_metadata  # type: ignore[attr-defined]
+            metadata = model_class._model_metadata
             model = model_class(metadata)
 
             # Load model from disk

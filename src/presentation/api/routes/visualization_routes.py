@@ -132,10 +132,10 @@ async def render_3d_visualization(request: RenderRequest) -> Response:
         # Create render config
         config = RenderConfig(
             resolution=(request.resolution_width, request.resolution_height),
-            camera_position=tuple(request.camera_position)
+            camera_position=tuple(request.camera_position)  # type: ignore[arg-type]
             if request.camera_position
             else None,
-            camera_focal_point=tuple(request.camera_focal_point)
+            camera_focal_point=tuple(request.camera_focal_point)  # type: ignore[arg-type]
             if request.camera_focal_point
             else None,
             background_color=request.background_color,
@@ -222,7 +222,7 @@ async def render_slice_visualization(request: SliceRenderRequest) -> Response:
         image_bytes = renderer.render_slice(
             mesh,
             normal=(request.normal_x, request.normal_y, request.normal_z),
-            origin=origin,
+            origin=origin,  # type: ignore[arg-type]
             scalar_field=request.scalar_field,
             config=config,
         )
