@@ -179,7 +179,7 @@ class RedisCache:
         try:
             full_key = self._make_key(key, prefix)
             result = self.client.delete(full_key)
-            return result > 0
+            return result > 0  # type: ignore[no-any-return]
 
         except RedisError as e:
             logger.warning("cache_delete_failed", key=key, error=str(e))
@@ -198,7 +198,7 @@ class RedisCache:
         """
         try:
             full_key = self._make_key(key, prefix)
-            return self.client.exists(full_key) > 0
+            return self.client.exists(full_key) > 0  # type: ignore[no-any-return]
 
         except RedisError as e:
             logger.warning("cache_exists_failed", key=key, error=str(e))
@@ -291,7 +291,7 @@ class RedisCache:
 
         try:
             full_keys = [self._make_key(key, prefix) for key in keys]
-            return self.client.delete(*full_keys)
+            return self.client.delete(*full_keys)  # type: ignore[no-any-return]
 
         except RedisError as e:
             logger.warning("cache_delete_many_failed", error=str(e))
@@ -312,7 +312,7 @@ class RedisCache:
             keys = list(self.client.scan_iter(match=pattern, count=1000))
 
             if keys:
-                return self.client.delete(*keys)
+                return self.client.delete(*keys)  # type: ignore[no-any-return]
 
             return 0
 
@@ -334,7 +334,7 @@ class RedisCache:
         """
         try:
             full_key = self._make_key(key, prefix)
-            return self.client.incrby(full_key, amount)
+            return self.client.incrby(full_key, amount)  # type: ignore[no-any-return]
 
         except RedisError as e:
             logger.warning("cache_increment_failed", key=key, error=str(e))
@@ -354,7 +354,7 @@ class RedisCache:
         """
         try:
             full_key = self._make_key(key, prefix)
-            return self.client.expire(full_key, ttl)
+            return self.client.expire(full_key, ttl)  # type: ignore[no-any-return]
 
         except RedisError as e:
             logger.warning("cache_expire_failed", key=key, error=str(e))
@@ -373,7 +373,7 @@ class RedisCache:
         """
         try:
             full_key = self._make_key(key, prefix)
-            return self.client.ttl(full_key)
+            return self.client.ttl(full_key)  # type: ignore[no-any-return]
 
         except RedisError as e:
             logger.warning("cache_ttl_failed", key=key, error=str(e))
@@ -387,7 +387,7 @@ class RedisCache:
             True if Redis is accessible
         """
         try:
-            return self.client.ping()
+            return self.client.ping()  # type: ignore[no-any-return]
         except RedisError:
             return False
 
