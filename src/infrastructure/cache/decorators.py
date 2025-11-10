@@ -8,7 +8,7 @@ import functools
 import hashlib
 import json
 import time
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 import structlog
 
@@ -52,10 +52,10 @@ def _make_cache_key(func: Callable, args: tuple, kwargs: dict) -> str:
 def cache_result(
     ttl: Optional[int] = None,
     prefix: Optional[str] = None,
-    key_func: Optional[Callable] = None,
+    key_func: Optional[Callable[..., str]] = None,
     use_multi_tier: bool = True,
     monitor: bool = True,
-):
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to cache function results
 
@@ -72,9 +72,9 @@ def cache_result(
             return database.query(user_id)
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             config = get_cache_config()
 
             if not config.cache_enabled:
@@ -84,7 +84,7 @@ def cache_result(
             if use_multi_tier:
                 cache = get_multi_tier_cache()
             else:
-                cache = get_cache()
+                cache = get_cache()  # type: ignore[assignment]
 
             # 모니터
             cache_monitor = get_cache_monitor() if monitor else None
@@ -147,7 +147,7 @@ def cache_analysis(
     ttl: Optional[int] = None,
     simulation_id_arg: str = "simulation_id",
     field_name_arg: str = "field_name",
-):
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator specifically for caching analysis results
 
@@ -163,9 +163,9 @@ def cache_analysis(
             return results
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             cache = get_cache()
             config = get_cache_config()
 
@@ -232,7 +232,7 @@ def cache_analysis(
 def invalidate_cache(
     patterns: Optional[list[str]] = None,
     prefix: Optional[str] = None,
-):
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to invalidate cache after function execution
 
@@ -246,9 +246,9 @@ def invalidate_cache(
             database.update(user_id, data)
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Execute function first
             result = func(*args, **kwargs)
 
@@ -283,7 +283,7 @@ def invalidate_cache(
 def cache_async_result(
     ttl: Optional[int] = None,
     prefix: Optional[str] = None,
-):
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator for caching async function results
 
@@ -297,9 +297,9 @@ def cache_async_result(
             return await api.get(user_id)
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             cache = get_cache()
             config = get_cache_config()
 
