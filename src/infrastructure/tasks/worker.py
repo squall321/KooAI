@@ -6,7 +6,7 @@ Task worker implementation
 
 import threading
 import time
-from typing import Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import structlog
 
@@ -204,7 +204,7 @@ class TaskWorker:
 
             try:
                 result = future.result(timeout=task.timeout)
-                return result  # type: ignore[no-any-return]
+                return result
             except concurrent.futures.TimeoutError:
                 raise TimeoutError(f"Task timed out after {task.timeout} seconds")
 
