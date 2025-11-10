@@ -127,7 +127,7 @@ class StreamingJSONParser:
     ijson 라이브러리를 사용합니다.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         if not IJSON_AVAILABLE:
             raise ImportError(
                 "ijson is required for streaming JSON parsing. "
@@ -359,7 +359,7 @@ class HierarchicalExtractor:
             >>> HierarchicalExtractor.flatten(data)
             {'a.b.c': 1, 'd': 2}
         """
-        items = []
+        items: list[tuple[str, Any]] = []
 
         for key, value in data.items():
             new_key = f"{parent_key}{separator}{key}" if parent_key else key
@@ -414,11 +414,11 @@ class ChunkedJSONWriter:
         self._file: Optional[TextIO] = None
         self._first_item = True
 
-    def __enter__(self):
+    def __enter__(self) -> "StreamingJSONWriter":
         self._file = open(self.file_path, "w", encoding="utf-8")
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         if self._file:
             self._file.close()
 
