@@ -5,7 +5,7 @@ Performance profiling utilities
 import time
 import functools
 from contextlib import contextmanager
-from typing import Callable, Optional
+from typing import Callable, Optional, Dict, List, Any, Iterator
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -18,11 +18,11 @@ class Profiler:
     Provides utilities for measuring and analyzing performance.
     """
 
-    def __init__(self):
-        self.timings = {}
+    def __init__(self) -> None:
+        self.timings: Dict[str, List[float]] = {}
 
     @contextmanager
-    def measure(self, name: str):
+    def measure(self, name: str) -> Iterator[None]:
         """
         Context manager to measure execution time
 
@@ -41,7 +41,7 @@ class Profiler:
             elapsed = time.time() - start_time
             self.record(name, elapsed)
 
-    def record(self, name: str, duration: float):
+    def record(self, name: str, duration: float) -> None:
         """
         Record timing
 
@@ -60,7 +60,7 @@ class Profiler:
             duration=duration,
         )
 
-    def get_stats(self, name: str) -> Optional[dict]:
+    def get_stats(self, name: str) -> Optional[Dict[str, Any]]:
         """
         Get statistics for a measurement
 
@@ -93,12 +93,12 @@ class Profiler:
         """
         return {name: self.get_stats(name) for name in self.timings}
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset all timings"""
         self.timings.clear()
 
 
-def profile_function(name: Optional[str] = None, log_args: bool = False):
+def profile_function(name: Optional[str] = None, log_args: bool = False) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to profile function execution time
 
@@ -112,14 +112,14 @@ def profile_function(name: Optional[str] = None, log_args: bool = False):
             return x ** y
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         measurement_name = name or func.__name__
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.time()
 
-            log_data = {
+            log_data: Dict[str, Any] = {
                 "function": func.__name__,
                 "measurement": measurement_name,
             }
@@ -162,7 +162,7 @@ def profile_function(name: Optional[str] = None, log_args: bool = False):
 
 
 @contextmanager
-def measure_time(name: str, log_result: bool = True):
+def measure_time(name: str, log_result: bool = True) -> Iterator[None]:
     """
     Context manager to measure time
 
@@ -199,13 +199,13 @@ class PerformanceMonitor:
     - Error rates
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.request_count = 0
         self.error_count = 0
         self.total_time = 0.0
-        self.response_times = []
+        self.response_times: List[float] = []
 
-    def record_request(self, duration: float, success: bool = True):
+    def record_request(self, duration: float, success: bool = True) -> None:
         """
         Record request metrics
 
@@ -220,7 +220,7 @@ class PerformanceMonitor:
         if not success:
             self.error_count += 1
 
-    def get_metrics(self) -> dict:
+    def get_metrics(self) -> Dict[str, Any]:
         """
         Get performance metrics
 
@@ -245,7 +245,7 @@ class PerformanceMonitor:
             "max_response_time": max(self.response_times) if self.response_times else 0,
         }
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset all metrics"""
         self.request_count = 0
         self.error_count = 0
