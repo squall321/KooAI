@@ -3,7 +3,7 @@ Base task classes with common functionality
 """
 
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Dict, Callable
 from celery import Task
 import structlog
 
@@ -118,7 +118,7 @@ class LongRunningTask(BaseTask):
             total: Total expected value
             status: Optional status message
         """
-        meta = {
+        meta: Dict[str, Any] = {
             "current": current,
             "total": total,
             "percent": int((current / total) * 100) if total > 0 else 0,
@@ -152,7 +152,7 @@ class LowPriorityTask(BaseTask):
 
 
 # Task decorators for common use cases
-def simulation_task(*args: Any, **kwargs: Any):
+def simulation_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
     """Decorator for simulation-related tasks"""
     kwargs.setdefault("base", LongRunningTask)
     kwargs.setdefault("bind", True)
@@ -160,7 +160,7 @@ def simulation_task(*args: Any, **kwargs: Any):
     return celery_app.task(*args, **kwargs)
 
 
-def analysis_task(*args: Any, **kwargs: Any):
+def analysis_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
     """Decorator for analysis tasks"""
     kwargs.setdefault("base", LongRunningTask)
     kwargs.setdefault("bind", True)
@@ -168,7 +168,7 @@ def analysis_task(*args: Any, **kwargs: Any):
     return celery_app.task(*args, **kwargs)
 
 
-def cleanup_task(*args: Any, **kwargs: Any):
+def cleanup_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
     """Decorator for cleanup tasks"""
     kwargs.setdefault("base", BaseTask)
     kwargs.setdefault("bind", True)
@@ -176,7 +176,7 @@ def cleanup_task(*args: Any, **kwargs: Any):
     return celery_app.task(*args, **kwargs)
 
 
-def high_priority_task(*args: Any, **kwargs: Any):
+def high_priority_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
     """Decorator for high priority tasks"""
     kwargs.setdefault("base", HighPriorityTask)
     kwargs.setdefault("bind", True)
