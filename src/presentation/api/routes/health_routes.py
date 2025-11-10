@@ -230,7 +230,7 @@ async def _check_cache() -> DependencyStatus:
             # Get cache stats if available
             details = {}
             try:
-                stats = cache.get_stats()
+                stats = cache.get_stats()  # type: ignore[attr-defined]
                 details = {
                     "hit_rate": stats.get("hit_rate", 0),
                     "memory_usage_mb": stats.get("memory_usage_mb", 0),
@@ -352,7 +352,7 @@ async def startup_probe(response: Response, db: Session = Depends(get_db)) -> De
         DetailedHealthStatus: Detailed health status
     """
     # Reuse readiness check logic
-    return await readiness_check(response, db)
+    return await readiness_check(response, db)  # type: ignore[no-any-return]
 
 
 @router.get("/health/metrics")

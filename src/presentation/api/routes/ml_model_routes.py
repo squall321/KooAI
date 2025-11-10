@@ -173,7 +173,7 @@ async def list_models(
     else:
         models = server.list_models()
 
-    return models
+    return models  # type: ignore[return-value]
 
 
 @router.get("/{model_name}", response_model=Dict[str, Any])
@@ -318,7 +318,7 @@ async def batch_predict(
                 )
             )
 
-        return responses
+        return responses  # type: ignore[return-value]
 
     except Exception as e:
         raise HTTPException(
