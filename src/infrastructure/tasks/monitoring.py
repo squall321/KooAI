@@ -3,6 +3,7 @@ Monitoring and health check tasks
 """
 
 from datetime import datetime, timezone
+from typing import Any, Dict
 import structlog
 
 from .base import BaseTask
@@ -23,7 +24,7 @@ def health_check(self: BaseTask) -> dict:
     logger.debug("performing_health_check", task_id=self.request.id)
 
     try:
-        health_status = {
+        health_status: Dict[str, Any] = {
             "status": "healthy",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "celery": {

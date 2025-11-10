@@ -157,7 +157,7 @@ def simulation_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
     kwargs.setdefault("base", LongRunningTask)
     kwargs.setdefault("bind", True)
     kwargs.setdefault("queue", "simulation")
-    return celery_app.task(*args, **kwargs)
+    return celery_app.task(*args, **kwargs)  # type: ignore[no-any-return]
 
 
 def analysis_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
@@ -165,7 +165,7 @@ def analysis_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
     kwargs.setdefault("base", LongRunningTask)
     kwargs.setdefault("bind", True)
     kwargs.setdefault("queue", "analysis")
-    return celery_app.task(*args, **kwargs)
+    return celery_app.task(*args, **kwargs)  # type: ignore[no-any-return]
 
 
 def cleanup_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
@@ -173,11 +173,11 @@ def cleanup_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
     kwargs.setdefault("base", BaseTask)
     kwargs.setdefault("bind", True)
     kwargs.setdefault("queue", "cleanup")
-    return celery_app.task(*args, **kwargs)
+    return celery_app.task(*args, **kwargs)  # type: ignore[no-any-return]
 
 
 def high_priority_task(*args: Any, **kwargs: Any) -> Callable[..., Any]:
     """Decorator for high priority tasks"""
     kwargs.setdefault("base", HighPriorityTask)
     kwargs.setdefault("bind", True)
-    return celery_app.task(*args, **kwargs)
+    return celery_app.task(*args, **kwargs)  # type: ignore[no-any-return]

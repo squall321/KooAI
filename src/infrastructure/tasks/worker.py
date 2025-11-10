@@ -183,7 +183,7 @@ class TaskWorker:
             )
             self.queue.complete_task(task.task_id, error=error_msg)
 
-    def _execute_with_timeout(self, func: Callable, task: Task) -> any:
+    def _execute_with_timeout(self, func: Callable, task: Task) -> Any:
         """
         타임아웃과 함께 작업 실행
 
@@ -204,7 +204,7 @@ class TaskWorker:
 
             try:
                 result = future.result(timeout=task.timeout)
-                return result
+                return result  # type: ignore[no-any-return]
             except concurrent.futures.TimeoutError:
                 raise TimeoutError(f"Task timed out after {task.timeout} seconds")
 
