@@ -37,18 +37,18 @@ class BatchJob:
     result: Optional[Any] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def mark_running(self):
+    def mark_running(self) -> None:
         """Mark job as running"""
         self.status = JobStatus.RUNNING
         self.started_at = datetime.now()
 
-    def mark_completed(self, result: Any = None):
+    def mark_completed(self, result: Any = None) -> None:
         """Mark job as completed"""
         self.status = JobStatus.COMPLETED
         self.completed_at = datetime.now()
         self.result = result
 
-    def mark_failed(self, error: str):
+    def mark_failed(self, error: str) -> None:
         """Mark job as failed"""
         self.status = JobStatus.FAILED
         self.completed_at = datetime.now()
@@ -236,7 +236,7 @@ class BatchProcessor:
         total_duration = (end_time - start_time).total_seconds()
 
         completed_jobs = [j for j in self.jobs if j.status == JobStatus.COMPLETED]
-        durations = [j.duration() for j in completed_jobs if j.duration() is not None]
+        durations: list[float] = [d for j in completed_jobs if (d := j.duration()) is not None]
         avg_duration = sum(durations) / len(durations) if durations else 0.0
 
         return BatchResult(
@@ -305,7 +305,7 @@ class BatchProcessor:
         total_duration = (end_time - start_time).total_seconds()
 
         completed_jobs = [j for j in self.jobs if j.status == JobStatus.COMPLETED]
-        durations = [j.duration() for j in completed_jobs if j.duration() is not None]
+        durations: list[float] = [d for j in completed_jobs if (d := j.duration()) is not None]
         avg_duration = sum(durations) / len(durations) if durations else 0.0
 
         return BatchResult(
