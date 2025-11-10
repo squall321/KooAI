@@ -6,7 +6,7 @@ CSV 형식의 시뮬레이션 결과 파싱.
 
 import csv
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 import numpy as np
 
@@ -54,6 +54,7 @@ class CSVParser(BaseParser):
         has_time: bool = False,
         default_time: float = 0.0,
         default_step: int = 0,
+        **options: Any,
     ) -> SimulationResult:
         """
         CSV 파일 파싱
@@ -88,7 +89,7 @@ class CSVParser(BaseParser):
         mesh = MeshData(vertices=vertices)
 
         # 필드 추출
-        fields = self._extract_fields(data, rows[0].keys())
+        fields = self._extract_fields(data, list(rows[0].keys()))
 
         # 시간 정보
         time = default_time
@@ -145,9 +146,9 @@ class CSVParser(BaseParser):
     def _extract_vertices(self, data: Dict[str, List[float]]) -> np.ndarray:
         """좌표 추출"""
         # x, y, z 컬럼 찾기
-        x_key = self._find_column(data.keys(), ["x", "X", "coord_x"])
-        y_key = self._find_column(data.keys(), ["y", "Y", "coord_y"])
-        z_key = self._find_column(data.keys(), ["z", "Z", "coord_z"])
+        x_key = self._find_column(list(data.keys()), ["x", "X", "coord_x"])
+        y_key = self._find_column(list(data.keys()), ["y", "Y", "coord_y"])
+        z_key = self._find_column(list(data.keys()), ["z", "Z", "coord_z"])
 
         if not x_key or not y_key:
             raise ValueError("CSV must have x, y columns")
@@ -209,7 +210,7 @@ class CSVParser(BaseParser):
             fields.append(field)
 
         # 스칼라 필드 생성
-        used_columns = set()
+        used_columns: Set[str] = set()
         for components in vector_fields.values():
             used_columns.update(components.values())
 

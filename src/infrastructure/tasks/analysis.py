@@ -2,7 +2,7 @@
 Analysis background tasks
 """
 
-from typing import Optional
+from typing import Any, Optional
 import structlog
 
 from .base import analysis_task, LongRunningTask
@@ -67,7 +67,7 @@ def analyze_field(
 
         self.update_progress(60, 100, "Detecting outliers")
 
-        outliers = []
+        outliers: list[Any] = []
         if detect_outliers:
             # Outlier detection logic
             # ...
@@ -139,7 +139,7 @@ def compute_convergence(
         self.update_progress(20, 100, "Computing changes")
 
         # Compute convergence
-        convergence_data = []
+        convergence_data: list[Any] = []
         for i in range(1, num_timesteps):
             self.update_progress(
                 20 + int(60 * i / num_timesteps), 100, f"Processing timestep {i}/{num_timesteps}"

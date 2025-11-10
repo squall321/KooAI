@@ -4,7 +4,7 @@ FastAPI 데이터베이스 의존성
 FastAPI 라우트에서 사용할 데이터베이스 세션 의존성을 제공합니다.
 """
 
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -114,7 +114,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def get_simulation_repository(
-    session: AsyncSession = None,
+    session: Optional[AsyncSession] = None,
 ) -> AsyncGenerator[SimulationRepository, None]:
     """
     시뮬레이션 리포지토리 의존성
@@ -138,7 +138,7 @@ async def get_simulation_repository(
 
 
 async def get_dataset_repository(
-    session: AsyncSession = None,
+    session: Optional[AsyncSession] = None,
 ) -> AsyncGenerator[DatasetRepository, None]:
     """
     데이터셋 리포지토리 의존성
@@ -154,7 +154,7 @@ async def get_dataset_repository(
 
 
 async def get_analysis_repository(
-    session: AsyncSession = None,
+    session: Optional[AsyncSession] = None,
 ) -> AsyncGenerator[AnalysisRepository, None]:
     """
     분석 리포지토리 의존성
@@ -170,7 +170,7 @@ async def get_analysis_repository(
 
 
 async def get_ai_model_repository(
-    session: AsyncSession = None,
+    session: Optional[AsyncSession] = None,
 ) -> AsyncGenerator[AIModelRepository, None]:
     """
     AI 모델 리포지토리 의존성
@@ -189,7 +189,7 @@ async def get_ai_model_repository(
 
 
 @asynccontextmanager
-async def database_lifespan():
+async def database_lifespan() -> AsyncGenerator[None, None]:
     """
     데이터베이스 수명 주기 관리
 

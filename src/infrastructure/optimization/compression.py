@@ -4,7 +4,7 @@ Response compression utilities
 
 import gzip
 import zlib
-from typing import Union
+from typing import Any, Union
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -144,10 +144,10 @@ class CompressionMiddleware:
 
     def __init__(
         self,
-        app,
+        app: Any,
         min_size: int = 1024,
         compression_level: int = 6,
-    ):
+    ) -> None:
         """
         Initialize compression middleware
 
@@ -160,7 +160,7 @@ class CompressionMiddleware:
         self.min_size = min_size
         self.compression_level = compression_level
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> Any:
         """ASGI application call"""
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
@@ -174,7 +174,7 @@ class CompressionMiddleware:
             return await self.app(scope, receive, send)
 
         # Wrap send to intercept responses
-        async def send_wrapper(message):
+        async def send_wrapper(message: Any) -> None:
             if message["type"] == "http.response.start":
                 # Store response headers
                 self.response_headers = list(message.get("headers", []))

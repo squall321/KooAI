@@ -117,7 +117,7 @@ class InMemoryDatabaseConnection(DatabaseConnection):
     SQLite 인메모리 데이터베이스를 사용합니다.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # SQLite in-memory database with StaticPool to maintain single connection
         self.database_url = "sqlite+aiosqlite:///:memory:"
         self.echo = False

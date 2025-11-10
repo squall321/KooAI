@@ -243,6 +243,71 @@ class SimulationService:
 
         return high_region, low_region
 
+    def get_simulation(self, simulation_id: str) -> GetSimulationResponse:
+        """
+        시뮬레이션 조회
+
+        Args:
+            simulation_id: 시뮬레이션 ID
+
+        Returns:
+            GetSimulationResponse: 시뮬레이션 정보
+        """
+        return self.get_use_case.execute(GetSimulationRequest(simulation_id=simulation_id))
+
+    def analyze_field(
+        self,
+        simulation_id: str,
+        timestep: int,
+        field_name: str,
+        compute_extremes: bool = False,
+        n_extremes: int = 10,
+        detect_outliers: bool = False,
+        outlier_threshold: float = 3.0,
+        compute_histogram: bool = False,
+        histogram_bins: int = 50,
+    ) -> AnalyzeFieldResponse:
+        """
+        필드 분석
+
+        Args:
+            simulation_id: 시뮬레이션 ID
+            timestep: 타임스텝
+            field_name: 필드 이름
+            compute_extremes: 극값 계산 여부
+            n_extremes: 극값 개수
+            detect_outliers: 이상값 탐지 여부
+            outlier_threshold: 이상값 임계값
+            compute_histogram: 히스토그램 계산 여부
+            histogram_bins: 히스토그램 빈 개수
+
+        Returns:
+            AnalyzeFieldResponse: 필드 분석 결과
+        """
+        return self.analyze_field_use_case.execute(
+            AnalyzeFieldRequest(
+                simulation_id=simulation_id,
+                timestep=timestep,
+                field_name=field_name,
+                compute_extremes=compute_extremes,
+                n_extremes=n_extremes,
+                detect_outliers=detect_outliers,
+                outlier_threshold=outlier_threshold,
+                compute_histogram=compute_histogram,
+                histogram_bins=histogram_bins,
+            )
+        )
+
+    def delete_simulation(self, simulation_id: str) -> None:
+        """
+        시뮬레이션 삭제
+
+        Args:
+            simulation_id: 시뮬레이션 ID
+        """
+        # Repository의 delete 메서드 직접 호출
+        self.repository.delete(simulation_id)
+
     def list_simulations(self, page: int = 1, page_size: int = 20) -> ListSimulationsResponse:
         """
         시뮬레이션 목록 조회 (페이지네이션)

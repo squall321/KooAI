@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import AsyncIterator, Callable, Generic, Iterator, Optional, TypeVar
+from typing import Any, AsyncIterator, Callable, Generic, Iterator, Optional, TypeVar
 
 from ..models import SimulationResult
 
@@ -78,7 +78,7 @@ class StreamingParser(ABC, Generic[T]):
     def parse_stream(
         self,
         file_path: Path,
-        **options,
+        **options: Any,
     ) -> SimulationResult:
         """
         스트리밍 방식으로 파일 파싱
@@ -97,7 +97,7 @@ class StreamingParser(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def read_chunks(self, file_path: Path, **options) -> Iterator[T]:
+    def read_chunks(self, file_path: Path, **options: Any) -> Iterator[T]:
         """
         청크 단위로 파일 읽기
 
@@ -152,7 +152,7 @@ class AsyncStreamingParser(ABC, Generic[T]):
     async def parse_stream(
         self,
         file_path: Path,
-        **options,
+        **options: Any,
     ) -> SimulationResult:
         """
         비동기 스트리밍 방식으로 파일 파싱
@@ -167,7 +167,7 @@ class AsyncStreamingParser(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    async def read_chunks(self, file_path: Path, **options) -> AsyncIterator[T]:
+    async def read_chunks(self, file_path: Path, **options: Any) -> AsyncIterator[T]:
         """
         청크 단위로 비동기 파일 읽기
 

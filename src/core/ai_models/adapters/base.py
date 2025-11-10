@@ -48,7 +48,7 @@ class ModelConfig:
     preprocessing: Optional[Dict[str, Any]] = None
     postprocessing: Optional[Dict[str, Any]] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """초기화 후 검증"""
         if not self.model_path.exists():
             raise FileNotFoundError(f"Model path does not exist: {self.model_path}")
@@ -97,7 +97,7 @@ class IModelAdapter(Protocol):
         """
         ...
 
-    def predict(self, input_data: Any, **kwargs) -> InferenceResult:
+    def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
         """
         추론 수행
 
@@ -113,7 +113,7 @@ class IModelAdapter(Protocol):
         """
         ...
 
-    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs: Any) -> List[InferenceResult]:
         """
         배치 추론
 
@@ -147,7 +147,7 @@ class BaseModelAdapter(ABC):
     공통 기능을 제공하는 추상 클래스.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.model: Optional[Any] = None
         self.config: Optional[ModelConfig] = None
         self._is_loaded: bool = False
@@ -158,11 +158,11 @@ class BaseModelAdapter(ABC):
         pass
 
     @abstractmethod
-    def predict(self, input_data: Any, **kwargs) -> InferenceResult:
+    def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
         """추론 수행 (서브클래스에서 구현)"""
         pass
 
-    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs: Any) -> List[InferenceResult]:
         """
         배치 추론 기본 구현
 

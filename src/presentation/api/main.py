@@ -148,7 +148,7 @@ app.include_router(metrics_routes.router, prefix="/api/v1")
     response_description="서버 상태 및 버전",
 )
 @limiter.limit("100/minute")  # Rate limiting: 분당 100회
-async def health_check(request: Request):
+async def health_check(request: Request) -> dict[str, str]:
     """
     ## Simple Health Check
 
@@ -173,7 +173,7 @@ async def health_check(request: Request):
     response_description="API 메타데이터",
 )
 @limiter.limit("60/minute")  # Rate limiting: 분당 60회
-async def root(request: Request):
+async def root(request: Request) -> dict[str, str]:
     """
     ## API Root Endpoint
 

@@ -4,7 +4,7 @@ Tenant Management API Routes
 Endpoints for managing multi-tenant operations.
 """
 
-from typing import List, Optional
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
@@ -44,7 +44,7 @@ class TenantCreateRequest(BaseModel):
     domain: Optional[str] = Field(None, description="Custom domain (optional)")
 
     @validator("slug")
-    def validate_slug(cls, v):
+    def validate_slug(cls, v: str) -> str:
         """Validate slug format."""
         if v.startswith("-") or v.endswith("-"):
             raise ValueError("Slug cannot start or end with hyphen")
@@ -238,7 +238,7 @@ async def create_tenant(
     request: TenantCreateRequest,
     current_user: dict = Depends(get_current_user),
     service: TenantService = Depends(get_tenant_service),
-):
+) -> TenantResponse:
     """
     Create a new tenant.
 
@@ -305,7 +305,7 @@ async def get_tenant(
     current_user: dict = Depends(get_current_user),
     service: TenantService = Depends(get_tenant_service),
     tenant_context: TenantContext = Depends(require_tenant),
-):
+) -> TenantResponse:
     """
     Get tenant details.
 
@@ -338,7 +338,7 @@ async def get_tenant(
 async def list_my_tenants(
     current_user: dict = Depends(get_current_user),
     service: TenantService = Depends(get_tenant_service),
-):
+) -> List[TenantResponse]:
     """
     List all tenants the current user belongs to.
 
@@ -375,7 +375,7 @@ async def update_tenant(
     current_user: dict = Depends(get_current_user),
     service: TenantService = Depends(get_tenant_service),
     tenant_context: TenantContext = Depends(require_tenant_admin),
-):
+) -> TenantResponse:
     """
     Update tenant details.
 
@@ -428,7 +428,7 @@ async def delete_tenant(
     current_user: dict = Depends(get_current_user),
     service: TenantService = Depends(get_tenant_service),
     tenant_context: TenantContext = Depends(require_tenant_owner),
-):
+) -> None:
     """
     Delete a tenant and all associated data.
 
@@ -472,7 +472,7 @@ async def invite_user(
     current_user: dict = Depends(get_current_user),
     service: TenantService = Depends(get_tenant_service),
     tenant_context: TenantContext = Depends(require_tenant_admin),
-):
+) -> InvitationResponse:
     """
     Invite a user to join the tenant.
 
@@ -538,7 +538,7 @@ async def accept_invitation(
     request: AcceptInvitationRequest,
     current_user: dict = Depends(get_current_user),
     service: TenantService = Depends(get_tenant_service),
-):
+) -> Dict[str, Any]:
     """
     Accept a tenant invitation.
 
@@ -571,7 +571,7 @@ async def list_invitations(
     status_filter: Optional[str] = Query(None, description="Filter by status"),
     service: TenantService = Depends(get_tenant_service),
     tenant_context: TenantContext = Depends(require_tenant_admin),
-):
+) -> List[InvitationResponse]:
     """
     List tenant invitations.
 
@@ -613,7 +613,7 @@ async def list_tenant_users(
     tenant_id: str,
     service: TenantService = Depends(get_tenant_service),
     tenant_context: TenantContext = Depends(require_tenant),
-):
+) -> List[TenantUserResponse]:
     """
     List all users in the tenant.
 
@@ -650,7 +650,7 @@ async def remove_user_from_tenant(
     current_user: dict = Depends(get_current_user),
     service: TenantService = Depends(get_tenant_service),
     tenant_context: TenantContext = Depends(require_tenant_admin),
-):
+) -> None:
     """
     Remove a user from the tenant.
 
@@ -727,7 +727,7 @@ async def get_audit_logs(
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     service: TenantService = Depends(get_tenant_service),
     tenant_context: TenantContext = Depends(require_tenant_admin),
-):
+) -> List[AuditLogResponse]:
     """
     Get tenant audit logs.
 

@@ -40,17 +40,17 @@ class ConversationContext:
         self.max_turns = max_turns
         self.messages: list[Dict[str, str]] = []
 
-    def add_user_message(self, content: str):
+    def add_user_message(self, content: str) -> None:
         """Add user message to context."""
         self.messages.append({"role": "user", "content": content})
         self._trim_history()
 
-    def add_assistant_message(self, content: str):
+    def add_assistant_message(self, content: str) -> None:
         """Add assistant message to context."""
         self.messages.append({"role": "assistant", "content": content})
         self._trim_history()
 
-    def _trim_history(self):
+    def _trim_history(self) -> None:
         """Trim history to max_turns."""
         if len(self.messages) > self.max_turns * 2:  # user + assistant = 2 messages per turn
             self.messages = self.messages[-(self.max_turns * 2) :]
@@ -59,7 +59,7 @@ class ConversationContext:
         """Get conversation messages."""
         return self.messages.copy()
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear conversation history."""
         self.messages.clear()
 
@@ -143,7 +143,7 @@ class TokenUsageTracker:
     Monitors LLM API usage for billing and optimization.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize usage tracker."""
         self.usage_history: list[Dict[str, Any]] = []
 
@@ -153,7 +153,7 @@ class TokenUsageTracker:
         prompt_tokens: int,
         completion_tokens: int,
         cost_usd: Optional[float] = None,
-    ):
+    ) -> None:
         """
         Record token usage.
 

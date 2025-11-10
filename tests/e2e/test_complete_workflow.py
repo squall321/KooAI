@@ -76,7 +76,7 @@ class TestCompleteSimulationWorkflow:
         # Verify upload
         assert simulation_id is not None
         assert result.simulation_info.name == "E2E Test Simulation"
-        assert result.simulation_info.file_type == "CSV"
+        assert result.simulation_info.simulation_type == "CSV"
         assert len(result.simulation_info.fields) > 0
 
         # Verify all fields were analyzed
@@ -106,8 +106,8 @@ class TestCompleteSimulationWorkflow:
 
         # Step 4: Check extremes
         if field_analysis.extremes:
-            assert "max_values" in field_analysis.extremes
-            assert "min_values" in field_analysis.extremes
+            assert "max" in field_analysis.extremes
+            assert "min" in field_analysis.extremes
 
         # Step 5: Find critical regions
         high_temp_region, low_temp_region = service.find_critical_regions(
@@ -120,7 +120,7 @@ class TestCompleteSimulationWorkflow:
         # Verify critical regions
         assert high_temp_region.region_size > 0
         assert low_temp_region.region_size > 0
-        assert high_temp_region.mean_value > low_temp_region.mean_value
+        assert high_temp_region.region_statistics["mean"] > low_temp_region.region_statistics["mean"]
 
         # Step 6: Delete simulation
         service.delete_simulation(simulation_id)
@@ -154,7 +154,7 @@ class TestMultipleSimulationsWorkflow:
 
         # List simulations
         simulations = service.list_simulations()
-        assert len(simulations) >= 2
+        assert len(simulations.simulations) >= 2
 
         # Cleanup
         service.delete_simulation(sim_id_1)

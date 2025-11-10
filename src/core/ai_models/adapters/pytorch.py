@@ -13,7 +13,7 @@ from .base import BaseModelAdapter, InferenceResult, ModelConfig, ModelFramework
 class PyTorchAdapter(BaseModelAdapter):
     """PyTorch 모델 어댑터"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.device: Optional[str] = None
 
@@ -83,7 +83,7 @@ class PyTorchAdapter(BaseModelAdapter):
         except Exception as e:
             raise RuntimeError(f"Failed to load PyTorch model: {str(e)}")
 
-    def predict(self, input_data: Any, **kwargs) -> InferenceResult:
+    def predict(self, input_data: Any, **kwargs: Any) -> InferenceResult:
         """
         추론 수행
 
@@ -122,6 +122,8 @@ class PyTorchAdapter(BaseModelAdapter):
 
             # 추론 수행 (gradient 계산 비활성화)
             with torch.no_grad():
+                if self.model is None:
+                    raise RuntimeError("Model is not loaded")
                 output = self.model(input_tensor, **kwargs)
 
             # 추론 시간 계산
@@ -148,7 +150,7 @@ class PyTorchAdapter(BaseModelAdapter):
         except Exception as e:
             raise RuntimeError(f"PyTorch inference failed: {str(e)}")
 
-    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs: Any) -> List[InferenceResult]:
         """
         배치 추론 (최적화된 구현)
 
@@ -184,12 +186,13 @@ class PyTorchAdapter(BaseModelAdapter):
 
             # 결과를 개별 항목으로 분리
             batch_output = batch_result.output
+            batch_time = batch_result.inference_time_ms or 0.0
             for j in range(len(batch)):
                 results.append(
                     InferenceResult(
                         output=batch_output[j],
                         metadata=batch_result.metadata,
-                        inference_time_ms=batch_result.inference_time_ms / len(batch),
+                        inference_time_ms=batch_time / len(batch),
                     )
                 )
 
@@ -204,7 +207,7 @@ class PyTorchAdapter(BaseModelAdapter):
         """
         self._ensure_loaded()
 
-        info = {
+        info: Dict[str, Any] = {
             "framework": "pytorch",
             "device": self.device,
             "is_loaded": self._is_loaded,
@@ -215,10 +218,10 @@ class PyTorchAdapter(BaseModelAdapter):
             info["model_class"] = self.model.__class__.__name__
 
         # 파라미터 수 계산 (가능한 경우)
-        if hasattr(self.model, "parameters"):
+        if self.model is not None and hasattr(self.model, "parameters"):
             try:
-                total_params = sum(p.numel() for p in self.model.parameters())
-                trainable_params = sum(
+                total_params: int = sum(p.numel() for p in self.model.parameters())
+                trainable_params: int = sum(
                     p.numel() for p in self.model.parameters() if p.requires_grad
                 )
                 info["total_parameters"] = total_params

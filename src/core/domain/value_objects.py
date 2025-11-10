@@ -261,7 +261,7 @@ class AnalysisResult:
     metrics: dict
     summary: str
     confidence_score: Optional[float] = None
-    timestamp: datetime = None
+    timestamp: Optional[datetime] = None
 
     def __post_init__(self) -> None:
         """초기화 후 검증"""

@@ -155,7 +155,7 @@ class DatabaseExtractionStage(ProcessingStage):
         params = data if isinstance(data, dict) else {}
 
         # 조회 실행
-        results = await self.repository.query(self.query, **params)
+        results: List[Any] = await self.repository.query(self.query, **params)
 
         # 메타데이터
         context.metadata[f"{self.name}_result_count"] = len(results)

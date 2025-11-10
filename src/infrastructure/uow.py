@@ -5,6 +5,7 @@ Unit of Work 패턴
 """
 
 from contextlib import asynccontextmanager
+from typing import AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -69,7 +70,7 @@ class UnitOfWork:
 
 
 @asynccontextmanager
-async def get_uow(session: AsyncSession):
+async def get_uow(session: AsyncSession) -> AsyncIterator["UnitOfWork"]:
     """
     Unit of Work 컨텍스트 매니저
 

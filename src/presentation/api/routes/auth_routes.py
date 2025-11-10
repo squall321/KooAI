@@ -71,7 +71,7 @@ _users_db: dict[str, UserInDB] = {}
 )
 async def register(
     request: RegisterRequest, auth_service: AuthService = Depends(get_auth_service)
-):
+) -> "UserResponse":
     """
     ## Register New User
 
@@ -143,7 +143,7 @@ async def register(
     summary="Login",
     description="Authenticate and receive access & refresh tokens",
 )
-async def login(request: LoginRequest, auth_service: AuthService = Depends(get_auth_service)):
+async def login(request: LoginRequest, auth_service: AuthService = Depends(get_auth_service)) -> Token:
     """
     ## User Login
 
@@ -211,7 +211,7 @@ async def login(request: LoginRequest, auth_service: AuthService = Depends(get_a
     summary="Refresh Access Token",
     description="Get new access token using refresh token",
 )
-async def refresh(request: RefreshRequest, auth_service: AuthService = Depends(get_auth_service)):
+async def refresh(request: RefreshRequest, auth_service: AuthService = Depends(get_auth_service)) -> Token:
     """
     ## Refresh Access Token
 
@@ -250,7 +250,7 @@ async def refresh(request: RefreshRequest, auth_service: AuthService = Depends(g
     summary="Get Current User",
     description="Get information about the currently authenticated user",
 )
-async def get_me(current_user: User = Depends(get_current_active_user)):
+async def get_me(current_user: User = Depends(get_current_active_user)) -> "UserResponse":
     """
     ## Get Current User
 
@@ -290,7 +290,7 @@ async def change_password(
     request: PasswordChangeRequest,
     current_user: User = Depends(get_current_active_user),
     auth_service: AuthService = Depends(get_auth_service),
-):
+) -> None:
     """
     ## Change Password
 
@@ -332,7 +332,7 @@ async def change_password(
     summary="List Users (Admin)",
     description="List all users (admin only)",
 )
-async def list_users(current_user: User = Depends(require_admin)):
+async def list_users(current_user: User = Depends(require_admin)) -> list["UserResponse"]:
     """
     ## List All Users (Admin Only)
 

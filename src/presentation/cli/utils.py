@@ -4,7 +4,7 @@ CLI 유틸리티 함수
 테이블 출력, 진행상황 표시 등.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -13,22 +13,22 @@ from rich.table import Table
 console = Console()
 
 
-def print_success(message: str):
+def print_success(message: str) -> None:
     """성공 메시지 출력"""
     console.print(f"[green]✓[/green] {message}")
 
 
-def print_error(message: str):
+def print_error(message: str) -> None:
     """에러 메시지 출력"""
     console.print(f"[red]✗[/red] {message}", style="red")
 
 
-def print_warning(message: str):
+def print_warning(message: str) -> None:
     """경고 메시지 출력"""
     console.print(f"[yellow]⚠[/yellow] {message}", style="yellow")
 
 
-def print_info(message: str):
+def print_info(message: str) -> None:
     """정보 메시지 출력"""
     console.print(f"[blue]ℹ[/blue] {message}", style="blue")
 
@@ -41,7 +41,7 @@ def create_table(title: str, columns: List[str]) -> Table:
     return table
 
 
-def print_simulation_table(simulations: List[Dict[str, Any]]):
+def print_simulation_table(simulations: List[Dict[str, Any]]) -> None:
     """시뮬레이션 목록 테이블 출력"""
     table = create_table(
         "Simulations",
@@ -60,7 +60,7 @@ def print_simulation_table(simulations: List[Dict[str, Any]]):
     console.print(table)
 
 
-def print_simulation_info(info: Dict[str, Any]):
+def print_simulation_info(info: Dict[str, Any]) -> None:
     """시뮬레이션 정보 출력"""
     console.print("\n[bold cyan]Simulation Information[/bold cyan]")
     console.print(f"  ID: {info['simulation_id']}")
@@ -72,7 +72,7 @@ def print_simulation_info(info: Dict[str, Any]):
     console.print(f"  Fields: {', '.join(info['fields'])}")
 
 
-def print_field_statistics(field_name: str, stats: Dict[str, float]):
+def print_field_statistics(field_name: str, stats: Dict[str, float]) -> None:
     """필드 통계 출력"""
     console.print(f"\n[bold cyan]Field Statistics: {field_name}[/bold cyan]")
 
@@ -89,7 +89,7 @@ def print_field_statistics(field_name: str, stats: Dict[str, float]):
     console.print(table)
 
 
-def print_convergence_data(field_name: str, convergence: List[Dict[str, float]]):
+def print_convergence_data(field_name: str, convergence: List[Dict[str, float]]) -> None:
     """수렴성 데이터 출력"""
     console.print(f"\n[bold cyan]Convergence Analysis: {field_name}[/bold cyan]")
 
@@ -110,11 +110,11 @@ def print_convergence_data(field_name: str, convergence: List[Dict[str, float]])
     console.print(table)
 
 
-def with_progress(description: str):
+def with_progress(description: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """진행상황 표시 데코레이터"""
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),

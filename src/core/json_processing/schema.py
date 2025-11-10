@@ -234,7 +234,7 @@ class SimulationResult(BaseModel):
 
     @field_validator("time_steps")
     @classmethod
-    def validate_time_steps(cls, v, info):
+    def validate_time_steps(cls, v: Optional[List[TimeStep]], info: Any) -> Optional[List[TimeStep]]:
         """비정상 상태의 경우 time_steps 필수"""
         steady_state = info.data.get("steady_state", False)
         if not steady_state and not v:
@@ -255,7 +255,7 @@ class SchemaRegistry:
     동적으로 스키마를 등록하고 검증할 수 있습니다.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._schemas: Dict[str, type[BaseModel]] = {
             "simulation_result": SimulationResult,
             "simulation_metadata": SimulationMetadata,

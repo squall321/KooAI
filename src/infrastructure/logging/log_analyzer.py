@@ -63,7 +63,7 @@ class LogAnalyzer:
 
     def load_logs(
         self, since: Optional[datetime] = None, until: Optional[datetime] = None
-    ):
+    ) -> None:
         """
         Load log entries from file.
 
@@ -134,7 +134,7 @@ class LogAnalyzer:
         error_messages = Counter(e.message for e in errors)
 
         # Time-based analysis
-        hourly_distribution = defaultdict(int)
+        hourly_distribution: defaultdict[str, int] = defaultdict(int)
         for entry in self.entries:
             hour = entry.timestamp.replace(minute=0, second=0, microsecond=0)
             hourly_distribution[hour.isoformat()] += 1

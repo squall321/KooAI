@@ -20,11 +20,11 @@ class ConnectionManager:
     Manages multiple WebSocket connections and broadcasts messages.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize connection manager."""
         self.active_connections: Dict[str, WebSocket] = {}
 
-    async def connect(self, client_id: str, websocket: WebSocket):
+    async def connect(self, client_id: str, websocket: WebSocket) -> None:
         """
         Accept new WebSocket connection.
 
@@ -35,7 +35,7 @@ class ConnectionManager:
         await websocket.accept()
         self.active_connections[client_id] = websocket
 
-    def disconnect(self, client_id: str):
+    def disconnect(self, client_id: str) -> None:
         """
         Remove WebSocket connection.
 
@@ -45,7 +45,7 @@ class ConnectionManager:
         if client_id in self.active_connections:
             del self.active_connections[client_id]
 
-    async def send_personal_message(self, message: dict, client_id: str):
+    async def send_personal_message(self, message: dict, client_id: str) -> None:
         """
         Send message to specific client.
 
@@ -57,7 +57,7 @@ class ConnectionManager:
             websocket = self.active_connections[client_id]
             await websocket.send_json(message)
 
-    async def broadcast(self, message: dict):
+    async def broadcast(self, message: dict) -> None:
         """
         Broadcast message to all connected clients.
 
@@ -73,7 +73,7 @@ manager = ConnectionManager()
 
 
 @router.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: str):
+async def websocket_endpoint(websocket: WebSocket, client_id: str) -> None:
     """
     ## WebSocket Endpoint
 
@@ -184,7 +184,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
 
 
 # Helper functions for sending updates
-async def send_upload_progress(client_id: str, filename: str, progress: float, uploaded: int, total: int):
+async def send_upload_progress(client_id: str, filename: str, progress: float, uploaded: int, total: int) -> None:
     """
     Send upload progress update.
 
@@ -210,7 +210,7 @@ async def send_upload_progress(client_id: str, filename: str, progress: float, u
     )
 
 
-async def send_processing_status(client_id: str, task_id: str, status: str, progress: float, message: str):
+async def send_processing_status(client_id: str, task_id: str, status: str, progress: float, message: str) -> None:
     """
     Send processing status update.
 
@@ -236,7 +236,7 @@ async def send_processing_status(client_id: str, task_id: str, status: str, prog
     )
 
 
-async def send_notification(client_id: str, level: str, message: str, title: str = None):
+async def send_notification(client_id: str, level: str, message: str, title: str = None) -> None:
     """
     Send notification.
 
@@ -260,7 +260,7 @@ async def send_notification(client_id: str, level: str, message: str, title: str
     )
 
 
-async def broadcast_system_message(message: str):
+async def broadcast_system_message(message: str) -> None:
     """
     Broadcast system message to all connected clients.
 

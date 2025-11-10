@@ -13,7 +13,7 @@ from .base import BaseModelAdapter, InferenceResult, ModelConfig, ModelFramework
 class HuggingFaceAdapter(BaseModelAdapter):
     """Hugging Face Transformers 모델 어댑터"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.tokenizer: Optional[Any] = None
         self.device: Optional[str] = None
@@ -95,7 +95,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
     def predict(
         self,
         input_data: Union[str, List[str], Dict[str, Any]],
-        **kwargs,
+        **kwargs: Any,
     ) -> InferenceResult:
         """
         추론 수행
@@ -129,6 +129,8 @@ class HuggingFaceAdapter(BaseModelAdapter):
         try:
             # 입력 토크나이징 (필요한 경우)
             if isinstance(input_data, (str, list)):
+                if self.tokenizer is None:
+                    raise RuntimeError("Tokenizer is not loaded")
                 inputs = self.tokenizer(
                     input_data,
                     padding=True,
@@ -150,6 +152,8 @@ class HuggingFaceAdapter(BaseModelAdapter):
 
             # 추론 수행
             with torch.no_grad():
+                if self.model is None:
+                    raise RuntimeError("Model is not loaded")
                 outputs = self.model(**inputs, **kwargs)
 
             # 추론 시간 계산
@@ -184,7 +188,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
         except Exception as e:
             raise RuntimeError(f"Hugging Face inference failed: {str(e)}")
 
-    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs: Any) -> List[InferenceResult]:
         """
         배치 추론
 
@@ -212,6 +216,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
             # 결과를 개별 항목으로 분리
             batch_output = batch_result.output
             results = []
+            batch_time = batch_result.inference_time_ms or 0.0
 
             for i in range(len(input_data_list)):
                 results.append(
@@ -222,7 +227,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
                             else batch_output
                         ),
                         metadata=batch_result.metadata,
-                        inference_time_ms=batch_result.inference_time_ms / len(input_data_list),
+                        inference_time_ms=batch_time / len(input_data_list),
                     )
                 )
 
@@ -231,7 +236,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
             # 기본 구현 사용
             return super().batch_predict(input_data_list, **kwargs)
 
-    def generate(self, input_text: Union[str, List[str]], **generation_kwargs) -> str:
+    def generate(self, input_text: Union[str, List[str]], **generation_kwargs: Any) -> str:
         """
         텍스트 생성 (LLM용)
 
@@ -258,17 +263,21 @@ class HuggingFaceAdapter(BaseModelAdapter):
 
         try:
             # 입력 토크나이징
+            if self.tokenizer is None:
+                raise RuntimeError("Tokenizer is not loaded")
             inputs = self.tokenizer(input_text, return_tensors="pt", padding=True)
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
             # 텍스트 생성
             with torch.no_grad():
+                if self.model is None:
+                    raise RuntimeError("Model is not loaded")
                 outputs = self.model.generate(**inputs, **generation_kwargs)
 
             # 디코딩
             generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-            return generated_text
+            return str(generated_text)
 
         except Exception as e:
             raise RuntimeError(f"Text generation failed: {str(e)}")
@@ -282,7 +291,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
         """
         self._ensure_loaded()
 
-        info = {
+        info: Dict[str, Any] = {
             "framework": "huggingface",
             "device": self.device,
             "model_type": self.model_type,
@@ -290,7 +299,7 @@ class HuggingFaceAdapter(BaseModelAdapter):
         }
 
         # 모델 설정 정보
-        if hasattr(self.model, "config"):
+        if self.model is not None and hasattr(self.model, "config"):
             config = self.model.config
             info["model_name"] = getattr(config, "model_type", "unknown")
             info["num_parameters"] = getattr(config, "num_parameters", None)

@@ -47,7 +47,7 @@ class AnthropicClient(BaseLLMClient):
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> LLMResponse:
         """
         텍스트 생성
@@ -75,7 +75,7 @@ class AnthropicClient(BaseLLMClient):
     async def chat(
         self,
         messages: List[Message],
-        **kwargs,
+        **kwargs: Any,
     ) -> LLMResponse:
         """
         채팅 대화
@@ -151,7 +151,7 @@ class AnthropicClient(BaseLLMClient):
         except Exception as e:
             raise RuntimeError(f"Anthropic API call failed: {str(e)}")
 
-    async def embed(self, text: str, **kwargs) -> np.ndarray:
+    async def embed(self, text: str, **kwargs: Any) -> np.ndarray:
         """
         텍스트 임베딩
 
@@ -164,11 +164,11 @@ class AnthropicClient(BaseLLMClient):
             "Anthropic does not provide embedding API. " "Use OpenAI or other embedding services."
         )
 
-    async def stream_generate(
+    async def stream_generate(  # type: ignore[override]
         self,
         prompt: str,
         context: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> AsyncIterator[str]:
         """
         스트리밍 텍스트 생성
@@ -221,7 +221,7 @@ class AnthropicClient(BaseLLMClient):
             return "\n".join(parts)
         return str(context)
 
-    def _build_generation_params(self, **kwargs) -> Dict[str, Any]:
+    def _build_generation_params(self, **kwargs: Any) -> Dict[str, Any]:
         """생성 파라미터 구성"""
         params = super()._build_generation_params(**kwargs)
 

@@ -165,7 +165,7 @@ class MeshOperations:
         Returns:
             각 꼭짓점의 이웃 인덱스 set 리스트
         """
-        adjacency = [set() for _ in range(num_vertices)]
+        adjacency: list[set[int]] = [set() for _ in range(num_vertices)]
 
         for face in faces:
             v1, v2, v3 = face
@@ -281,7 +281,7 @@ class MeshOperations:
         Returns:
             (중복 제거된 꼭짓점, 업데이트된 면)
         """
-        unique_vertices = []
+        unique_vertices: list[np.ndarray] = []
         vertex_map = {}
 
         for i, vertex in enumerate(vertices):

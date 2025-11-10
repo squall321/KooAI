@@ -6,7 +6,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from ..models import SimulationResult
 
@@ -32,7 +32,7 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
-    def parse(self, file_path: Path, **options) -> SimulationResult:
+    def parse(self, file_path: Path, **options: Any) -> SimulationResult:
         """
         파일 파싱
 
@@ -92,7 +92,7 @@ class ParserRegistry:
     파일 타입에 따라 적절한 파서 자동 선택.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._parsers: List[BaseParser] = []
 
     def register(self, parser: BaseParser) -> None:
@@ -114,7 +114,7 @@ class ParserRegistry:
                 return parser
         return None
 
-    def parse(self, file_path: Path, **options) -> SimulationResult:
+    def parse(self, file_path: Path, **options: Any) -> SimulationResult:
         """
         파일 자동 파싱
 

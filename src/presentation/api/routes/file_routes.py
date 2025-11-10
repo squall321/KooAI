@@ -5,7 +5,7 @@ Endpoints for streaming file uploads and parallel processing.
 """
 
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Any
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 
@@ -44,7 +44,7 @@ class BatchUploadResponse(BaseModel):
     summary="Streaming File Upload",
     description="Upload large files using streaming chunks",
 )
-async def upload_file_stream(file: UploadFile = File(...)):
+async def upload_file_stream(file: UploadFile = File(...)) -> "UploadResponse":
     """
     ## Streaming File Upload
 
@@ -82,7 +82,7 @@ async def upload_file_stream(file: UploadFile = File(...)):
     # Progress tracking (optional - could send via WebSocket)
     progress_updates = []
 
-    def on_progress(progress: UploadProgress):
+    def on_progress(progress: UploadProgress) -> None:
         progress_updates.append(
             {
                 "percent": progress.progress_percent,
@@ -112,7 +112,7 @@ async def upload_file_stream(file: UploadFile = File(...)):
     summary="Resumable File Upload",
     description="Upload with resume support for interrupted uploads",
 )
-async def upload_file_resume(file: UploadFile = File(...), resume_from: int = 0):
+async def upload_file_resume(file: UploadFile = File(...), resume_from: int = 0) -> "UploadResponse":
     """
     ## Resumable File Upload
 
@@ -166,7 +166,7 @@ async def upload_file_resume(file: UploadFile = File(...), resume_from: int = 0)
 )
 async def upload_files_batch(
     files: List[UploadFile] = File(...), background_tasks: BackgroundTasks = None
-):
+) -> "BatchUploadResponse":
     """
     ## Batch File Upload
 
@@ -240,7 +240,7 @@ async def upload_files_batch(
     summary="Calculate File Checksum",
     description="Calculate MD5/SHA256 checksum for uploaded file",
 )
-async def get_file_checksum(filename: str, algorithm: str = "md5"):
+async def get_file_checksum(filename: str, algorithm: str = "md5") -> Dict[str, str]:
     """
     ## Calculate File Checksum
 

@@ -320,7 +320,7 @@ class BasePlugin(IPlugin):
         """플러그인 헬스 체크"""
         healthy = self._status in (PluginStatus.LOADED, PluginStatus.ACTIVE)
 
-        result = {
+        result: Dict[str, Any] = {
             "healthy": healthy,
             "status": self._status.value,
             "plugin_id": str(self._plugin_id),

@@ -222,7 +222,7 @@ class MeshData(BaseDataType):
         Returns:
             int: 바이트 단위 크기
         """
-        size = self.vertices.nbytes + self.faces.nbytes
+        size: int = self.vertices.nbytes + self.faces.nbytes
 
         if self.normals is not None:
             size += self.normals.nbytes
@@ -349,9 +349,9 @@ class MeshData(BaseDataType):
         v2 = self.vertices[self.faces[:, 2]]
 
         # 부호 있는 사면체 부피의 합
-        volume = np.sum(np.cross(v0, v1) * v2) / 6.0
+        volume: float = np.sum(np.cross(v0, v1) * v2) / 6.0
 
-        return abs(volume)
+        return float(abs(volume))
 
     def is_closed(self) -> bool:
         """

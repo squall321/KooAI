@@ -5,7 +5,7 @@
 """
 
 import asyncio
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 from .base import (
     Pipeline,
@@ -82,7 +82,7 @@ class ParallelStage(ProcessingStage):
 
     def __init__(
         self,
-        process_func: callable,
+        process_func: Callable,
         max_concurrency: int = 10,
         name: str = "ParallelStage",
     ):
@@ -135,7 +135,7 @@ class BatchStage(ProcessingStage):
 
     def __init__(
         self,
-        batch_func: callable,
+        batch_func: Callable,
         batch_size: int = 100,
         name: str = "BatchStage",
     ):
@@ -194,7 +194,7 @@ class ConditionalStage(ProcessingStage):
 
     def __init__(
         self,
-        condition_func: callable,
+        condition_func: Callable,
         true_stage: ProcessingStage,
         false_stage: Optional[ProcessingStage] = None,
         name: str = "ConditionalStage",
@@ -229,13 +229,13 @@ class ConditionalStage(ProcessingStage):
             # True 경로
             context.metadata[f"{self.name}_branch"] = "true"
             result = await self.true_stage.execute(data, context)
-            return result.final_data
+            return result.data
         else:
             # False 경로
             context.metadata[f"{self.name}_branch"] = "false"
             if self.false_stage:
                 result = await self.false_stage.execute(data, context)
-                return result.final_data
+                return result.data
             else:
                 # false_stage가 없으면 데이터 그대로 반환
                 return data

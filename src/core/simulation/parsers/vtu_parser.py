@@ -6,7 +6,7 @@ VTK XML Unstructured Grid 형식 파일을 파싱합니다.
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 import numpy as np
 
 from .base import BaseParser
@@ -44,7 +44,7 @@ class VTUParser(BaseParser):
         """지원 확장자: .vtu"""
         return [".vtu"]
 
-    def parse(self, file_path: Path, **options) -> SimulationResult:
+    def parse(self, file_path: Path, **options: Any) -> SimulationResult:
         """
         VTU 파일 파싱
 

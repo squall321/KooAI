@@ -1,5 +1,6 @@
 """시뮬레이션 결과 파서"""
 
+from typing import Optional, Type
 from .base import BaseParser, ParserRegistry
 from .csv_parser import CSVParser
 from .format_detector import AutoFormatParser, DetectionResult, FileFormat, FormatDetector
@@ -10,6 +11,7 @@ from .vtk_parser import VTKParser
 from .vtu_parser import VTUParser
 
 # Optional parsers (require additional dependencies)
+HDF5Parser: Optional[Type[BaseParser]]
 try:
     from .hdf5_parser import HDF5Parser
 

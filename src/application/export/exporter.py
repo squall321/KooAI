@@ -79,7 +79,7 @@ class MultiFormatExporter:
         include_metadata: bool = True,
     ) -> None:
         """Export to JSON"""
-        data_dict = {
+        data_dict: Dict[str, Any] = {
             "simulation_id": getattr(simulation_data, "simulation_id", None),
             "name": getattr(simulation_data, "name", None),
             "fields": {},

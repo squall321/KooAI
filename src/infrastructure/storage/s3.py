@@ -90,7 +90,7 @@ class S3StorageBackend(StorageBackend):
         if metadata:
             extra_args["Metadata"] = metadata
 
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             response = await s3.put_object(
                 Bucket=self.bucket_name,
                 Key=key,
@@ -119,7 +119,7 @@ class S3StorageBackend(StorageBackend):
         if metadata:
             extra_args["Metadata"] = metadata
 
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             # Initiate multipart upload
             response = await s3.create_multipart_upload(
                 Bucket=self.bucket_name, Key=key, **extra_args
@@ -177,7 +177,7 @@ class S3StorageBackend(StorageBackend):
 
     async def download(self, key: str) -> bytes:
         """파일 다운로드"""
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             response = await s3.get_object(Bucket=self.bucket_name, Key=key)
             async with response["Body"] as stream:
                 return await stream.read()
@@ -186,12 +186,12 @@ class S3StorageBackend(StorageBackend):
         """파일을 로컬 파일로 다운로드"""
         destination.parent.mkdir(parents=True, exist_ok=True)
 
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             await s3.download_file(self.bucket_name, key, str(destination))
 
     async def download_stream(self, key: str, chunk_size: int = 8192) -> AsyncIterator[bytes]:
         """파일을 스트림으로 다운로드"""
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             response = await s3.get_object(Bucket=self.bucket_name, Key=key)
             async with response["Body"] as stream:
                 while True:
@@ -202,7 +202,7 @@ class S3StorageBackend(StorageBackend):
 
     async def delete(self, key: str) -> None:
         """파일 삭제"""
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             await s3.delete_object(Bucket=self.bucket_name, Key=key)
 
     async def delete_many(self, keys: list[str]) -> None:
@@ -210,7 +210,7 @@ class S3StorageBackend(StorageBackend):
         if not keys:
             return
 
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             # S3 allows deleting up to 1000 objects at once
             batch_size = 1000
             for i in range(0, len(keys), batch_size):
@@ -226,7 +226,7 @@ class S3StorageBackend(StorageBackend):
     async def exists(self, key: str) -> bool:
         """파일 존재 여부 확인"""
         try:
-            async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+            async with self.session.client("s3", **self._get_client_kwargs()) as s3:
                 await s3.head_object(Bucket=self.bucket_name, Key=key)
             return True
         except Exception:
@@ -234,7 +234,7 @@ class S3StorageBackend(StorageBackend):
 
     async def get_metadata(self, key: str) -> FileMetadata:
         """파일 메타데이터 조회"""
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             response = await s3.head_object(Bucket=self.bucket_name, Key=key)
 
         return FileMetadata(
@@ -250,7 +250,7 @@ class S3StorageBackend(StorageBackend):
         """파일 목록 조회"""
         files = []
 
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             paginator = s3.get_paginator("list_objects_v2")
             async for page in paginator.paginate(
                 Bucket=self.bucket_name,
@@ -286,7 +286,7 @@ class S3StorageBackend(StorageBackend):
         }
         client_method = operation_map.get(method.upper(), "get_object")
 
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             url = await s3.generate_presigned_url(
                 ClientMethod=client_method,
                 Params={"Bucket": self.bucket_name, "Key": key},
@@ -301,7 +301,7 @@ class S3StorageBackend(StorageBackend):
 
     async def copy(self, source_key: str, destination_key: str) -> None:
         """파일 복사"""
-        async with self.session.client("s3", **self._get_client_kwargs()) as s3:  # type: ignore
+        async with self.session.client("s3", **self._get_client_kwargs()) as s3:
             copy_source = {"Bucket": self.bucket_name, "Key": source_key}
             await s3.copy_object(
                 Bucket=self.bucket_name,

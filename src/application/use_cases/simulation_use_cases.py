@@ -89,6 +89,8 @@ class UploadSimulationUseCase(UseCase[UploadSimulationRequest, UploadSimulationR
         # 저장
         saved_result = self.repository.add(result)
 
+        assert saved_result.id is not None, "Saved result must have an ID"
+
         return UploadSimulationResponse(
             simulation_id=saved_result.id,
             name=saved_result.name,
@@ -141,6 +143,8 @@ class GetSimulationUseCase(UseCase[GetSimulationRequest, GetSimulationResponse])
 
         if not result:
             raise NotFoundError(f"Simulation not found: {request.simulation_id}")
+
+        assert result.id is not None, "Result must have an ID"
 
         return GetSimulationResponse(
             simulation_id=result.id,
@@ -511,6 +515,7 @@ class ListSimulationsUseCase(UseCase[ListSimulationsRequest, ListSimulationsResp
                 created_at=r.created_at.isoformat(),
             )
             for r in results
+            if r.id is not None
         ]
 
         return ListSimulationsResponse(simulations=summaries, total=total)

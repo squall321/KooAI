@@ -2,7 +2,7 @@
 Celery application instance
 """
 
-from typing import Optional
+from typing import Any, Optional
 from celery import Celery
 from celery.schedules import crontab
 
@@ -87,7 +87,7 @@ celery_app = create_celery_app()
 
 # Optional: Celery signal handlers
 @celery_app.task(bind=True)
-def debug_task(self):
+def debug_task(self: Any) -> str:
     """Debug task for testing"""
     print(f"Request: {self.request!r}")
     return "Debug task completed"

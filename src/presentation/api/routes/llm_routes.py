@@ -4,6 +4,7 @@ LLM Integration API Routes
 Endpoints for AI-powered analysis with streaming support.
 """
 
+from typing import AsyncGenerator, Dict, Any
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -45,7 +46,7 @@ _usage_tracker = TokenUsageTracker()
     summary="Streaming LLM Analysis",
     description="Get AI analysis with Server-Sent Events streaming",
 )
-async def analyze_with_llm_stream(request: AnalysisRequest):
+async def analyze_with_llm_stream(request: AnalysisRequest) -> StreamingResponse:
     """
     ## Streaming LLM Analysis
 
@@ -101,7 +102,7 @@ async def analyze_with_llm_stream(request: AnalysisRequest):
         context = _contexts[request.context_id]
 
     # Stream response
-    async def generate():
+    async def generate() -> AsyncGenerator[str, None]:
         async for chunk in service.stream_analysis(
             prompt=request.prompt,
             context=context,
@@ -115,7 +116,7 @@ async def analyze_with_llm_stream(request: AnalysisRequest):
                 _usage_tracker.record_usage(
                     model="mock-model",
                     prompt_tokens=len(request.prompt.split()),
-                    completion_tokens=chunk.metadata.get("token_count", 0),
+                    completion_tokens=chunk.metadata.get("token_count", 0) if chunk.metadata else 0,
                     cost_usd=0.001,  # Mock cost
                 )
 
@@ -127,7 +128,7 @@ async def analyze_with_llm_stream(request: AnalysisRequest):
     summary="Create Conversation Context",
     description="Create a new conversation context for multi-turn dialogue",
 )
-async def create_context():
+async def create_context() -> Dict[str, Any]:
     """
     ## Create Conversation Context
 
@@ -162,7 +163,7 @@ async def create_context():
     summary="Delete Conversation Context",
     description="Delete a conversation context",
 )
-async def delete_context(context_id: str):
+async def delete_context(context_id: str) -> Dict[str, str]:
     """
     ## Delete Conversation Context
 
@@ -188,7 +189,7 @@ async def delete_context(context_id: str):
     summary="Get Token Usage Stats",
     description="Get LLM token usage and cost statistics",
 )
-async def get_usage_stats():
+async def get_usage_stats() -> "UsageResponse":
     """
     ## Get Token Usage Statistics
 

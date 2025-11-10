@@ -142,7 +142,7 @@ class CurveData(BaseDataType):
 
     def get_size_bytes(self) -> int:
         """크기 계산"""
-        size = self.x.nbytes + self.y.nbytes
+        size: int = self.x.nbytes + self.y.nbytes
         if self.z is not None:
             size += self.z.nbytes
         return size

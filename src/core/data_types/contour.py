@@ -165,17 +165,17 @@ class ContourData(BaseDataType):
         Returns:
             int: 바이트 단위 크기
         """
-        return self.points.nbytes
+        return int(self.points.nbytes)
 
     # === 컨투어 분석 메서드 ===
 
     def is_2d(self) -> bool:
         """2D 컨투어인지 확인"""
-        return self.points.shape[1] == 2
+        return bool(self.points.shape[1] == 2)
 
     def is_3d(self) -> bool:
         """3D 컨투어인지 확인"""
-        return self.points.shape[1] == 3
+        return bool(self.points.shape[1] == 3)
 
     def get_area(self) -> float:
         """
@@ -196,7 +196,7 @@ class ContourData(BaseDataType):
         # Shoelace formula
         x = self.points[:, 0]
         y = self.points[:, 1]
-        return 0.5 * abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+        return float(0.5 * abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))))
 
     def get_perimeter(self) -> float:
         """

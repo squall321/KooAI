@@ -14,7 +14,7 @@ from .base import BaseModelAdapter, InferenceResult, ModelConfig, ModelFramework
 class ONNXAdapter(BaseModelAdapter):
     """ONNX 모델 어댑터"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.session: Optional[Any] = None
         self.input_names: List[str] = []
@@ -89,7 +89,7 @@ class ONNXAdapter(BaseModelAdapter):
     def predict(
         self,
         input_data: Union[np.ndarray, Dict[str, np.ndarray], List[np.ndarray]],
-        **kwargs,
+        **kwargs: Any,
     ) -> InferenceResult:
         """
         추론 수행
@@ -138,6 +138,8 @@ class ONNXAdapter(BaseModelAdapter):
             output_names = kwargs.get("output_names", self.output_names)
 
             # 추론 수행
+            if self.session is None:
+                raise RuntimeError("Session is not loaded")
             outputs = self.session.run(output_names, input_feed)
 
             # 추론 시간 계산
@@ -164,7 +166,7 @@ class ONNXAdapter(BaseModelAdapter):
         except Exception as e:
             raise RuntimeError(f"ONNX inference failed: {str(e)}")
 
-    def batch_predict(self, input_data_list: List[Any], **kwargs) -> List[InferenceResult]:
+    def batch_predict(self, input_data_list: List[Any], **kwargs: Any) -> List[InferenceResult]:
         """
         배치 추론
 
@@ -192,12 +194,13 @@ class ONNXAdapter(BaseModelAdapter):
 
                 # 결과를 개별 항목으로 분리
                 batch_output = batch_result.output
+                batch_time = batch_result.inference_time_ms or 0.0
                 for j in range(len(batch)):
                     results.append(
                         InferenceResult(
                             output=batch_output[j],
                             metadata=batch_result.metadata,
-                            inference_time_ms=batch_result.inference_time_ms / len(batch),
+                            inference_time_ms=batch_time / len(batch),
                         )
                     )
             else:
@@ -216,13 +219,16 @@ class ONNXAdapter(BaseModelAdapter):
         """
         self._ensure_loaded()
 
-        info = {
+        info: Dict[str, Any] = {
             "framework": "onnx",
             "providers": self.providers,
             "is_loaded": self._is_loaded,
             "num_inputs": len(self.input_names),
             "num_outputs": len(self.output_names),
         }
+
+        if self.session is None:
+            return info
 
         # 입력 정보
         input_info = []
